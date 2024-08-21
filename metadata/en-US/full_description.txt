@@ -1,0 +1,14 @@
+This project aims to be a replacement with personal tweaks for the now-defunct <a href="https://github.com/kabouzeid/Phonograph">Phonograph</a> music player, but has no connections with it.
+
+<strong>Features</strong>
+
+<ul>
+<li>Familiar user experience</li>
+<li>Better metadata support; Namely, multiple artists.</li>
+<li>Better sorting when your music library differs from your system language</li>
+<li>Regex-based blacklist</li>
+<li>Playback speed and pitch control</li>
+<li>More lyrics styles</li>
+<li>Optional less-vibrant colors</li>
+<li>Brand new design based on Material Design 3</li>
+</ul>

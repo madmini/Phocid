@@ -1,0 +1,5 @@
+<root>
+    <item name='androidx.core.graphics.PathParser'>
+        <annotation name='org.jetbrains.annotations.NonNls' />
+    </item>
+</root>

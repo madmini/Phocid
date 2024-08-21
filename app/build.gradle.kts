@@ -1,0 +1,128 @@
+plugins {
+    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.jetbrainsKotlinAndroid)
+    alias(libs.plugins.compose.compiler)
+    kotlin("plugin.serialization") version "2.0.0"
+    id("com.ncorti.ktfmt.gradle") version "0.20.1"
+    id("com.jaredsburrows.license") version "0.9.8"
+}
+
+android {
+    namespace = "org.sunsetware.phocid"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "org.sunsetware.phocid"
+        minSdk = 30
+        targetSdk = 35
+        versionCode = 20241121
+        versionName = "20241121"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables { useSupportLibrary = true }
+    }
+
+    buildTypes {
+        debug { isPseudoLocalesEnabled = true }
+        release {
+            isShrinkResources = true
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    kotlinOptions { jvmTarget = "1.8" }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+    composeOptions { kotlinCompilerExtensionVersion = "1.5.1" }
+    packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
+    dependenciesInfo {
+        // Disables dependency metadata when building APKs.
+        includeInApk = false
+        // Disables dependency metadata when building Android App Bundles.
+        includeInBundle = false
+    }
+}
+
+dependencies {
+    implementation(libs.accompanist.permissions)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.media3.common)
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.session)
+    implementation(libs.androidx.palette.ktx)
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    // TODO: Maybe requiring a dependency just for `FilenameUtils` is too much
+    implementation(libs.commons.io)
+    implementation(libs.core.splashscreen)
+    // ICU can't be mocked by Robolectric, WTF
+    implementation(libs.icu4j)
+    implementation(libs.kotlinx.serialization.cbor)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.jaudiotagger)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.assertj.core)
+
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+tasks.register("customSetup") { dependsOn("licenseReleaseReport") }
+
+tasks.preBuild { dependsOn("customSetup") }
+
+tasks.assembleUnitTest { dependsOn("customSetup") }
+
+composeCompiler {
+    stabilityConfigurationFile = rootProject.layout.projectDirectory.file("stability_config.conf")
+}
+
+ktfmt { kotlinLangStyle() }
+
+licenseReport {
+    // Generate reports
+    generateCsvReport = false
+    generateHtmlReport = false
+    generateJsonReport = true
+    generateTextReport = false
+
+    // Copy reports - These options are ignored for Java projects
+    copyCsvReportToAssets = false
+    copyHtmlReportToAssets = false
+    copyJsonReportToAssets = true
+    copyTextReportToAssets = false
+    useVariantSpecificAssetDirs = false
+
+    // Ignore licenses for certain artifact patterns
+    ignoredPatterns = setOf()
+
+    // Show versions in the report - default is false
+    showVersions = true
+}

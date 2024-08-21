@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<resources>
+    <string name="app_copyright" translatable="false">Phocid\nCopyright (C) tjysunset &lt;tjysunset@outlook.com&gt;\n\nThis program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program. If not, see &lt;https://www.gnu.org/licenses/&gt;.</string>
+    <string name="app_license_name" translatable="false">GNU General Public License v3.0 or later</string>
+    <string name="app_name" translatable="false">Phocid</string>
+    <string name="app_url" translatable="false">https://github.com/tjysunset/phocid</string>
+
+    <string name="commons_add">Add</string>
+    <string name="commons_back">Back</string>
+    <string name="commons_cancel">Cancel</string>
+    <!-- Verb, "remove everything" -->
+    <string name="commons_clear">Clear</string>
+    <string name="commons_close">Close</string>
+    <string name="commons_error">Error</string>
+    <string name="commons_export">Export</string>
+    <string name="commons_import">Import</string>
+    <!-- Alt text of overflow menus -->
+    <string name="commons_more">More</string>
+    <string name="commons_ok">OK</string>
+    <string name="commons_quit">Quit</string>
+    <string name="commons_remove">Remove</string>
+    <string name="commons_reset">Reset</string>
+
+    <string name="count_album">{0, plural, one {# album} other {# albums}}</string>
+    <string name="count_folder">{0, plural, one {# folder} other {# folders}}</string>
+    <string name="count_invalid_track">{0, plural, one {# invalid track} other {# invalid tracks}}</string>
+    <string name="count_track">{0, plural, one {# track} other {# tracks}}</string>
+
+    <string name="duration_hours_minutes_seconds">{0, number, ::00}:{1, number, ::00}:{2, number, ::00}</string>
+    <string name="duration_minutes_seconds">{0, number, ::00}:{1, number, ::00}</string>
+    <string name="duration_negative_hours_minutes_seconds">-{0, number, ::00}:{1, number, ::00}:{2, number, ::00}</string>
+    <string name="duration_negative_minutes_seconds">-{0, number, ::00}:{1, number, ::00}</string>
+
+    <string name="library_rescan">Rescan library</string>
+
+    <string name="list_empty">Empty</string>
+    <string name="list_move_down">Move down</string>
+    <string name="list_move_up">Move up</string>
+    <!-- Alt text for the check mark displayed on selected items -->
+    <string name="list_multi_select_item_selected">Selected</string>
+    <string name="list_multi_select_select_all">Select all</string>
+    <string name="list_multi_select_select_inverse">Select inverse</string>
+    <string name="list_multi_select_title">Selected {0, plural, one {# item} other {# items}}</string>
+
+    <!-- The IETF language tag of the current translation, used for formatting -->
+    <string name="locale">en</string>
+
+    <string name="permission_dialog_body">Permission to read your audio files is required for basic functionality. Please grant to continue.</string>
+    <string name="permission_dialog_grant">Grant</string>
+    <string name="permission_dialog_title">Permission required</string>
+
+    <string name="player_clear_queue">Clear queue</string>
+    <string name="player_next">Next</string>
+    <string name="player_now_playing">Now playing</string>
+    <!-- Alt text of the "favorite" button next to the currently playing track -->
+    <string name="player_now_playing_add_favorites">Now playing - click to add to favorites</string>
+    <!-- Alt text of the "favorite" button next to the currently playing track -->
+    <string name="player_now_playing_remove_favorites">Now playing - click to remove from favorites</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_play">Play</string>
+    <string name="player_previous">Previous</string>
+    <string name="player_repeat_mode_all">Repeat mode: all</string>
+    <string name="player_repeat_mode_off">Repeat mode: off</string>
+    <string name="player_repeat_mode_one">Repeat mode: one</string>
+    <string name="player_save_queue">Save queue as playlist</string>
+    <string name="player_shuffle_off">Shuffle: off</string>
+    <string name="player_shuffle_on">Shuffle: on</string>
+    <string name="player_speed_and_pitch">Speed and pitch</string>
+    <string name="player_speed_and_pitch_match_pitch_to_speed">Match pitch to speed</string>
+    <string name="player_speed_and_pitch_pitch">Pitch</string>
+    <string name="player_speed_and_pitch_pitch_number">{0, number, ::+!}</string>
+    <string name="player_speed_and_pitch_speed">Speed</string>
+    <string name="player_speed_and_pitch_speed_number">{0, number, ::.00}×</string>
+    <string name="player_timer">Sleep timer</string>
+    <string name="player_timer_cancel">Cancel timer</string>
+    <string name="player_timer_finish_last_track">Finish last track</string>
+    <string name="player_timer_set">Set</string>
+    <string name="player_up_next">Up next</string>
+
+    <string name="playlist_add_to">Add to playlist</string>
+    <string name="playlist_delete">Delete playlist</string>
+    <string name="playlist_delete_multiple_dialog_body">{0, plural, one {# playlist} other {# playlists}} will be permanently deleted</string>
+    <string name="playlist_delete_multiple_dialog_title">Delete {0, plural, one {# playlist} other {# playlists}}?</string>
+    <string name="playlist_delete_single_dialog_body">Playlist “{0}” will be permanently deleted</string>
+    <string name="playlist_delete_single_dialog_title">Delete playlist?</string>
+    <string name="playlist_edit">Edit playlist</string>
+    <string name="playlist_edit_screen_title">Edit playlist “{0}”</string>
+    <string name="playlist_export">Export playlist</string>
+    <string name="playlist_import_export">Import/export playlist</string>
+    <string name="playlist_io_export_count">Export {0, plural, one {# playlist} other {# playlists}}</string>
+    <string name="playlist_io_import_count">Import {0, plural, one {# playlist} other {# playlists}}</string>
+    <string name="playlist_io_location">Playlist location: {0}</string>
+    <string name="playlist_io_location_not_set">Playlist location: not set</string>
+    <string name="playlist_io_select_folder">Select folder</string>
+    <string name="playlist_name">Playlist name</string>
+    <string name="playlist_new">New playlist</string>
+    <string name="playlist_new_with_tracks">New playlist with {0, plural, one {# track} other {# tracks}}</string>
+    <string name="playlist_remove_from">Remove from playlist</string>
+    <string name="playlist_remove_from_dialog_body">{0, plural, one {# track} other {# tracks}} will be removed from playlist “{1}”</string>
+    <string name="playlist_remove_from_dialog_title">Remove {0, plural, one {# track} other {# tracks}} from playlist?</string>
+    <string name="playlist_remove_invalid_tracks">Remove invalid tracks</string>
+    <string name="playlist_rename">Rename playlist</string>
+    <string name="playlist_rename_input_hint">New name</string>
+    <string name="playlist_sort">Sort playlist</string>
+    <string name="playlist_sort_screen_title">Sort playlist “{0}”</string>
+    <string name="playlist_special_favorites">Favorites</string>
+
+    <string name="preferences">Preferences</string>
+    <string name="preferences_about">About</string>
+    <string name="preferences_artwork_color">Artwork color extraction</string>
+    <!-- "Muted" as in opposite of vibrant -->
+    <string name="preferences_artwork_color_muted_first">Prefer muted</string>
+    <!-- "Muted" as in opposite of vibrant. This option will forcefully convert vibrant colors to muted ones. -->
+    <string name="preferences_artwork_color_muted_only">Only muted</string>
+    <string name="preferences_artwork_color_vibrant_first">Prefer vibrant</string>
+    <!-- "Cards" are rectangular list items displayed on the main screen. -->
+    <string name="preferences_colored_cards">Color cards based on artwork</string>
+    <string name="preferences_colored_player">Color player screen based on artwork</string>
+    <string name="preferences_dark_theme">Dark theme</string>
+    <string name="preferences_dark_theme_dark">Dark</string>
+    <string name="preferences_dark_theme_light">Light</string>
+    <string name="preferences_dark_theme_system">Follow system</string>
+    <string name="preferences_data">Data</string>
+    <string name="preferences_indexing">Indexing</string>
+    <string name="preferences_indexing_artist_separator_exceptions">Artist separator exceptions</string>
+    <string name="preferences_indexing_artist_separator_exceptions_subtitle">{0, plural, one {# exception} other {# exceptions}}</string>
+    <string name="preferences_indexing_artist_separators">Artist separators</string>
+    <string name="preferences_indexing_artist_separators_subtitle">{0, plural, one {# separator} other {# separators}}</string>
+    <string name="preferences_indexing_blacklist">Blacklist</string>
+    <string name="preferences_indexing_blacklist_subtitle">{0, plural, one {# rule} other {# rules}}, {1, plural, one {# track} other {# tracks}} filtered</string>
+    <string name="preferences_indexing_dialog_input_placeholder">Add rule</string>
+    <string name="preferences_indexing_dialog_match_count">{0, plural, one {# track} other {# tracks}} match this rule</string>
+    <string name="preferences_indexing_help">Indexing help</string>
+    <string name="preferences_indexing_help_artist_separator_exceptions_body">These strings will be exempt from the aforementioned separation. For example, adding “A &amp; B” will cause “A &amp; B” to be recognized as a single artist no matter what.</string>
+    <string name="preferences_indexing_help_artist_separator_exceptions_title">Artist separator exceptions</string>
+    <string name="preferences_indexing_help_artist_separators_body">Artist metadata will be split by these strings. For example, adding “&amp;” will cause “A &amp; B” to be recognized as two artists, “A” and “B”.</string>
+    <string name="preferences_indexing_help_artist_separators_title">Artist separators</string>
+    <string name="preferences_indexing_help_blacklist_body">Tracks matching the blacklist will be hidden.</string>
+    <string name="preferences_indexing_help_blacklist_title">Blacklist</string>
+    <string name="preferences_indexing_help_syntax_body">Filter rules are case-insensitive regexes (regular expressions) that match on absolute track paths partially.\n\nTo view a track’s absolute path, press the “Details” button in its menu.\n\nExamples:\n\n• Match all files in folder “Example”:\n/Example/\n\n• Match all MP3 files:\n\\.mp3$\n\n• Match all MP3 files in folder “Example”:\n/Example/.*\\.mp3$\n\n• Match all files in folder “Example” but not “example” (case-sensitive):\n(?-i)/Example/</string>
+    <string name="preferences_indexing_help_syntax_title">Blacklist/whitelist syntax</string>
+    <string name="preferences_indexing_help_whitelist_body">Tracks matching both the blacklist and the whitelist will not be hidden.\n\nTo show only tracks matching the whitelist, add a catch-all rule to the blacklist:\n^</string>
+    <string name="preferences_indexing_help_whitelist_title">Whitelist</string>
+    <string name="preferences_indexing_invalid_regex">Not a valid regular expression</string>
+    <string name="preferences_indexing_rescan_footnote">Perform a manual rescan for changes to take effect</string>
+    <string name="preferences_indexing_whitelist">Whitelist</string>
+    <string name="preferences_indexing_whitelist_subtitle">{0, plural, one {# rule} other {# rules}}</string>
+    <string name="preferences_interface">Interface</string>
+    <string name="preferences_license">License</string>
+    <string name="preferences_lyrics_display">Lyrics display</string>
+    <string name="preferences_lyrics_display_default">Default</string>
+    <string name="preferences_lyrics_display_disabled">Disabled</string>
+    <string name="preferences_lyrics_display_two_lines">Two lines</string>
+    <string name="preferences_playlist_io_settings">Playlist I/O settings</string>
+    <string name="preferences_playlist_io_settings_ignore_case">Ignore file name case</string>
+    <string name="preferences_playlist_io_settings_ignore_location">Ignore file location</string>
+    <string name="preferences_playlist_io_settings_remove_invalid">Remove unresolved tracks</string>
+    <string name="preferences_pure_background_color">Pure black/white background</string>
+    <string name="preferences_sorting_language">Sorting language</string>
+    <string name="preferences_sorting_language_system">System language</string>
+    <string name="preferences_tabs">Home screen tabs</string>
+    <!-- Symbol used to separate list of enabled tabs in preferences screen -->
+    <string name="preferences_tabs_separator">", "</string>
+    <string name="preferences_text_encoding">Text encoding</string>
+    <string name="preferences_text_encoding_auto_detect">Auto detect</string>
+    <string name="preferences_theme">Theme</string>
+    <string name="preferences_theme_color">Theme color</string>
+    <string name="preferences_theme_color_chroma">Chroma</string>
+    <string name="preferences_theme_color_chroma_number">{0}%</string>
+    <string name="preferences_theme_color_hue">Hue</string>
+    <string name="preferences_theme_color_hue_number">{0}°</string>
+    <string name="preferences_theme_color_source_custom">Custom</string>
+    <string name="preferences_theme_color_source_default">Default</string>
+    <string name="preferences_theme_color_source_material_you">Material You</string>
+    <string name="preferences_third_party_licenses">Third party licenses</string>
+    <string name="preferences_ui_scaling">UI scaling</string>
+    <string name="preferences_ui_scaling_number">{0, number, ::.00}×</string>
+    <string name="preferences_version">Version</string>
+    <string name="preferences_website">Website</string>
+
+    <string name="search">Search</string>
+
+    <string name="snackbar_scanning_library">Scanning library…</string>
+
+    <string name="sorting_album">Album</string>
+    <string name="sorting_album_artist">Album artist</string>
+    <string name="sorting_artist">Artist</string>
+    <string name="sorting_ascending">Ascending</string>
+    <string name="sorting_custom">Custom</string>
+    <string name="sorting_descending">Descending</string>
+    <string name="sorting_file_name">File name</string>
+    <string name="sorting_name">Name</string>
+    <string name="sorting_number">Track number</string>
+    <string name="sorting_title">Title</string>
+    <string name="sorting_year">Year</string>
+
+    <!-- Symbol used to separate multiple artists of a single track -->
+    <string name="symbol_conjunction">" &amp; "</string>
+    <!-- Symbol used to separate related info placed on the same line -->
+    <string name="symbol_separator">" · "</string>
+
+    <string name="tab_albums">Albums</string>
+    <string name="tab_artists">Artists</string>
+    <string name="tab_folders">Folders</string>
+    <string name="tab_genres">Genres</string>
+    <string name="tab_playlists">Playlists</string>
+    <string name="tab_tracks">Tracks</string>
+
+    <string name="toast_crash_saved_to">Crash log saved to {0}</string>
+    <string name="toast_playlist_exported">Exported {0, plural, one {# playlist} other {# playlists}}</string>
+    <string name="toast_playlist_exported_with_failure">Exported {0, plural, one {# playlist} other {# playlists}}, {1, plural, other {#}} failed</string>
+    <string name="toast_playlist_imported">Imported {0, plural, one {# playlist} other {# playlists}}</string>
+    <string name="toast_timer_canceled">Canceled sleep timer</string>
+    <string name="toast_timer_set">Playback will pause after ~{0, plural, one {# minute} other {# minutes}}</string>
+    <string name="toast_track_queued">{0, plural, one {# track} other {# tracks}} queued</string>
+
+    <string name="track_add_to_queue">Add to queue</string>
+    <string name="track_details">Details</string>
+    <string name="track_details_album">Album</string>
+    <string name="track_details_album_artist">Album artist</string>
+    <string name="track_details_artist">Artist</string>
+    <string name="track_details_bit_depth">Bit depth</string>
+    <string name="track_details_bit_rate">Bit rate</string>
+    <string name="track_details_format">Format</string>
+    <string name="track_details_genre">Genre</string>
+    <string name="track_details_path">Path</string>
+    <string name="track_details_sample_rate">Sample rate</string>
+    <string name="track_details_size">Size</string>
+    <string name="track_details_title">Title</string>
+    <string name="track_details_track_number">Track number</string>
+    <string name="track_details_year">Year</string>
+    <string name="track_disc_without_number">{0}-?</string>
+    <string name="track_number_not_available">-</string>
+    <string name="track_number_with_disc">{0}-{1}</string>
+    <string name="track_number_without_disc">{0}</string>
+    <string name="track_play">Play</string>
+    <string name="track_play_all">Play all</string>
+    <string name="track_remove_from_queue">Remove from queue</string>
+    <string name="track_view_album">View album “{0}”</string>
+    <string name="track_view_artist">View artist “{0}”</string>
+
+    <!-- Settings of how the list is displayed. Unrelated to "view album" etc. -->
+    <string name="view_settings">View settings</string>
+    <string name="view_settings_grid_size">Grid size</string>
+    <string name="view_settings_sort_by">Sort by</string>
+</resources>

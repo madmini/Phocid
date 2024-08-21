@@ -1,0 +1,5 @@
+<root>
+    <item name='java.lang.Runtime'>
+        <annotation name='org.jetbrains.annotations.NonNls' />
+    </item>
+</root>

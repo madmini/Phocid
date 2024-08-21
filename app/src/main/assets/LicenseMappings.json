@@ -1,0 +1,36 @@
+{
+  "projectMappings": {
+  },
+  "urlMappings": {
+    "http://www.apache.org/licenses/LICENSE-2.0.txt": "Apache-2.0.txt",
+    "https://www.apache.org/licenses/LICENSE-2.0.txt": "Apache-2.0.txt",
+    "https://raw.githubusercontent.com/unicode-org/icu/maint/maint-76/LICENSE": "Unicode-3.0.txt"
+  },
+  "otherMappings": [
+    {
+      "first": {
+        "project": "SquigglyProgress.kt (modified)",
+        "developers": [
+          "The Android Open Source Project"
+        ],
+        "url": "https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android14-release/packages/SystemUI/src/com/android/systemui/media/controls/ui/SquigglyProgress.kt"
+      },
+      "second": [
+        "Apache-2.0.txt"
+      ]
+    },
+    {
+      "first": {
+        "project": "Kaned1as/jaudiotagger",
+        "developers": [
+          "Paul Taylor",
+          "Oleg Chernovskiy"
+        ],
+        "url": "https://github.com/Kaned1as/jaudiotagger"
+      },
+      "second": [
+        "LGPL-3.0.txt"
+      ]
+    }
+  ]
+}

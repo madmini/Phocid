@@ -1,0 +1,3 @@
+[submodule "deps/jaudiotagger"]
+	path = deps/jaudiotagger
+	url = https://github.com/TJYSunset/jaudiotagger
