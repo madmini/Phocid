@@ -35,6 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.Player
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -165,7 +166,22 @@ fun LibraryScreen(playerScreenDragLock: DragLock, viewModel: MainViewModel = vie
     val floatingToolbarItems =
         rememberFloatingToolbarItems(floatingToolbarDataSource, currentMultiSelectState)
     val isScanningLibrary by viewModel.isScanningLibrary.collectAsStateWithLifecycle()
-    val libraryScanProgress by viewModel.libraryScanProgress.collectAsStateWithLifecycle()
+    var scanSnackbarVisibility by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isScanningLibrary) {
+        when (isScanningLibrary) {
+            false -> {
+                delay(1.seconds)
+                if (isActive) scanSnackbarVisibility = true
+            }
+            true -> {
+                scanSnackbarVisibility = true
+            }
+            null -> {
+                scanSnackbarVisibility = false
+            }
+        }
+    }
 
     LaunchedEffect(searchQueryBuffer) {
         uiManager.libraryScreenSearchQuery.update { searchQueryBuffer }
@@ -235,10 +251,13 @@ fun LibraryScreen(playerScreenDragLock: DragLock, viewModel: MainViewModel = vie
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 AnimatedVisibility(
-                    visible = isScanningLibrary,
+                    visible = scanSnackbarVisibility,
                     enter = EnterFromBottom,
                     exit = ExitToBottom,
                 ) {
+                    val libraryScanProgress by
+                        viewModel.libraryScanProgress.collectAsStateWithLifecycle()
+
                     IndefiniteSnackbar(
                         Strings[R.string.snackbar_scanning_library].icuFormat(
                             libraryScanProgress?.first ?: 0,

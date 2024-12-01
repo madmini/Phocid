@@ -50,7 +50,12 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     private val _unfilteredTrackIndex = MutableStateFlow(EmptyTrackIndex)
     val unfilteredTrackIndex = _unfilteredTrackIndex.asStateFlow()
 
-    private val _isScanningLibrary = MutableStateFlow(false)
+    private val _isScanningLibrary = MutableStateFlow(null as Boolean?)
+    /**
+     * - null: not scanning
+     * - true: forced (manual)
+     * - false: not forced (auto)
+     */
     val isScanningLibrary = _isScanningLibrary.asStateFlow()
 
     private val _libraryScanProgress = MutableStateFlow(null as Pair<Int, Int>?)
@@ -175,7 +180,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                     }
                     try {
                         _libraryScanProgress.update { null }
-                        _isScanningLibrary.update { true }
+                        _isScanningLibrary.update { force }
                         val newTrackIndex =
                             scanTracks(
                                 application.applicationContext,
@@ -199,7 +204,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                         }
                     } finally {
                         scanMutex.unlock()
-                        _isScanningLibrary.update { false }
+                        _isScanningLibrary.update { null }
                     }
                 }
             }
