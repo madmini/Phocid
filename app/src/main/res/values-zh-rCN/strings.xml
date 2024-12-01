@@ -156,7 +156,7 @@
     <string name="preferences_version">版本</string>
     <string name="preferences_website">网站</string>
     <string name="search">搜索</string>
-    <string name="snackbar_scanning_library">扫描曲库中……</string>
+    <string name="snackbar_scanning_library">扫描曲库中（{0}/{1}）</string>
     <string name="sorting_album">专辑</string>
     <string name="sorting_album_artist">专辑艺术家</string>
     <string name="sorting_artist">艺术家</string>

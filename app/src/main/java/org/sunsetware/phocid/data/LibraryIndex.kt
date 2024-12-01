@@ -864,7 +864,7 @@ fun scanTracks(
     old: UnfilteredTrackIndex?,
     artistSeparators: List<String>,
     artistSeparatorExceptions: List<String>,
-    onExpensiveOperationStart: () -> Unit,
+    onProgressReport: (Int, Int) -> Unit,
 ): UnfilteredTrackIndex? {
     if (
         ContextCompat.checkSelfPermission(context, ReadPermission) ==
@@ -873,7 +873,6 @@ fun scanTracks(
         return null
     val libraryVersion = MediaStore.getVersion(context)
 
-    onExpensiveOperationStart()
     val query =
         context.contentResolver.query(
             Media.EXTERNAL_CONTENT_URI,
@@ -887,6 +886,7 @@ fun scanTracks(
     query?.use { cursor ->
         val ci = contentResolverColumns.associateWith { cursor.getColumnIndexOrThrow(it) }
         while (cursor.moveToNext()) {
+            onProgressReport(cursor.position, cursor.count)
             val id = cursor.getLong(ci[Media._ID]!!)
             val trackVersion = cursor.getLong(ci[Media.DATE_MODIFIED]!!)
             val oldIndex = old?.tracks?.get(id)

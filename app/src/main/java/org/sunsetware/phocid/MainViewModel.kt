@@ -53,6 +53,9 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     private val _isScanningLibrary = MutableStateFlow(false)
     val isScanningLibrary = _isScanningLibrary.asStateFlow()
 
+    private val _libraryScanProgress = MutableStateFlow(null as Pair<Int, Int>?)
+    val libraryScanProgress = _libraryScanProgress.asStateFlow()
+
     private val _preferences = MutableStateFlow(Preferences())
     val preferences = _preferences.asStateFlow()
     private lateinit var preferencesSaveManager: SaveManager<Preferences>
@@ -171,6 +174,8 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                         delay(1)
                     }
                     try {
+                        _libraryScanProgress.update { null }
+                        _isScanningLibrary.update { true }
                         val newTrackIndex =
                             scanTracks(
                                 application.applicationContext,
@@ -178,8 +183,8 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                                 if (force) null else _unfilteredTrackIndex.value,
                                 _preferences.value.artistMetadataSeparators,
                                 _preferences.value.artistMetadataSeparatorExceptions,
-                            ) {
-                                _isScanningLibrary.update { true }
+                            ) { current, total ->
+                                _libraryScanProgress.update { current to total }
                             }
                         if (newTrackIndex != null) {
                             _unfilteredTrackIndex.update { newTrackIndex }

@@ -182,7 +182,7 @@
 
     <string name="search">Search</string>
 
-    <string name="snackbar_scanning_library">Scanning library…</string>
+    <string name="snackbar_scanning_library">Scanning library ({0}/{1})</string>
 
     <string name="sorting_album">Album</string>
     <string name="sorting_album_artist">Album artist</string>

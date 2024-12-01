@@ -165,6 +165,7 @@ fun LibraryScreen(playerScreenDragLock: DragLock, viewModel: MainViewModel = vie
     val floatingToolbarItems =
         rememberFloatingToolbarItems(floatingToolbarDataSource, currentMultiSelectState)
     val isScanningLibrary by viewModel.isScanningLibrary.collectAsStateWithLifecycle()
+    val libraryScanProgress by viewModel.libraryScanProgress.collectAsStateWithLifecycle()
 
     LaunchedEffect(searchQueryBuffer) {
         uiManager.libraryScreenSearchQuery.update { searchQueryBuffer }
@@ -238,7 +239,12 @@ fun LibraryScreen(playerScreenDragLock: DragLock, viewModel: MainViewModel = vie
                     enter = EnterFromBottom,
                     exit = ExitToBottom,
                 ) {
-                    IndefiniteSnackbar(Strings[R.string.snackbar_scanning_library])
+                    IndefiniteSnackbar(
+                        Strings[R.string.snackbar_scanning_library].icuFormat(
+                            libraryScanProgress?.first ?: 0,
+                            libraryScanProgress?.second ?: "?",
+                        )
+                    )
                 }
 
                 AnimatedVisibility(
