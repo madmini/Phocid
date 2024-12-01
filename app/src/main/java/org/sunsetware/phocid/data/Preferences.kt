@@ -28,6 +28,7 @@ data class Preferences(
     // Interface
     val tabSettings: Map<TabType, TabInfo> = TabType.entries.associateWith { TabInfo(it) },
     val tabOrderAndVisibility: List<Pair<TabType, Boolean>> = TabType.entries.map { it to true },
+    val scrollableTabs: Boolean = true,
     val sortingLocaleLanguageTag: String? = null,
     val lyricsDisplay: LyricsDisplayPreference = LyricsDisplayPreference.DEFAULT,
     val densityMultiplier: Float = 1f,

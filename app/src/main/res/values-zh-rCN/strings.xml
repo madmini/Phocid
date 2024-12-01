@@ -135,6 +135,7 @@
     <string name="preferences_playlist_io_settings_ignore_location">忽略文件位置</string>
     <string name="preferences_playlist_io_settings_remove_invalid">删除未找到的曲目</string>
     <string name="preferences_pure_background_color">纯黑或纯白背景</string>
+    <string name="preferences_scrollable_tabs">允许标签栏滚动</string>
     <string name="preferences_sorting_language">排序语言</string>
     <string name="preferences_sorting_language_system">系统语言</string>
     <string name="preferences_tabs">主界面标签页</string>

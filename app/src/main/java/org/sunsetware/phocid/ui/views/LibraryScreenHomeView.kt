@@ -21,6 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
@@ -477,36 +478,51 @@ private fun ViewTabRow(preferences: Preferences, state: LibraryScreenHomeViewSta
     val coroutineScope = rememberCoroutineScope()
     val currentTabIndex = state.pagerState.targetPage.coerceIn(0, preferences.tabs.size - 1)
 
-    Box(modifier = Modifier.fillMaxWidth()) {
-        HorizontalDivider(modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth())
-        PrimaryScrollableTabRow(
-            scrollState = state.tabRowScrollState,
-            selectedTabIndex = currentTabIndex,
-            indicator = { TabIndicator(state.pagerState) },
-            containerColor = MaterialTheme.colorScheme.surface,
-        ) {
-            preferences.tabs.forEachIndexed { i, tab ->
-                Tab(
-                    selected = i == currentTabIndex,
-                    onClick = {
-                        if (state.pagerState.targetPage == i) {
-                            coroutineScope.launch {
-                                state.tabStates[tab.type]?.lazyGridState?.animateScrollToItem(0)
-                            }
-                        } else {
-                            coroutineScope.launch { state.pagerState.animateScrollToPage(i) }
+    @Composable
+    fun tabs() {
+        preferences.tabs.forEachIndexed { i, tab ->
+            Tab(
+                selected = i == currentTabIndex,
+                onClick = {
+                    if (state.pagerState.targetPage == i) {
+                        coroutineScope.launch {
+                            state.tabStates[tab.type]?.lazyGridState?.animateScrollToItem(0)
                         }
-                    },
-                    text = {
-                        SingleLineText(
-                            Strings[tab.type.stringId],
-                            color =
-                                if (i == currentTabIndex) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.onSurfaceVariant,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                )
+                    } else {
+                        coroutineScope.launch { state.pagerState.animateScrollToPage(i) }
+                    }
+                },
+                text = {
+                    SingleLineText(
+                        Strings[tab.type.stringId],
+                        color =
+                            if (i == currentTabIndex) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                },
+            )
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        if (preferences.scrollableTabs) {
+            HorizontalDivider(modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth())
+            PrimaryScrollableTabRow(
+                scrollState = state.tabRowScrollState,
+                selectedTabIndex = currentTabIndex,
+                indicator = { TabIndicator(state.pagerState) },
+                containerColor = MaterialTheme.colorScheme.surface,
+            ) {
+                tabs()
+            }
+        } else {
+            PrimaryTabRow(
+                selectedTabIndex = currentTabIndex,
+                indicator = { TabIndicator(state.pagerState) },
+                containerColor = MaterialTheme.colorScheme.surface,
+            ) {
+                tabs()
             }
         }
     }

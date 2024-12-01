@@ -86,6 +86,13 @@ object PreferencesScreen : TopLevelScreen() {
                         modifier =
                             Modifier.clickable { uiManager.openDialog(PreferencesTabsDialog()) },
                     )
+                    UtilitySwitchListItem(
+                        title = Strings[R.string.preferences_scrollable_tabs],
+                        checked = preferences.scrollableTabs,
+                        onCheckedChange = { checked ->
+                            viewModel.updatePreferences { it.copy(scrollableTabs = checked) }
+                        },
+                    )
                     UtilityListItem(
                         title = Strings[R.string.preferences_sorting_language],
                         subtitle =

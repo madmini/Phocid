@@ -158,6 +158,7 @@
     <string name="preferences_playlist_io_settings_ignore_location">Ignore file location</string>
     <string name="preferences_playlist_io_settings_remove_invalid">Remove unresolved tracks</string>
     <string name="preferences_pure_background_color">Pure black/white background</string>
+    <string name="preferences_scrollable_tabs">Scrollable tabs</string>
     <string name="preferences_sorting_language">Sorting language</string>
     <string name="preferences_sorting_language_system">System language</string>
     <string name="preferences_tabs">Home screen tabs</string>
