@@ -20,6 +20,12 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+# Obfuscation provides absolutely zero size reduction.
+-dontobfuscate
+
+# Hack to fix VerifyError for Jetpack Compose. This doesn't seem to impact binary size anyway.
+-keep class org.sunsetware.phocid.** { *; }
+
 # This library uses reflection.
 -keep class org.jaudiotagger.** { *; }
 -dontwarn java.awt.Graphics2D
