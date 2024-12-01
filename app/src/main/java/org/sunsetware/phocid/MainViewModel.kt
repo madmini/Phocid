@@ -30,7 +30,7 @@ import org.sunsetware.phocid.utils.*
 
 class MainViewModel(private val application: Application) : AndroidViewModel(application) {
     private val trackIndexFile =
-        File(application.applicationContext.cacheDir, TRACK_INDEX_FILE_NAME)
+        File(application.applicationContext.filesDir, TRACK_INDEX_FILE_NAME)
     private val initializationMutex = Mutex()
     private val scanMutex = Mutex()
 

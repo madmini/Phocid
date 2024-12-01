@@ -131,7 +131,7 @@ class PlayerWrapper : AutoCloseable {
                     mediaController.currentTimeline.isEmpty || unfilteredTrackIndex.tracks.isEmpty()
                 ) {
                     var state =
-                        loadCbor<PlayerState>(context, PLAYER_STATE_FILE_NAME, isCache = true)
+                        loadCbor<PlayerState>(context, PLAYER_STATE_FILE_NAME, isCache = false)
                             ?: PlayerState()
 
                     // Invalidate play queue if any track no longer exists
@@ -163,7 +163,7 @@ class PlayerWrapper : AutoCloseable {
                     }
                 mediaController.addListener(listener)
                 saveManager =
-                    SaveManager(context, coroutineScope, _state, PLAYER_STATE_FILE_NAME, true)
+                    SaveManager(context, coroutineScope, _state, PLAYER_STATE_FILE_NAME, false)
 
                 completed.set(true)
             },

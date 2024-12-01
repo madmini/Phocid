@@ -140,12 +140,12 @@ class UiManager(
                 }
                 .distinctUntilChanged(),
             UI_STATE_FILE_NAME,
-            true,
+            false,
         )
 
     init {
         val persistentState =
-            loadCbor<PersistentUiState>(context, UI_STATE_FILE_NAME, true) ?: PersistentUiState()
+            loadCbor<PersistentUiState>(context, UI_STATE_FILE_NAME, false) ?: PersistentUiState()
         coroutineScope.launch {
             libraryScreenHomeViewState.pagerState.scrollToPage(
                 persistentState.libraryScreenHomeViewPage
