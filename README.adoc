@@ -1,6 +1,7 @@
 = Phocid
 
 image:metadata/en-US/images/icon.png[Icon,64px]
+image:https://img.shields.io/f-droid/v/org.sunsetware.phocid[F-Droid Version,link=https://f-droid.org/en/packages/org.sunsetware.phocid/]
 image:https://img.shields.io/badge/official-website-blue[Official website,link=https://sunsetware.org/phocid]
 image:https://img.shields.io/badge/works_on-my_machine-yellow[Works on my machine]
 image:https://img.shields.io/github/license/tjysunset/phocid[License]
@@ -52,7 +53,7 @@ Waiting for Google's official implementation (which should be released as alpha 
 
 == Known issues
 
-* Library scanning can take up to 30 seconds depending on your library size.
+* Library scanning with "Advanced metadata extraction" enabled can take up to 30 seconds depending on your library size.
 I believe it is because the library used to read audio metadata is inherently slow.
 I'm seeking to replace it with a home-brewed solution.
 
