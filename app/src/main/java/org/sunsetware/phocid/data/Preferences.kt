@@ -40,6 +40,7 @@ data class Preferences(
     val coloredPlayer: Boolean = true,
     val artworkColorPreference: ArtworkColorPreference = ArtworkColorPreference.MUTED_FIRST,
     // Indexing
+    val advancedMetadataExtraction: Boolean = false,
     @NonNls
     val artistMetadataSeparators: List<String> = listOf("&", ";", ",", "+", "/", " feat.", " ft."),
     val artistMetadataSeparatorExceptions: List<String> = emptyList(),

@@ -860,6 +860,7 @@ private val contentResolverColumns =
 @NonNls
 fun scanTracks(
     context: Context,
+    advancedMetadataExtraction: Boolean,
     old: UnfilteredTrackIndex?,
     artistSeparators: List<String>,
     artistSeparatorExceptions: List<String>,
@@ -926,66 +927,71 @@ fun scanTracks(
                     val bitRate = cursor.getLongOrNull(ci[Media.BITRATE]!!) ?: 0
                     var bitDepth = 0
 
-                    try {
-                        val extension = FilenameUtils.getExtension(path).lowercase()
-                        val file =
-                            try {
-                                AudioFileIO.read(File(path))
-                            } catch (ex: CannotReadException) {
-                                when (extension) {
-                                    /* NON-NLS */ "oga" ->
-                                        try {
-                                            AudioFileIO.readAs(File(path), /* NON-NLS */ "ogg")
-                                        } catch (_: CannotReadException) {
+                    if (advancedMetadataExtraction) {
+                        try {
+                            val extension = FilenameUtils.getExtension(path).lowercase()
+                            val file =
+                                try {
+                                    AudioFileIO.read(File(path))
+                                } catch (ex: CannotReadException) {
+                                    when (extension) {
+                                        /* NON-NLS */ "oga" ->
                                             try {
-                                                AudioFileIO.readAs(File(path), /* NON-NLS */ "opus")
-                                            } catch (_: Exception) {
-                                                throw ex
+                                                AudioFileIO.readAs(File(path), /* NON-NLS */ "ogg")
+                                            } catch (_: CannotReadException) {
+                                                try {
+                                                    AudioFileIO.readAs(
+                                                        File(path), /* NON-NLS */
+                                                        "opus",
+                                                    )
+                                                } catch (_: Exception) {
+                                                    throw ex
+                                                }
                                             }
-                                        }
 
-                                    /* NON-NLS */ "ogg" ->
-                                        AudioFileIO.readAs(File(path), /* NON-NLS */ "opus")
-                                    else -> throw ex
+                                        /* NON-NLS */ "ogg" ->
+                                            AudioFileIO.readAs(File(path), /* NON-NLS */ "opus")
+                                        else -> throw ex
+                                    }
                                 }
-                            }
-                        try {
-                            title = file.tag.getFirst(FieldKey.TITLE)
-                        } catch (_: KeyNotFoundException) {}
-                        try {
-                            artists =
-                                file.tag
-                                    .getFields(FieldKey.ARTIST)
-                                    .filter { !it.isBinary }
-                                    .map { (it as TagTextField).content }
-                        } catch (_: KeyNotFoundException) {}
-                        try {
-                            album = file.tag.getFirst(FieldKey.ALBUM)
-                        } catch (_: KeyNotFoundException) {}
-                        try {
-                            albumArtist = file.tag.getFirst(FieldKey.ALBUM_ARTIST)
-                        } catch (_: KeyNotFoundException) {}
-                        try {
-                            genres =
-                                file.tag
-                                    .getFields(FieldKey.GENRE)
-                                    .filter { !it.isBinary }
-                                    .map { (it as TagTextField).content }
-                        } catch (_: KeyNotFoundException) {}
-                        try {
-                            year = file.tag.getFirst(FieldKey.YEAR).toIntOrNull()
-                        } catch (_: KeyNotFoundException) {}
-                        try {
-                            trackNumber = file.tag.getFirst(FieldKey.TRACK).toIntOrNull()
-                        } catch (_: KeyNotFoundException) {}
-                        try {
-                            discNumber = file.tag.getFirst(FieldKey.DISC_NO).toIntOrNull()
-                        } catch (_: KeyNotFoundException) {}
-                        format = file.audioHeader.format
-                        sampleRate = file.audioHeader.sampleRateAsNumber
-                        bitDepth = file.audioHeader.bitsPerSample
-                    } catch (ex: Exception) {
-                        Log.e("Phocid", "Error reading extended metadata for $path", ex)
+                            try {
+                                title = file.tag.getFirst(FieldKey.TITLE)
+                            } catch (_: KeyNotFoundException) {}
+                            try {
+                                artists =
+                                    file.tag
+                                        .getFields(FieldKey.ARTIST)
+                                        .filter { !it.isBinary }
+                                        .map { (it as TagTextField).content }
+                            } catch (_: KeyNotFoundException) {}
+                            try {
+                                album = file.tag.getFirst(FieldKey.ALBUM)
+                            } catch (_: KeyNotFoundException) {}
+                            try {
+                                albumArtist = file.tag.getFirst(FieldKey.ALBUM_ARTIST)
+                            } catch (_: KeyNotFoundException) {}
+                            try {
+                                genres =
+                                    file.tag
+                                        .getFields(FieldKey.GENRE)
+                                        .filter { !it.isBinary }
+                                        .map { (it as TagTextField).content }
+                            } catch (_: KeyNotFoundException) {}
+                            try {
+                                year = file.tag.getFirst(FieldKey.YEAR).toIntOrNull()
+                            } catch (_: KeyNotFoundException) {}
+                            try {
+                                trackNumber = file.tag.getFirst(FieldKey.TRACK).toIntOrNull()
+                            } catch (_: KeyNotFoundException) {}
+                            try {
+                                discNumber = file.tag.getFirst(FieldKey.DISC_NO).toIntOrNull()
+                            } catch (_: KeyNotFoundException) {}
+                            format = file.audioHeader.format
+                            sampleRate = file.audioHeader.sampleRateAsNumber
+                            bitDepth = file.audioHeader.bitsPerSample
+                        } catch (ex: Exception) {
+                            Log.e("Phocid", "Error reading extended metadata for $path", ex)
+                        }
                     }
 
                     // In some cases, missing fields will be masqueraded as empty strings

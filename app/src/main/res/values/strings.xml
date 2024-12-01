@@ -122,6 +122,8 @@
     <string name="preferences_dark_theme_system">Follow system</string>
     <string name="preferences_data">Data</string>
     <string name="preferences_indexing">Indexing</string>
+    <string name="preferences_indexing_advanced_metadata_extraction">Advanced metadata extraction</string>
+    <string name="preferences_indexing_advanced_metadata_extraction_subtitle">Very slow. Applies after a manual rescan.</string>
     <string name="preferences_indexing_artist_separator_exceptions">Artist separator exceptions</string>
     <string name="preferences_indexing_artist_separator_exceptions_subtitle">{0, plural, one {# exception} other {# exceptions}}</string>
     <string name="preferences_indexing_artist_separators">Artist separators</string>

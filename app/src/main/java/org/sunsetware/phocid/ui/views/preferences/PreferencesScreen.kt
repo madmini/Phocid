@@ -198,6 +198,19 @@ object PreferencesScreen : TopLevelScreen() {
                             },
                     )
                     UtilityListHeader(Strings[R.string.preferences_indexing])
+                    UtilitySwitchListItem(
+                        title = Strings[R.string.preferences_indexing_advanced_metadata_extraction],
+                        subtitle =
+                            Strings[
+                                R.string
+                                    .preferences_indexing_advanced_metadata_extraction_subtitle],
+                        checked = preferences.advancedMetadataExtraction,
+                        onCheckedChange = { checked ->
+                            viewModel.updatePreferences {
+                                it.copy(advancedMetadataExtraction = checked)
+                            }
+                        },
+                    )
                     UtilityListItem(
                         title = Strings[R.string.preferences_indexing_artist_separators],
                         subtitle =

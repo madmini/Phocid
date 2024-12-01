@@ -174,6 +174,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                         val newTrackIndex =
                             scanTracks(
                                 application.applicationContext,
+                                _preferences.value.advancedMetadataExtraction,
                                 if (force) null else _unfilteredTrackIndex.value,
                                 _preferences.value.artistMetadataSeparators,
                                 _preferences.value.artistMetadataSeparatorExceptions,

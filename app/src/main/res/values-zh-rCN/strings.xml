@@ -99,6 +99,8 @@
     <string name="preferences_dark_theme_system">跟随系统</string>
     <string name="preferences_data">数据</string>
     <string name="preferences_indexing">索引</string>
+    <string name="preferences_indexing_advanced_metadata_extraction">高级元数据提取</string>
+    <string name="preferences_indexing_advanced_metadata_extraction_subtitle">非常慢。手动重新扫描后生效。</string>
     <string name="preferences_indexing_artist_separator_exceptions">艺术家分隔符例外</string>
     <string name="preferences_indexing_artist_separator_exceptions_subtitle">{0, plural, other {#}} 个例外</string>
     <string name="preferences_indexing_artist_separators">艺术家分隔符</string>
