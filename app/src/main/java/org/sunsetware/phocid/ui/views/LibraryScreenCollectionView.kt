@@ -64,10 +64,10 @@ import org.sunsetware.phocid.ui.components.LibraryListItemCompactCard
 import org.sunsetware.phocid.ui.components.LibraryListItemHorizontal
 import org.sunsetware.phocid.ui.components.MenuItem
 import org.sunsetware.phocid.ui.components.OverflowMenu
+import org.sunsetware.phocid.ui.components.Scrollbar
 import org.sunsetware.phocid.ui.components.collectionMenuItems
 import org.sunsetware.phocid.ui.components.playlistCollectionMenuItems
 import org.sunsetware.phocid.ui.components.playlistTrackMenuItems
-import org.sunsetware.phocid.ui.components.scrollbar
 import org.sunsetware.phocid.ui.components.trackMenuItems
 import org.sunsetware.phocid.ui.theme.hashColor
 import org.sunsetware.phocid.utils.MultiSelectState
@@ -693,131 +693,131 @@ fun LibraryScreenCollectionView(
         if (info.artwork == null && info.cards?.items?.isEmpty() != false && info.items.isEmpty()) {
             EmptyListIndicator()
         } else {
-            LazyColumn(
-                state = tracksLazyListState,
-                modifier = Modifier.fillMaxSize().scrollbar(tracksLazyListState),
-            ) {
-                if (info.artwork != null) {
-                    item {
-                        ArtworkImage(
-                            cache = artworkCache,
-                            artwork = info.artwork!!,
-                            artworkColorPreference = preferences.artworkColorPreference,
-                            modifier =
-                                Modifier.fillMaxWidth()
-                                    .aspectRatio(1f, matchHeightConstraintsFirst = true),
-                        )
+            Scrollbar(tracksLazyListState) {
+                LazyColumn(state = tracksLazyListState, modifier = Modifier.fillMaxSize()) {
+                    if (info.artwork != null) {
+                        item {
+                            ArtworkImage(
+                                cache = artworkCache,
+                                artwork = info.artwork!!,
+                                artworkColorPreference = preferences.artworkColorPreference,
+                                modifier =
+                                    Modifier.fillMaxWidth()
+                                        .aspectRatio(1f, matchHeightConstraintsFirst = true),
+                            )
+                        }
                     }
-                }
-                if (info.cards?.items?.isNotEmpty() == true) {
-                    item {
-                        val sortedCards =
-                            remember(info, preferences) {
-                                info.cards!!
-                                    .items
-                                    .sorted(
-                                        preferences.sortCollator,
-                                        info.cards!!.sortingKeys,
-                                        info.cards!!.sortAscending,
-                                    )
-                            }
-                        LazyRow(
-                            state = cardsLazyListState,
-                            contentPadding = PaddingValues(horizontal = (16 - 8).dp),
-                            modifier = Modifier.padding(vertical = 16.dp),
-                        ) {
-                            sortedCards.forEach { card ->
-                                item {
-                                    LibraryListItemCompactCard(
-                                        title = card.title,
-                                        subtitle = card.subtitle,
-                                        image = {
-                                            ArtworkImage(
-                                                cache = artworkCache,
-                                                artwork = card.artwork,
-                                                artworkColorPreference =
-                                                    preferences.artworkColorPreference,
-                                                modifier =
-                                                    Modifier.fillMaxWidth()
-                                                        .aspectRatio(
-                                                            1f,
-                                                            matchHeightConstraintsFirst = true,
-                                                        ),
-                                            )
-                                        },
-                                        modifier =
-                                            Modifier.padding(horizontal = 8.dp)
-                                                .width(144.dp)
-                                                .clickable {
-                                                    uiManager.openCollectionView(card.content)
-                                                },
-                                    )
+                    if (info.cards?.items?.isNotEmpty() == true) {
+                        item {
+                            val sortedCards =
+                                remember(info, preferences) {
+                                    info.cards!!
+                                        .items
+                                        .sorted(
+                                            preferences.sortCollator,
+                                            info.cards!!.sortingKeys,
+                                            info.cards!!.sortAscending,
+                                        )
+                                }
+                            LazyRow(
+                                state = cardsLazyListState,
+                                contentPadding = PaddingValues(horizontal = (16 - 8).dp),
+                                modifier = Modifier.padding(vertical = 16.dp),
+                            ) {
+                                sortedCards.forEach { card ->
+                                    item {
+                                        LibraryListItemCompactCard(
+                                            title = card.title,
+                                            subtitle = card.subtitle,
+                                            image = {
+                                                ArtworkImage(
+                                                    cache = artworkCache,
+                                                    artwork = card.artwork,
+                                                    artworkColorPreference =
+                                                        preferences.artworkColorPreference,
+                                                    modifier =
+                                                        Modifier.fillMaxWidth()
+                                                            .aspectRatio(
+                                                                1f,
+                                                                matchHeightConstraintsFirst = true,
+                                                            ),
+                                                )
+                                            },
+                                            modifier =
+                                                Modifier.padding(horizontal = 8.dp)
+                                                    .width(144.dp)
+                                                    .clickable {
+                                                        uiManager.openCollectionView(card.content)
+                                                    },
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                item {
-                    val totalDuration =
-                        items
-                            .sumOf { it.value.playTrack?.duration ?: Duration.ZERO }
-                            .toShortString()
-                    LibraryListHeader(
-                        Strings.separate(
-                            info.additionalStatistics +
-                                listOf(
-                                    Strings[R.string.count_track].icuFormat(
-                                        items.count { it.value.playTrack != null }
-                                    ),
-                                    totalDuration,
-                                )
+                    item {
+                        val totalDuration =
+                            items
+                                .sumOf { it.value.playTrack?.duration ?: Duration.ZERO }
+                                .toShortString()
+                        LibraryListHeader(
+                            Strings.separate(
+                                info.additionalStatistics +
+                                    listOf(
+                                        Strings[R.string.count_track].icuFormat(
+                                            items.count { it.value.playTrack != null }
+                                        ),
+                                        totalDuration,
+                                    )
+                            )
                         )
-                    )
-                }
-                items.forEachIndexed { index, (item, selected) ->
-                    item(item.composeKey) {
-                        LibraryListItemHorizontal(
-                            title = item.title,
-                            subtitle = item.subtitle,
-                            lead = {
-                                when (item.lead) {
-                                    is LibraryScreenCollectionViewItemLead.Text -> {
-                                        Text(
-                                            text =
-                                                (item.lead
-                                                        as LibraryScreenCollectionViewItemLead.Text)
-                                                    .text,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.fillMaxWidth(),
-                                        )
+                    }
+                    items.forEachIndexed { index, (item, selected) ->
+                        item(item.composeKey) {
+                            LibraryListItemHorizontal(
+                                title = item.title,
+                                subtitle = item.subtitle,
+                                lead = {
+                                    when (item.lead) {
+                                        is LibraryScreenCollectionViewItemLead.Text -> {
+                                            Text(
+                                                text =
+                                                    (item.lead
+                                                            as
+                                                            LibraryScreenCollectionViewItemLead.Text)
+                                                        .text,
+                                                textAlign = TextAlign.Center,
+                                                modifier = Modifier.fillMaxWidth(),
+                                            )
+                                        }
+                                        is LibraryScreenCollectionViewItemLead.Artwork -> {
+                                            ArtworkImage(
+                                                cache = artworkCache,
+                                                artwork =
+                                                    (item.lead
+                                                            as
+                                                            LibraryScreenCollectionViewItemLead.Artwork)
+                                                        .artwork,
+                                                preferences.artworkColorPreference,
+                                                modifier = Modifier.fillMaxSize(),
+                                            )
+                                        }
                                     }
-                                    is LibraryScreenCollectionViewItemLead.Artwork -> {
-                                        ArtworkImage(
-                                            cache = artworkCache,
-                                            artwork =
-                                                (item.lead
-                                                        as
-                                                        LibraryScreenCollectionViewItemLead.Artwork)
-                                                    .artwork,
-                                            preferences.artworkColorPreference,
-                                            modifier = Modifier.fillMaxSize(),
-                                        )
-                                    }
-                                }
-                            },
-                            actions = { OverflowMenu(item.getMenuItems(viewModel)) },
-                            modifier =
-                                Modifier.multiSelectClickable(
-                                        items,
-                                        index,
-                                        multiSelectState,
-                                        haptics,
-                                    ) {
-                                        item.onClick(items.map { it.value }, index, viewModel)
-                                    }
-                                    .animateItem(),
-                            selected = selected,
-                        )
+                                },
+                                actions = { OverflowMenu(item.getMenuItems(viewModel)) },
+                                modifier =
+                                    Modifier.multiSelectClickable(
+                                            items,
+                                            index,
+                                            multiSelectState,
+                                            haptics,
+                                        ) {
+                                            item.onClick(items.map { it.value }, index, viewModel)
+                                        }
+                                        .animateItem(fadeInSpec = null, fadeOutSpec = null),
+                                selected = selected,
+                            )
+                        }
                     }
                 }
             }

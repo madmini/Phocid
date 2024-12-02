@@ -899,36 +899,35 @@ private fun PlayQueue(
                 onClick = onTogglePlayQueue,
             )
 
-            LazyColumn(
-                state = lazyListState,
-                modifier = Modifier.fillMaxSize().scrollbar(lazyListState),
-            ) {
-                playQueue.forEachIndexed { index, (unshuffledIndex, track) ->
-                    item(unshuffledIndex) {
-                        LibraryListItemHorizontal(
-                            title = track.displayTitle,
-                            subtitle = track.displayArtistWithAlbum,
-                            lead = {
-                                AnimatedContent(
-                                    targetState = (index - currentIndex).toString(),
-                                    transitionSpec = { fadeIn() togetherWith fadeOut() },
-                                ) {
-                                    Text(
-                                        text = it,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.fillMaxWidth(),
+            Scrollbar(lazyListState) {
+                LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize()) {
+                    playQueue.forEachIndexed { index, (unshuffledIndex, track) ->
+                        item(unshuffledIndex) {
+                            LibraryListItemHorizontal(
+                                title = track.displayTitle,
+                                subtitle = track.displayArtistWithAlbum,
+                                lead = {
+                                    AnimatedContent(
+                                        targetState = (index - currentIndex).toString(),
+                                        transitionSpec = { fadeIn() togetherWith fadeOut() },
+                                    ) {
+                                        Text(
+                                            text = it,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.fillMaxWidth(),
+                                        )
+                                    }
+                                },
+                                actions = {
+                                    OverflowMenu(
+                                        listOf(removeFromQueueMenuItem(playerWrapper, index)) +
+                                            trackMenuItems(track, playerWrapper, uiManager)
                                     )
-                                }
-                            },
-                            actions = {
-                                OverflowMenu(
-                                    listOf(removeFromQueueMenuItem(playerWrapper, index)) +
-                                        trackMenuItems(track, playerWrapper, uiManager)
-                                )
-                            },
-                            deemphasized = index <= currentIndex,
-                            modifier = Modifier.clickable { playerWrapper.seekTo(index) },
-                        )
+                                },
+                                deemphasized = index <= currentIndex,
+                                modifier = Modifier.clickable { playerWrapper.seekTo(index) },
+                            )
+                        }
                     }
                 }
             }

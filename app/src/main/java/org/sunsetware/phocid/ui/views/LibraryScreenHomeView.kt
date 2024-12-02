@@ -75,12 +75,12 @@ import org.sunsetware.phocid.ui.components.LibraryListItemCard
 import org.sunsetware.phocid.ui.components.LibraryListItemHorizontal
 import org.sunsetware.phocid.ui.components.MenuItem
 import org.sunsetware.phocid.ui.components.OverflowMenu
+import org.sunsetware.phocid.ui.components.Scrollbar
 import org.sunsetware.phocid.ui.components.SingleLineText
 import org.sunsetware.phocid.ui.components.TabIndicator
 import org.sunsetware.phocid.ui.components.collectionMenuItems
 import org.sunsetware.phocid.ui.components.playlistCollectionMenuItems
 import org.sunsetware.phocid.ui.components.playlistCollectionMultiSelectMenuItems
-import org.sunsetware.phocid.ui.components.scrollbar
 import org.sunsetware.phocid.ui.components.trackMenuItems
 import org.sunsetware.phocid.ui.theme.hashColor
 import org.sunsetware.phocid.utils.MultiSelectManager
@@ -544,80 +544,84 @@ private fun LibraryList(
     if (items.isEmpty()) {
         EmptyListIndicator()
     } else if (gridSize == 0) {
-        LazyVerticalGrid(
-            state = gridState,
-            columns = GridCells.Fixed(1),
-            modifier = Modifier.fillMaxSize().scrollbar(gridState),
-        ) {
-            items.forEachIndexed { index, (info, selected) ->
-                item(info.key) {
-                    with(info) {
-                        LibraryListItemHorizontal(
-                            title = title,
-                            subtitle = subtitle,
-                            lead = {
-                                ArtworkImage(
-                                    cache = artworkCache,
-                                    artwork = artwork,
-                                    artworkColorPreference = artworkColorPreference,
-                                    modifier = Modifier.fillMaxSize(),
-                                )
-                            },
-                            actions = { OverflowMenu(menuItems(viewModel)) },
-                            modifier =
-                                Modifier.multiSelectClickable(
-                                        items,
-                                        index,
-                                        multiSelectManager,
-                                        haptics,
-                                    ) {
-                                        info.onClick(viewModel)
-                                    }
-                                    .animateItem(),
-                            selected = selected,
-                        )
+        Scrollbar(gridState) {
+            LazyVerticalGrid(
+                state = gridState,
+                columns = GridCells.Fixed(1),
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                items.forEachIndexed { index, (info, selected) ->
+                    item(info.key) {
+                        with(info) {
+                            LibraryListItemHorizontal(
+                                title = title,
+                                subtitle = subtitle,
+                                lead = {
+                                    ArtworkImage(
+                                        cache = artworkCache,
+                                        artwork = artwork,
+                                        artworkColorPreference = artworkColorPreference,
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
+                                },
+                                actions = { OverflowMenu(menuItems(viewModel)) },
+                                modifier =
+                                    Modifier.multiSelectClickable(
+                                            items,
+                                            index,
+                                            multiSelectManager,
+                                            haptics,
+                                        ) {
+                                            info.onClick(viewModel)
+                                        }
+                                        .animateItem(fadeInSpec = null, fadeOutSpec = null),
+                                selected = selected,
+                            )
+                        }
                     }
                 }
             }
         }
     } else {
-        LazyVerticalGrid(
-            state = gridState,
-            columns = GridCells.Fixed(gridSize),
-            contentPadding = PaddingValues(2.dp),
-            modifier = Modifier.fillMaxSize().scrollbar(gridState),
-        ) {
-            items.forEachIndexed { index, (info, selected) ->
-                item(info.key) {
-                    with(info) {
-                        LibraryListItemCard(
-                            title = title,
-                            subtitle = subtitle,
-                            color =
-                                if (coloredCards) artwork.getColor(artworkColorPreference)
-                                else MaterialTheme.colorScheme.surfaceContainerHighest,
-                            image = {
-                                ArtworkImage(
-                                    cache = artworkCache,
-                                    artwork = artwork,
-                                    artworkColorPreference = artworkColorPreference,
-                                    modifier = Modifier.fillMaxSize(),
-                                )
-                            },
-                            menuItems = menuItems(viewModel),
-                            modifier =
-                                Modifier.padding(2.dp)
-                                    .multiSelectClickable(
-                                        items,
-                                        index,
-                                        multiSelectManager,
-                                        haptics,
-                                    ) {
-                                        info.onClick(viewModel)
-                                    }
-                                    .animateItem(),
-                            selected = selected,
-                        )
+        Scrollbar(gridState) {
+            LazyVerticalGrid(
+                state = gridState,
+                columns = GridCells.Fixed(gridSize),
+                contentPadding = PaddingValues(2.dp),
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                items.forEachIndexed { index, (info, selected) ->
+                    item(info.key) {
+                        with(info) {
+                            LibraryListItemCard(
+                                title = title,
+                                subtitle = subtitle,
+                                color =
+                                    if (coloredCards) artwork.getColor(artworkColorPreference)
+                                    else MaterialTheme.colorScheme.surfaceContainerHighest,
+                                image = {
+                                    ArtworkImage(
+                                        cache = artworkCache,
+                                        artwork = artwork,
+                                        artworkColorPreference = artworkColorPreference,
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
+                                },
+                                menuItems = menuItems(viewModel),
+                                modifier =
+                                    Modifier.padding(2.dp)
+                                        .multiSelectClickable(
+                                            items,
+                                            index,
+                                            multiSelectManager,
+                                            haptics,
+                                        ) {
+                                            info.onClick(viewModel)
+                                        }
+                                        .animateItem(fadeInSpec = null, fadeOutSpec = null),
+                                selected = selected,
+                            )
+                        }
                     }
                 }
             }

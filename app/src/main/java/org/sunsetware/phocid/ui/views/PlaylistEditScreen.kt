@@ -202,7 +202,8 @@ class PlaylistEditScreen(private val playlistKey: UUID) : TopLevelScreen() {
                                         )
                                     }
                                 },
-                                modifier = Modifier.animateItem(),
+                                modifier =
+                                    Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
                             )
                         }
                     }

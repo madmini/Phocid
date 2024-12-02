@@ -91,7 +91,7 @@ class PreferencesTabsDialog() : Dialog() {
                                     )
                                 }
                             },
-                            modifier = Modifier.animateItem(),
+                            modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
                         )
                     }
                 }
