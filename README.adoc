@@ -44,9 +44,6 @@ The best metadata support library I could find is still buggy; I recommend using
 These features are hard to implement and/or of no personal interest.
 If you want to see a feature, please https://github.com/TJYSunset/Phocid/issues[file an issue].
 
-* Draggable scrollbars
-+
-Waiting for Google's official implementation (which should be released as alpha after a century, and `@Deprecated` on the second day).
 * Playback statistics
 * Widgets
 * Notification customization
