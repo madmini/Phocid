@@ -21,7 +21,7 @@ This project aims to be a replacement with personal tweaks for the now-defunct h
 * Familiar user experience
 * Better metadata support; Namely, multiple artists.
 * Better sorting when your music library differs from your system language
-* Regex-based blacklist
+* Regex-based blocklist
 * Playback speed and pitch control
 * More lyrics styles
 * Optional less-vibrant colors
