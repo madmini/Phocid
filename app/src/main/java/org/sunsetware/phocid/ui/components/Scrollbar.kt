@@ -1,58 +1,48 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package org.sunsetware.phocid.ui.components
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import kotlin.math.ceil
 import kotlin.math.roundToInt
-import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import org.sunsetware.phocid.ui.theme.EXIT_DURATION
 import org.sunsetware.phocid.ui.theme.emphasized
-import org.sunsetware.phocid.ui.theme.emphasizedExit
 
 val SCROLLBAR_DEFAULT_WIDTH = 4.dp
-val SCROLLBAR_DEFAULT_PADDING = 4.dp
 val SCROLLBAR_DEFAULT_COLOR
     @Composable @ReadOnlyComposable get() = MaterialTheme.colorScheme.tertiary
 val SCROLLBAR_MIN_SIZE = 48.dp
-val SCROLLBAR_MIN_INTERACTIVE_WIDTH = 24.dp
+val SCROLLBAR_INTERACTIVE_WIDTH = 24.dp
 const val SCROLLBAR_MIN_SIZE_MAX_FRACTION = 0.5f
-const val SCROLLBAR_FADE_TIMEOUT_MILLISECONDS = 1000
 val scrollbarEnter = emphasized<Float>(50)
-val scrollbarExit = emphasizedExit<Float>()
+val scrollbarExit = emphasized<Float>(EXIT_DURATION, 1000)
 
 fun adjustThumbOffsets(
     thumbStart: Float,
@@ -99,74 +89,82 @@ fun DrawScope.drawThumb(
 }
 
 @Composable
-inline fun BoxScope.ScrollbarThumb(
+inline fun ScrollbarThumb(
     width: Dp,
-    padding: Dp,
     color: Color,
-    enabled: Boolean,
     crossinline alpha: () -> Float,
     crossinline thumbStart: () -> Float,
     crossinline thumbEnd: () -> Float,
-    crossinline firstVisibleItem: () -> Float,
     crossinline totalItemsCount: () -> Int,
     crossinline onRequestScrollToItem: (Int) -> Unit,
+    crossinline onSetIsThumbDragging: (Boolean) -> Unit,
+    crossinline content: @Composable () -> Unit,
 ) {
-    var dragInitialFirstVisibleItem by remember { mutableStateOf(null as Float?) }
-    var dragTotal by remember { mutableFloatStateOf(0f) }
+    val layoutDirection = LocalLayoutDirection.current
 
-    if (enabled) {
-        Box(
-            modifier =
-                Modifier.align(Alignment.TopEnd)
-                    .padding(vertical = padding)
-                    .width(max(width, SCROLLBAR_MIN_INTERACTIVE_WIDTH))
-                    .fillMaxHeight()
-                    .drawBehind {
-                        drawThumb(width, color, { alpha() }, { thumbStart() }, { thumbEnd() })
-                    }
-                    .pointerInput(Unit) {
-                        detectVerticalDragGestures(
-                            onDragStart = { offset ->
-                                val (start, end) =
-                                    adjustThumbOffsets(
-                                        thumbStart(),
-                                        thumbEnd(),
-                                        size.height.toFloat(),
-                                        density,
-                                    )
-                                val relativeY = offset.y / size.height
-                                if (relativeY >= start && relativeY <= end)
-                                    dragInitialFirstVisibleItem = firstVisibleItem()
-                                dragTotal = 0f
-                            },
-                            onDragEnd = { dragInitialFirstVisibleItem = null },
-                            onDragCancel = { dragInitialFirstVisibleItem = null },
-                            onVerticalDrag = { _, delta ->
-                                if (dragInitialFirstVisibleItem != null) {
+    Box(
+        modifier =
+            Modifier.drawWithContent {
+                    drawContent()
+                    drawThumb(width, color, { alpha() }, { thumbStart() }, { thumbEnd() })
+                }
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(pass = PointerEventPass.Initial)
+                        val (start, end) =
+                            adjustThumbOffsets(
+                                thumbStart(),
+                                thumbEnd(),
+                                size.height.toFloat(),
+                                density,
+                            )
+                        val isXInRange = {
+                            if (layoutDirection == LayoutDirection.Ltr) {
+                                down.position.x >= size.width - SCROLLBAR_INTERACTIVE_WIDTH.toPx()
+                            } else {
+                                down.position.x <= SCROLLBAR_INTERACTIVE_WIDTH.toPx()
+                            }
+                        }
+                        val isYInRange = {
+                            val relativeY = down.position.y / size.height
+                            relativeY >= start && relativeY <= end
+                        }
+                        if (alpha() > 0 && isXInRange() && isYInRange()) {
+                            onSetIsThumbDragging(true)
+                            val yOffset = start * size.height - down.position.y
+                            down.consume()
+
+                            outer@ while (true) {
+                                val event = awaitPointerEvent(PointerEventPass.Initial)
+                                for (change in event.changes) {
+                                    change.consume()
+                                    if (!change.pressed) break@outer
+
                                     val totalItemsCount = totalItemsCount()
-                                    dragTotal += delta
                                     onRequestScrollToItem(
-                                        (dragInitialFirstVisibleItem!! +
-                                                dragTotal / size.height * totalItemsCount)
+                                        ((change.position.y + yOffset) / size.height *
+                                                totalItemsCount)
                                             .roundToInt()
                                             .coerceAtMost(totalItemsCount - 1)
                                             .coerceAtLeast(0)
                                     )
                                 }
-                            },
-                        )
+                            }
+                        }
+                        onSetIsThumbDragging(false)
                     }
-        )
+                }
+    ) {
+        content()
     }
 }
 
 @Composable
-inline fun Scrollbar(
+fun Scrollbar(
     state: LazyListState,
     width: Dp = SCROLLBAR_DEFAULT_WIDTH,
-    padding: Dp = SCROLLBAR_DEFAULT_PADDING,
     color: Color = SCROLLBAR_DEFAULT_COLOR,
-    crossinline content: @Composable () -> Unit,
+    content: @Composable () -> Unit,
 ) {
     val thumbStart by
         remember(state) {
@@ -186,66 +184,38 @@ inline fun Scrollbar(
                 } ?: 1f
             }
         }
-    val firstVisibleItem by
+    val totalItemsCount by remember(state) { derivedStateOf { state.layoutInfo.totalItemsCount } }
+    var isScrollbarDragging by remember { mutableStateOf(false) }
+    val isScrollInProgress by
         remember(state) {
             derivedStateOf {
-                state.layoutInfo.visibleItemsInfo.firstOrNull()?.let {
-                    it.index - it.offset.toFloat() / it.size
-                } ?: 0f
+                (thumbStart > 0 || thumbEnd < 1) &&
+                    (state.isScrollInProgress || isScrollbarDragging)
             }
         }
-    val totalItemsCount by remember(state) { derivedStateOf { state.layoutInfo.totalItemsCount } }
-
-    var fadeTimeout by remember { mutableIntStateOf(0) }
-    var lastAnimatedEnter by remember { mutableStateOf(false) }
-    val alpha = remember { Animatable(0f) }
-    LaunchedEffect(state) {
-        snapshotFlow { firstVisibleItem }
-            .collect { fadeTimeout = SCROLLBAR_FADE_TIMEOUT_MILLISECONDS }
-    }
-    LaunchedEffect(Unit) {
-        while (isActive) {
-            fadeTimeout = (fadeTimeout - 42).coerceAtLeast(0)
-            if (fadeTimeout > 0 && !lastAnimatedEnter) {
-                launch { alpha.animateTo(1f, scrollbarEnter) }
-                lastAnimatedEnter = true
-            } else if (fadeTimeout == 0 && lastAnimatedEnter) {
-                launch { alpha.animateTo(0f, scrollbarExit) }
-                lastAnimatedEnter = false
-            }
-            delay(42.milliseconds) // 24 fps
-        }
-    }
-
-    val enabled by remember {
-        derivedStateOf { alpha.value > 0 && (thumbStart > 0 || thumbEnd < 1) }
-    }
-
-    Box {
-        content()
-        ScrollbarThumb(
-            width,
-            padding,
-            color,
-            enabled,
-            { alpha.value },
-            { thumbStart },
-            { thumbEnd },
-            { firstVisibleItem },
-            { totalItemsCount },
-            {
-                fadeTimeout = SCROLLBAR_FADE_TIMEOUT_MILLISECONDS
-                state.requestScrollToItem(it)
-            },
+    val alpha =
+        animateFloatAsState(
+            if (isScrollInProgress) 1f else 0f,
+            if (isScrollInProgress) scrollbarEnter else scrollbarExit,
         )
-    }
+
+    ScrollbarThumb(
+        width,
+        color,
+        { alpha.value },
+        { thumbStart },
+        { thumbEnd },
+        { totalItemsCount },
+        { state.requestScrollToItem(it) },
+        { isScrollbarDragging = it },
+        content,
+    )
 }
 
 @Composable
-inline fun Scrollbar(
+fun Scrollbar(
     state: LazyGridState,
     width: Dp = SCROLLBAR_DEFAULT_WIDTH,
-    padding: Dp = SCROLLBAR_DEFAULT_PADDING,
     color: Color = SCROLLBAR_DEFAULT_COLOR,
     content: @Composable () -> Unit,
 ) {
@@ -281,56 +251,30 @@ inline fun Scrollbar(
                 } ?: 1f
             }
         }
-    val firstVisibleItem by
+    val totalItemsCount by remember(state) { derivedStateOf { state.layoutInfo.totalItemsCount } }
+    var isScrollbarDragging by remember { mutableStateOf(false) }
+    val isScrollInProgress by
         remember(state) {
             derivedStateOf {
-                state.layoutInfo.visibleItemsInfo.firstOrNull()?.let {
-                    it.index - it.offset.y.toFloat() / it.size.height
-                } ?: 0f
+                (thumbStart > 0 || thumbEnd < 1) &&
+                    (state.isScrollInProgress || isScrollbarDragging)
             }
         }
-    val totalItemsCount by remember(state) { derivedStateOf { state.layoutInfo.totalItemsCount } }
-
-    var fadeTimeout by remember { mutableIntStateOf(0) }
-    var lastAnimatedEnter by remember { mutableStateOf(false) }
-    val alpha = remember { Animatable(0f) }
-    LaunchedEffect(state) {
-        snapshotFlow { firstVisibleItem }
-            .collect { fadeTimeout = SCROLLBAR_FADE_TIMEOUT_MILLISECONDS }
-    }
-    LaunchedEffect(Unit) {
-        while (isActive) {
-            fadeTimeout = (fadeTimeout - 42).coerceAtLeast(0)
-            if (fadeTimeout > 0 && !lastAnimatedEnter) {
-                launch { alpha.animateTo(1f, scrollbarEnter) }
-                lastAnimatedEnter = true
-            } else if (fadeTimeout == 0 && lastAnimatedEnter) {
-                launch { alpha.animateTo(0f, scrollbarExit) }
-                lastAnimatedEnter = false
-            }
-            delay(42.milliseconds) // 24 fps
-        }
-    }
-    val enabled by remember {
-        derivedStateOf { alpha.value > 0 && (thumbStart > 0 || thumbEnd < 1) }
-    }
-
-    Box {
-        content()
-        ScrollbarThumb(
-            width,
-            padding,
-            color,
-            enabled,
-            { alpha.value },
-            { thumbStart },
-            { thumbEnd },
-            { firstVisibleItem },
-            { totalItemsCount },
-            {
-                fadeTimeout = SCROLLBAR_FADE_TIMEOUT_MILLISECONDS
-                state.requestScrollToItem(it)
-            },
+    val alpha =
+        animateFloatAsState(
+            if (isScrollInProgress) 1f else 0f,
+            if (isScrollInProgress) scrollbarEnter else scrollbarExit,
         )
-    }
+
+    ScrollbarThumb(
+        width,
+        color,
+        { alpha.value },
+        { thumbStart },
+        { thumbEnd },
+        { totalItemsCount },
+        { state.requestScrollToItem(it) },
+        { isScrollbarDragging = it },
+        content,
+    )
 }
