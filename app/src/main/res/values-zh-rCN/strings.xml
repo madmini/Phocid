@@ -138,6 +138,10 @@
     <string name="preferences_scrollable_tabs">允许标签栏滚动</string>
     <string name="preferences_sorting_language">排序语言</string>
     <string name="preferences_sorting_language_system">系统语言</string>
+    <string name="preferences_tab_style">标签栏样式</string>
+    <string name="preferences_tab_style_icon_only">仅图标</string>
+    <string name="preferences_tab_style_text_and_icon">文本与图标</string>
+    <string name="preferences_tab_style_text_only">仅文本</string>
     <string name="preferences_tabs">主界面标签页</string>
     <string name="preferences_tabs_separator">，</string>
     <string name="preferences_text_encoding">文本编码</string>

@@ -8,6 +8,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,15 +17,23 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.QueueMusic
+import androidx.compose.material.icons.outlined.Album
+import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.MusicNote
+import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
@@ -32,6 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -62,6 +72,7 @@ import org.sunsetware.phocid.data.PlaylistManager
 import org.sunsetware.phocid.data.Preferences
 import org.sunsetware.phocid.data.RealizedPlaylist
 import org.sunsetware.phocid.data.SortingOption
+import org.sunsetware.phocid.data.TabStylePreference
 import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.data.albumKey
 import org.sunsetware.phocid.data.search
@@ -492,15 +503,47 @@ private fun ViewTabRow(preferences: Preferences, state: LibraryScreenHomeViewSta
                         coroutineScope.launch { state.pagerState.animateScrollToPage(i) }
                     }
                 },
-                text = {
-                    SingleLineText(
-                        Strings[tab.type.stringId],
-                        color =
-                            if (i == currentTabIndex) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
+                text =
+                    if (preferences.tabStyle == TabStylePreference.ICON_ONLY) {
+                        null
+                    } else {
+                        {
+                            CompositionLocalProvider(
+                                LocalContentColor provides
+                                    if (i == currentTabIndex) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (preferences.tabStyle == TabStylePreference.TEXT_AND_ICON) {
+                                        Icon(
+                                            tab.type.icon,
+                                            null,
+                                            modifier = Modifier.padding(end = 8.dp),
+                                        )
+                                    }
+
+                                    SingleLineText(
+                                        Strings[tab.type.stringId],
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                            }
+                        }
+                    },
+                icon =
+                    if (preferences.tabStyle != TabStylePreference.ICON_ONLY) {
+                        null
+                    } else {
+                        {
+                            Icon(
+                                tab.type.icon,
+                                contentDescription = Strings[tab.type.stringId],
+                                tint =
+                                    if (i == currentTabIndex) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    },
             )
         }
     }
@@ -651,11 +694,19 @@ data class TabInfo(
 
 @Immutable
 @Serializable
-enum class TabType(val stringId: Int, val sortingOptions: Map<String, SortingOption>) {
-    TRACKS(R.string.tab_tracks, Track.SortingOptions),
-    ALBUMS(R.string.tab_albums, Album.CollectionSortingOptions),
-    ARTISTS(R.string.tab_artists, Artist.CollectionSortingOptions),
-    GENRES(R.string.tab_genres, Genre.CollectionSortingOptions),
-    PLAYLISTS(R.string.tab_playlists, RealizedPlaylist.CollectionSortingOptions),
-    FOLDERS(R.string.tab_folders, Folder.SortingOptions),
+enum class TabType(
+    val stringId: Int,
+    val sortingOptions: Map<String, SortingOption>,
+    val icon: ImageVector,
+) {
+    TRACKS(R.string.tab_tracks, Track.SortingOptions, Icons.Outlined.MusicNote),
+    ALBUMS(R.string.tab_albums, Album.CollectionSortingOptions, Icons.Outlined.Album),
+    ARTISTS(R.string.tab_artists, Artist.CollectionSortingOptions, Icons.Outlined.PersonOutline),
+    GENRES(R.string.tab_genres, Genre.CollectionSortingOptions, Icons.Outlined.Category),
+    PLAYLISTS(
+        R.string.tab_playlists,
+        RealizedPlaylist.CollectionSortingOptions,
+        Icons.AutoMirrored.Outlined.QueueMusic,
+    ),
+    FOLDERS(R.string.tab_folders, Folder.SortingOptions, Icons.Outlined.Folder),
 }

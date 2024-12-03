@@ -28,6 +28,7 @@ data class Preferences(
     // Interface
     val tabSettings: Map<TabType, TabInfo> = TabType.entries.associateWith { TabInfo(it) },
     val tabOrderAndVisibility: List<Pair<TabType, Boolean>> = TabType.entries.map { it to true },
+    val tabStyle: TabStylePreference = TabStylePreference.TEXT_ONLY,
     val scrollableTabs: Boolean = true,
     val sortingLocaleLanguageTag: String? = null,
     val lyricsDisplay: LyricsDisplayPreference = LyricsDisplayPreference.DEFAULT,
@@ -108,6 +109,13 @@ data class Preferences(
         (if (sortingLocale != null) Collator.getInstance(sortingLocale) else Collator.getInstance())
             .apply { this.strength = Collator.PRIMARY }
             .freeze() as RuleBasedCollator
+}
+
+@Serializable
+enum class TabStylePreference(val stringId: Int) {
+    TEXT_AND_ICON(R.string.preferences_tab_style_text_and_icon),
+    TEXT_ONLY(R.string.preferences_tab_style_text_only),
+    ICON_ONLY(R.string.preferences_tab_style_icon_only),
 }
 
 @Serializable

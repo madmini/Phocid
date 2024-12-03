@@ -30,6 +30,7 @@ import org.sunsetware.phocid.TopLevelScreen
 import org.sunsetware.phocid.data.ArtworkColorPreference
 import org.sunsetware.phocid.data.DarkThemePreference
 import org.sunsetware.phocid.data.LyricsDisplayPreference
+import org.sunsetware.phocid.data.TabStylePreference
 import org.sunsetware.phocid.ui.components.UtilityListHeader
 import org.sunsetware.phocid.ui.components.UtilityListItem
 import org.sunsetware.phocid.ui.components.UtilitySwitchListItem
@@ -92,6 +93,26 @@ object PreferencesScreen : TopLevelScreen() {
                         onCheckedChange = { checked ->
                             viewModel.updatePreferences { it.copy(scrollableTabs = checked) }
                         },
+                    )
+                    UtilityListItem(
+                        title = Strings[R.string.preferences_tab_style],
+                        subtitle = Strings[preferences.tabStyle.stringId],
+                        modifier =
+                            Modifier.clickable {
+                                uiManager.openDialog(
+                                    PreferencesSingleChoiceDialog<TabStylePreference>(
+                                        title = Strings[R.string.preferences_tab_style],
+                                        options =
+                                            TabStylePreference.entries.map {
+                                                it to Strings[it.stringId]
+                                            },
+                                        activeOption = { it.tabStyle },
+                                        updatePreferences = { preferences, new ->
+                                            preferences.copy(tabStyle = new)
+                                        },
+                                    )
+                                )
+                            },
                     )
                     UtilityListItem(
                         title = Strings[R.string.preferences_sorting_language],
