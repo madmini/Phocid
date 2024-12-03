@@ -1,10 +1,8 @@
 package org.sunsetware.phocid
 
 import android.app.Application
-import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
-import androidx.collection.lruCache
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import java.io.File
@@ -35,12 +33,6 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     private val scanMutex = Mutex()
 
     val playerWrapper: PlayerWrapper = PlayerWrapper()
-
-    val artworkCache =
-        lruCache<Long, Nullable<Bitmap>>(
-            64,
-            create = { Nullable(loadArtwork(application.applicationContext, it)) },
-        )
 
     val lyricsCache = AtomicReference(null as Pair<Long, Lyrics>?)
 

@@ -75,7 +75,6 @@ class PlaylistEditScreen(private val playlistKey: UUID) : TopLevelScreen() {
                     playlistManager.playlists.map { it[playlistKey]?.displayName }.filterNotNull()
                 }
                 .collectAsState(playlist?.displayName)
-        val artworkCache = viewModel.artworkCache
 
         LaunchedEffect(playlist) {
             if (playlist == null) {
@@ -148,7 +147,6 @@ class PlaylistEditScreen(private val playlistKey: UUID) : TopLevelScreen() {
                                         ?: FilenameUtils.getName(entry.playlistEntry.path),
                                 lead = {
                                     ArtworkImage(
-                                        cache = artworkCache,
                                         artwork = Artwork.Track(entry.track ?: InvalidTrack),
                                         artworkColorPreference = preferences.artworkColorPreference,
                                     )

@@ -1,7 +1,5 @@
 package org.sunsetware.phocid.ui.components
 
-import android.graphics.Bitmap
-import androidx.collection.LruCache
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -19,10 +17,11 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import org.sunsetware.phocid.data.ArtworkColorPreference
 import org.sunsetware.phocid.data.getArtworkColor
+import org.sunsetware.phocid.data.loadArtwork
 import org.sunsetware.phocid.ui.theme.contentColor
-import org.sunsetware.phocid.utils.Nullable
 
 @Immutable
 sealed class Artwork {
@@ -45,17 +44,17 @@ sealed class Artwork {
 
 @Composable
 fun ArtworkImage(
-    cache: LruCache<Long, Nullable<Bitmap>>,
     artwork: Artwork,
     artworkColorPreference: ArtworkColorPreference,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
 ) {
+    val context = LocalContext.current
     val (image, icon) =
         remember(artwork) {
             when (artwork) {
                 is Artwork.Track -> {
-                    cache[artwork.track.id]?.value?.asImageBitmap()?.let { Pair(it, null) }
+                    loadArtwork(context, artwork.track.id)?.let { Pair(it.asImageBitmap(), null) }
                         ?: Pair(null, Icons.Outlined.MusicNote)
                 }
                 is Artwork.Icon -> {

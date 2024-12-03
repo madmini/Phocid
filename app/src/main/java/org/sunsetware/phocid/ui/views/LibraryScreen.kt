@@ -2,8 +2,6 @@
 
 package org.sunsetware.phocid.ui.views
 
-import android.graphics.Bitmap
-import androidx.collection.LruCache
 import androidx.compose.animation.*
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
@@ -69,7 +67,6 @@ fun LibraryScreen(playerScreenDragLock: DragLock, viewModel: MainViewModel = vie
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
     val playerWrapper = viewModel.playerWrapper
-    val artworkCache = viewModel.artworkCache
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val libraryIndex by viewModel.libraryIndex.collectAsStateWithLifecycle()
     val uiManager = viewModel.uiManager
@@ -222,7 +219,6 @@ fun LibraryScreen(playerScreenDragLock: DragLock, viewModel: MainViewModel = vie
             BottomBar(
                 playerWrapper,
                 libraryIndex,
-                artworkCache,
                 preferences.artworkColorPreference,
                 uiManager.playerScreenDragState,
                 playerScreenDragLock,
@@ -464,7 +460,6 @@ private fun SearchBar(value: String, onValueChange: (String) -> Unit) {
 private fun BottomBar(
     playerWrapper: PlayerWrapper,
     libraryIndex: LibraryIndex,
-    artworkCache: LruCache<Long, Nullable<Bitmap>>,
     artworkColorPreference: ArtworkColorPreference,
     playerScreenDragState: BinaryDragState,
     playerScreenDragLock: DragLock,
@@ -589,7 +584,6 @@ private fun BottomBar(
                                 subtitle = track.displayArtistWithAlbum,
                                 lead = {
                                     ArtworkImage(
-                                        cache = artworkCache,
                                         artwork = Artwork.Track(track),
                                         artworkColorPreference = artworkColorPreference,
                                         modifier = Modifier.fillMaxSize(),

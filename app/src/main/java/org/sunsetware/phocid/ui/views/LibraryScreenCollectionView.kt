@@ -677,7 +677,6 @@ fun LibraryScreenCollectionView(
     state: LibraryScreenCollectionViewState,
     viewModel: MainViewModel = viewModel(),
 ) {
-    val artworkCache = viewModel.artworkCache
     val uiManager = viewModel.uiManager
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val multiSelectState = state.multiSelectState
@@ -698,7 +697,6 @@ fun LibraryScreenCollectionView(
                     if (info.artwork != null) {
                         item {
                             ArtworkImage(
-                                cache = artworkCache,
                                 artwork = info.artwork!!,
                                 artworkColorPreference = preferences.artworkColorPreference,
                                 modifier =
@@ -731,7 +729,6 @@ fun LibraryScreenCollectionView(
                                             subtitle = card.subtitle,
                                             image = {
                                                 ArtworkImage(
-                                                    cache = artworkCache,
                                                     artwork = card.artwork,
                                                     artworkColorPreference =
                                                         preferences.artworkColorPreference,
@@ -792,7 +789,6 @@ fun LibraryScreenCollectionView(
                                         }
                                         is LibraryScreenCollectionViewItemLead.Artwork -> {
                                             ArtworkImage(
-                                                cache = artworkCache,
                                                 artwork =
                                                     (item.lead
                                                             as

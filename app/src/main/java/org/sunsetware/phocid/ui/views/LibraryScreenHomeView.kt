@@ -2,8 +2,6 @@
 
 package org.sunsetware.phocid.ui.views
 
-import android.graphics.Bitmap
-import androidx.collection.LruCache
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -96,7 +94,6 @@ import org.sunsetware.phocid.ui.components.trackMenuItems
 import org.sunsetware.phocid.ui.theme.hashColor
 import org.sunsetware.phocid.utils.MultiSelectManager
 import org.sunsetware.phocid.utils.MultiSelectState
-import org.sunsetware.phocid.utils.Nullable
 import org.sunsetware.phocid.utils.SelectableList
 import org.sunsetware.phocid.utils.combine
 import org.sunsetware.phocid.utils.multiSelectClickable
@@ -456,7 +453,6 @@ fun LibraryScreenHomeView(
     state: LibraryScreenHomeViewState,
     viewModel: MainViewModel = viewModel(),
 ) {
-    val artworkCache = viewModel.artworkCache
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
     val pagerState = state.pagerState
@@ -474,7 +470,6 @@ fun LibraryScreenHomeView(
                         gridSize = tab.gridSize,
                         items = items,
                         multiSelectManager = multiSelectState,
-                        artworkCache = artworkCache,
                         artworkColorPreference = preferences.artworkColorPreference,
                         coloredCards = preferences.coloredCards,
                     )
@@ -577,7 +572,6 @@ private fun LibraryList(
     gridSize: Int,
     items: SelectableList<LibraryScreenHomeViewItem>,
     multiSelectManager: MultiSelectManager,
-    artworkCache: LruCache<Long, Nullable<Bitmap>>,
     artworkColorPreference: ArtworkColorPreference,
     coloredCards: Boolean,
 ) {
@@ -601,7 +595,6 @@ private fun LibraryList(
                                 subtitle = subtitle,
                                 lead = {
                                     ArtworkImage(
-                                        cache = artworkCache,
                                         artwork = artwork,
                                         artworkColorPreference = artworkColorPreference,
                                         modifier = Modifier.fillMaxSize(),
@@ -644,7 +637,6 @@ private fun LibraryList(
                                     else MaterialTheme.colorScheme.surfaceContainerHighest,
                                 image = {
                                     ArtworkImage(
-                                        cache = artworkCache,
                                         artwork = artwork,
                                         artworkColorPreference = artworkColorPreference,
                                         modifier = Modifier.fillMaxSize(),

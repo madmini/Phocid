@@ -2,9 +2,7 @@
 
 package org.sunsetware.phocid.ui.views
 
-import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
-import androidx.collection.LruCache
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -84,7 +82,6 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
     val playerScreenDragState = uiManager.playerScreenDragState
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val libraryIndex by viewModel.libraryIndex.collectAsStateWithLifecycle()
-    val artworkCache = viewModel.artworkCache
 
     val playerState by playerWrapper.state.collectAsStateWithLifecycle()
     val playQueue by
@@ -236,16 +233,6 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
         }
     }
 
-    // Preload adjacent tracks' artworks
-    LaunchedEffect(playQueue, currentTrackIndex) {
-        (currentTrackIndex - 1).wrap(playQueue.size, true)?.run {
-            artworkCache[playQueue[this].second.id]
-        }
-        (currentTrackIndex + 1).wrap(playQueue.size, true)?.run {
-            artworkCache[playQueue[this].second.id]
-        }
-    }
-
     // Start/end listener for NestedScrollConnection
     LaunchedEffect(playQueueLazyListState.isScrollInProgress) {
         if (playQueueLazyListState.isScrollInProgress) {
@@ -339,7 +326,6 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                             Artwork(
                                 playerWrapper = playerWrapper,
                                 libraryIndex = libraryIndex,
-                                artworkCache = artworkCache,
                                 artworkColorPreference = preferences.artworkColorPreference,
                                 playerState = playerState,
                                 playerScreenDragState = playerScreenDragState,
@@ -499,7 +485,6 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
 private fun Artwork(
     playerWrapper: PlayerWrapper,
     libraryIndex: LibraryIndex,
-    artworkCache: LruCache<Long, Nullable<Bitmap>>,
     artworkColorPreference: ArtworkColorPreference,
     playerState: PlayerState,
     playerScreenDragState: BinaryDragState,
@@ -540,7 +525,6 @@ private fun Artwork(
             modifier = Modifier.aspectRatio(1f, matchHeightConstraintsFirst = true),
         ) { state, index ->
             ArtworkImage(
-                cache = artworkCache,
                 artwork =
                     Artwork.Track(
                         state.actualPlayQueue.getOrNull(index)?.let { libraryIndex.tracks[it] }
