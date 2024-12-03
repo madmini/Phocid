@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Album
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
 import androidx.compose.material.icons.filled.Edit
@@ -55,10 +56,14 @@ fun trackMenuItems(
 ): List<MenuItem> {
     val queue =
         listOf(
+            MenuItem.Button(Strings[R.string.track_play_next], Icons.Filled.ChevronRight) {
+                playerWrapper.playNext(listOf(track))
+                uiManager.toast(Strings[R.string.toast_track_queued].icuFormat(1))
+            },
             MenuItem.Button(Strings[R.string.track_add_to_queue], Icons.Filled.Add) {
                 playerWrapper.addTracks(listOf(track))
                 uiManager.toast(Strings[R.string.toast_track_queued].icuFormat(1))
-            }
+            },
         )
     val playlist =
         MenuItem.Button(Strings[R.string.playlist_add_to], Icons.AutoMirrored.Filled.PlaylistAdd) {
@@ -100,6 +105,11 @@ inline fun collectionMenuItemsWithoutPlay(
     crossinline continuation: () -> Unit = {},
 ): List<MenuItem.Button> {
     return listOf(
+        MenuItem.Button(Strings[R.string.track_play_next], Icons.Filled.ChevronRight) {
+            val tracks = tracks()
+            playerWrapper.playNext(tracks)
+            uiManager.toast(Strings[R.string.toast_track_queued].icuFormat(tracks.size))
+        },
         MenuItem.Button(Strings[R.string.track_add_to_queue], Icons.Filled.Add) {
             val tracks = tracks()
             playerWrapper.addTracks(tracks)

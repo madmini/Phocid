@@ -10,6 +10,8 @@ import androidx.annotation.OptIn
 import androidx.compose.runtime.Immutable
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -50,10 +52,7 @@ private fun MediaController.capturePlayerState(): PlayerState {
     fun getUnshuffledPlayQueueMapping(): List<Int> {
         return mediaItems
             .mapIndexedNotNull { index, mediaItem ->
-                val unshuffledIndex =
-                    mediaItem.mediaMetadata.extras?.getInt(UNSHUFFLED_INDEX_KEY, -1)
-                if (unshuffledIndex != null && unshuffledIndex >= 0) Pair(index, unshuffledIndex)
-                else null
+                mediaItem.getUnshuffledIndex()?.let { Pair(index, it) }
             }
             .sortedBy { it.second }
             .map { it.first }
@@ -267,6 +266,27 @@ class PlayerWrapper : AutoCloseable {
         )
     }
 
+    fun playNext(tracks: List<Track>) {
+        if (!_state.value.shuffle) {
+            mediaController.addMediaItems(
+                _state.value.currentIndex + 1,
+                tracks.map { it.getMediaItem(null) },
+            )
+        } else {
+            val mediaItems =
+                (0..<mediaController.mediaItemCount).map { mediaController.getMediaItemAt(it) }
+            val currentIndex = mediaController.currentMediaItemIndex
+            val offsetOriginal =
+                mediaItems.map { it.setUnshuffledIndex(it.getUnshuffledIndex()!! + tracks.size) }
+            val new = tracks.mapIndexed { i, track -> track.getMediaItem(currentIndex + 1 + i) }
+            mediaController.replaceMediaItems(
+                0,
+                Int.MAX_VALUE,
+                offsetOriginal.take(currentIndex + 1) + new + offsetOriginal.drop(currentIndex + 1),
+            )
+        }
+    }
+
     fun removeTrack(index: Int) {
         // [capturePlayerState] should take care of discontinuous [UNSHUFFLED_INDEX_KEY].
         mediaController.removeMediaItem(index)
@@ -385,6 +405,40 @@ class PlayerWrapper : AutoCloseable {
     fun setSpeedAndPitch(speed: Float, pitch: Float) {
         mediaController.playbackParameters = PlaybackParameters(speed, pitch)
     }
+}
+
+private fun MediaItem.getUnshuffledIndex(): Int? {
+    return mediaMetadata.extras?.getInt(UNSHUFFLED_INDEX_KEY, -1)?.takeIf { it >= 0 }
+}
+
+private fun MediaItem.setUnshuffledIndex(unshuffledIndex: Int): MediaItem {
+    return buildUpon()
+        .setMediaMetadata(
+            mediaMetadata
+                .buildUpon()
+                .setExtras(bundleOf(Pair(UNSHUFFLED_INDEX_KEY, unshuffledIndex)))
+                .build()
+        )
+        .build()
+}
+
+private fun Track.getMediaItem(unshuffledIndex: Int?): MediaItem {
+    val unshuffledMediaItem =
+        MediaItem.Builder()
+            .setUri(uri)
+            .setMediaId(id.toString())
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle(title)
+                    .setArtist(displayArtist)
+                    .setAlbumTitle(album)
+                    .setAlbumArtist(albumArtist)
+                    .build()
+            )
+            .build()
+
+    return if (unshuffledIndex == null) unshuffledMediaItem
+    else unshuffledMediaItem.setUnshuffledIndex(unshuffledIndex)
 }
 
 @Immutable

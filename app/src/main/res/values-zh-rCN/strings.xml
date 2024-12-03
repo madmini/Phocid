@@ -209,6 +209,7 @@
     <string name="track_number_without_disc">{0}</string>
     <string name="track_play">播放</string>
     <string name="track_play_all">全部播放</string>
+    <string name="track_play_next">作为下一首播放</string>
     <string name="track_remove_from_queue">移出队列</string>
     <string name="track_view_album">查看专辑“{0}”</string>
     <string name="track_view_artist">查看艺术家“{0}”</string>

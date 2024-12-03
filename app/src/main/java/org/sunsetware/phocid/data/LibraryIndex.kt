@@ -18,9 +18,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
-import androidx.core.os.bundleOf
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.palette.graphics.Palette
 import androidx.palette.graphics.Target
 import com.ibm.icu.text.Collator
@@ -45,7 +42,6 @@ import org.jetbrains.annotations.NonNls
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
 import org.sunsetware.phocid.UNKNOWN
-import org.sunsetware.phocid.UNSHUFFLED_INDEX_KEY
 import org.sunsetware.phocid.utils.*
 
 @Immutable
@@ -148,35 +144,6 @@ data class Track(
 
     override val sortFilename
         get() = fileName
-
-    @Transient
-    private val unshuffledMediaItem =
-        MediaItem.Builder()
-            .setUri(uri)
-            .setMediaId(id.toString())
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(title)
-                    .setArtist(displayArtist)
-                    .setAlbumTitle(album)
-                    .setAlbumArtist(albumArtist)
-                    .build()
-            )
-            .build()
-
-    fun getMediaItem(unshuffledIndex: Int?): MediaItem {
-        return if (unshuffledIndex == null) unshuffledMediaItem
-        else
-            unshuffledMediaItem
-                .buildUpon()
-                .setMediaMetadata(
-                    unshuffledMediaItem.mediaMetadata
-                        .buildUpon()
-                        .setExtras(bundleOf(Pair(UNSHUFFLED_INDEX_KEY, unshuffledIndex)))
-                        .build()
-                )
-                .build()
-    }
 
     companion object {
         @NonNls

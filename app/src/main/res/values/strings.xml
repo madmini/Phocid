@@ -242,6 +242,7 @@
     <string name="track_number_without_disc">{0}</string>
     <string name="track_play">Play</string>
     <string name="track_play_all">Play all</string>
+    <string name="track_play_next">Play next</string>
     <string name="track_remove_from_queue">Remove from queue</string>
     <string name="track_view_album">View album “{0}”</string>
     <string name="track_view_artist">View artist “{0}”</string>
