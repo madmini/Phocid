@@ -13,11 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.util.VelocityTracker1D
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.sunsetware.phocid.DRAG_THRESHOLD
 import org.sunsetware.phocid.utils.wrap
 
@@ -41,8 +44,6 @@ data class CarouselStateBatch<T>(
  * - has 99% less bugs than Google's POS
  *
  * @param content Index is not guaranteed to be valid; this lambda should check for validity itself.
- *
- * TODO: Animation stutters on rapid consecutive swipes
  */
 @Composable
 inline fun <reified T> TrackCarousel(
@@ -61,6 +62,7 @@ inline fun <reified T> TrackCarousel(
     crossinline content: @Composable (T, Int) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val dispatcher = Dispatchers.Main.limitedParallelism(1)
 
     var horizontalDragTotal by remember { mutableFloatStateOf(0f) }
 
@@ -85,64 +87,68 @@ inline fun <reified T> TrackCarousel(
     var lastNonadjacentDirection by remember { mutableIntStateOf(-1) }
     var width by remember { mutableIntStateOf(0) }
     val offset = remember { Animatable(0f) }
+    val velocityTracker = remember { VelocityTracker1D(true) }
 
     @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
     LaunchedEffect(state, key) {
-        var (
-            _,
-            count,
-            repeat,
-            lastIndex,
-            lastIndexEquality,
-            currentIndex,
-            previousIndex,
-            nextIndex) =
-            stateBatch
-        val index = indexSelector(state)
-        count = countSelector(state)
-        repeat = repeatSelector(state)
-        val currentIndexEquality = indexEqualitySelector(state, index)
-        if (lastIndexEquality == currentIndexEquality) {
-            isLastAdjacent = true
-        } else {
-            when (index) {
-                nextIndex -> {
-                    isLastAdjacent = true
-                    offset.snapTo(offset.value + 1)
-                }
-                previousIndex -> {
-                    isLastAdjacent = true
-                    offset.snapTo(offset.value - 1)
-                }
-                currentIndex -> {
-                    isLastAdjacent = true
-                }
-                else -> {
-                    isLastAdjacent = false
-                    lastNonadjacentDirection = if (index >= currentIndex) -1 else 1
-                    offset.snapTo(offset.value - lastNonadjacentDirection)
-                }
-            }
-        }
-        lastIndexEquality = currentIndexEquality
-        lastIndex = currentIndex
-        currentIndex = index
-        previousIndex = (index - 1).wrap(count, repeat)
-        nextIndex = (index + 1).wrap(count, repeat)
-
-        stateBatch =
-            CarouselStateBatch(
-                state,
+        withContext(dispatcher) {
+            var (
+                _,
                 count,
                 repeat,
                 lastIndex,
                 lastIndexEquality,
                 currentIndex,
                 previousIndex,
-                nextIndex,
-            )
+                nextIndex) =
+                stateBatch
+            val index = indexSelector(state)
+            count = countSelector(state)
+            repeat = repeatSelector(state)
+            val currentIndexEquality = indexEqualitySelector(state, index)
+            if (lastIndexEquality == currentIndexEquality) {
+                isLastAdjacent = true
+            } else {
+                when (index) {
+                    nextIndex -> {
+                        isLastAdjacent = true
+                        offset.snapTo(offset.value + 1)
+                    }
+                    previousIndex -> {
+                        isLastAdjacent = true
+                        offset.snapTo(offset.value - 1)
+                    }
+                    currentIndex -> {
+                        isLastAdjacent = true
+                    }
+                    else -> {
+                        isLastAdjacent = false
+                        lastNonadjacentDirection = if (index >= currentIndex) -1 else 1
+                        offset.snapTo(offset.value - lastNonadjacentDirection)
+                    }
+                }
+            }
+            lastIndexEquality = currentIndexEquality
+            lastIndex = currentIndex
+            currentIndex = index
+            previousIndex = (index - 1).wrap(count, repeat)
+            nextIndex = (index + 1).wrap(count, repeat)
 
-        offset.animateTo(0f)
+            stateBatch =
+                CarouselStateBatch(
+                    state,
+                    count,
+                    repeat,
+                    lastIndex,
+                    lastIndexEquality,
+                    currentIndex,
+                    previousIndex,
+                    nextIndex,
+                )
+
+            offset.animateTo(0f, initialVelocity = velocityTracker.calculateVelocity())
+            velocityTracker.resetTracking()
+        }
     }
 
     Box(
@@ -154,30 +160,41 @@ inline fun <reified T> TrackCarousel(
                 .pointerInput(tapKey) { detectTapGestures { onTap() } }
                 .pointerInput(Unit) { onVerticalDrag() }
                 .pointerInput(Unit) {
+                    var lastTime = null as Long?
                     detectHorizontalDragGestures(
                         onDragStart = {
                             horizontalDragTotal = 0f
                             isLastAdjacent = true
+                            velocityTracker.resetTracking()
+                            lastTime = null
                         },
                         onDragCancel = {
-                            horizontalDragTotal = 0f
-                            isLastAdjacent = true
+                            coroutineScope.launch(dispatcher) {
+                                offset.animateTo(0f)
+                                horizontalDragTotal = 0f
+                                isLastAdjacent = true
+                            }
                         },
                         onDragEnd = {
-                            if (horizontalDragTotal >= DRAG_THRESHOLD.toPx()) {
-                                onPrevious()
-                            } else if (horizontalDragTotal <= -DRAG_THRESHOLD.toPx()) {
-                                onNext()
-                            } else {
-                                coroutineScope.launch { offset.animateTo(0f) }
+                            coroutineScope.launch(dispatcher) {
+                                if (horizontalDragTotal >= DRAG_THRESHOLD.toPx()) {
+                                    onPrevious()
+                                } else if (horizontalDragTotal <= -DRAG_THRESHOLD.toPx()) {
+                                    onNext()
+                                } else {
+                                    offset.animateTo(0f)
+                                }
+                                horizontalDragTotal = 0f
+                                isLastAdjacent = true
                             }
-                            horizontalDragTotal = 0f
-                            isLastAdjacent = true
                         },
-                    ) { _, dragAmount ->
-                        horizontalDragTotal += dragAmount
-                        isLastAdjacent = true
-                        coroutineScope.launch { offset.snapTo(horizontalDragTotal / width) }
+                    ) { change, dragAmount ->
+                        coroutineScope.launch(dispatcher) {
+                            velocityTracker.addDataPoint(change.uptimeMillis, dragAmount / width)
+                            horizontalDragTotal += dragAmount
+                            isLastAdjacent = true
+                            offset.snapTo(horizontalDragTotal / width)
+                        }
                     }
                 }
     ) {
