@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sunsetware.phocid.DRAG_THRESHOLD
+import org.sunsetware.phocid.ui.theme.emphasizedExit
 import org.sunsetware.phocid.utils.wrap
 
 @Stable
@@ -146,7 +147,8 @@ inline fun <reified T> TrackCarousel(
                     nextIndex,
                 )
 
-            offset.animateTo(0f, initialVelocity = velocityTracker.calculateVelocity())
+            // TODO: try actually utilizing velocity here
+            offset.animateTo(0f, emphasizedExit())
             velocityTracker.resetTracking()
         }
     }
