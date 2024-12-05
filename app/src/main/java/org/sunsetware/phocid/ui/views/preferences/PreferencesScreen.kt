@@ -30,6 +30,7 @@ import org.sunsetware.phocid.TopLevelScreen
 import org.sunsetware.phocid.data.ArtworkColorPreference
 import org.sunsetware.phocid.data.DarkThemePreference
 import org.sunsetware.phocid.data.LyricsDisplayPreference
+import org.sunsetware.phocid.data.ShapePreference
 import org.sunsetware.phocid.data.TabStylePreference
 import org.sunsetware.phocid.ui.components.UtilityListHeader
 import org.sunsetware.phocid.ui.components.UtilityListItem
@@ -182,6 +183,26 @@ object PreferencesScreen : TopLevelScreen() {
                         modifier =
                             Modifier.clickable {
                                 uiManager.openDialog(PreferencesThemeColorDialog())
+                            },
+                    )
+                    UtilityListItem(
+                        title = Strings[R.string.preferences_shape],
+                        subtitle = Strings[preferences.shapePreference.stringId],
+                        modifier =
+                            Modifier.clickable {
+                                uiManager.openDialog(
+                                    PreferencesSingleChoiceDialog<ShapePreference>(
+                                        title = Strings[R.string.preferences_shape],
+                                        options =
+                                            ShapePreference.entries.map {
+                                                it to Strings[it.stringId]
+                                            },
+                                        activeOption = { it.shapePreference },
+                                        updatePreferences = { preferences, new ->
+                                            preferences.copy(shapePreference = new)
+                                        },
+                                    )
+                                )
                             },
                     )
                     UtilitySwitchListItem(

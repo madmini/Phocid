@@ -149,6 +149,7 @@ class PlaylistEditScreen(private val playlistKey: UUID) : TopLevelScreen() {
                                     ArtworkImage(
                                         artwork = Artwork.Track(entry.track ?: InvalidTrack),
                                         artworkColorPreference = preferences.artworkColorPreference,
+                                        shape = preferences.shapePreference.artworkShape,
                                     )
                                 },
                                 actions = {

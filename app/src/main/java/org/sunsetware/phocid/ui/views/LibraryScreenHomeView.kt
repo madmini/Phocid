@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.outlined.Album
@@ -39,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
@@ -471,6 +473,8 @@ fun LibraryScreenHomeView(
                         items = items,
                         multiSelectManager = multiSelectState,
                         artworkColorPreference = preferences.artworkColorPreference,
+                        artworkShape = preferences.shapePreference.artworkShape,
+                        cardShape = preferences.shapePreference.cardShape,
                         coloredCards = preferences.coloredCards,
                     )
                 }
@@ -573,6 +577,8 @@ private fun LibraryList(
     items: SelectableList<LibraryScreenHomeViewItem>,
     multiSelectManager: MultiSelectManager,
     artworkColorPreference: ArtworkColorPreference,
+    artworkShape: Shape,
+    cardShape: Shape,
     coloredCards: Boolean,
 ) {
     val viewModel = viewModel<MainViewModel>()
@@ -597,6 +603,7 @@ private fun LibraryList(
                                     ArtworkImage(
                                         artwork = artwork,
                                         artworkColorPreference = artworkColorPreference,
+                                        shape = artworkShape,
                                         modifier = Modifier.fillMaxSize(),
                                     )
                                 },
@@ -635,10 +642,12 @@ private fun LibraryList(
                                 color =
                                     if (coloredCards) artwork.getColor(artworkColorPreference)
                                     else MaterialTheme.colorScheme.surfaceContainerHighest,
+                                shape = cardShape,
                                 image = {
                                     ArtworkImage(
                                         artwork = artwork,
                                         artworkColorPreference = artworkColorPreference,
+                                        shape = RoundedCornerShape(0.dp),
                                         modifier = Modifier.fillMaxSize(),
                                     )
                                 },

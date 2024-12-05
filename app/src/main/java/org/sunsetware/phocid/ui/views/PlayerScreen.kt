@@ -531,6 +531,7 @@ private fun Artwork(
                             ?: InvalidTrack
                     ),
                 artworkColorPreference = artworkColorPreference,
+                shape = RoundedCornerShape(0.dp),
                 modifier = Modifier.fillMaxSize(),
             )
         }

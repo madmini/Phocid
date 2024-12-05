@@ -1,8 +1,12 @@
 package org.sunsetware.phocid.data
 
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.dp
 import com.ibm.icu.text.Collator
 import com.ibm.icu.text.RuleBasedCollator
 import java.util.Locale
@@ -41,6 +45,7 @@ data class Preferences(
     val coloredCards: Boolean = true,
     val coloredPlayer: Boolean = true,
     val artworkColorPreference: ArtworkColorPreference = ArtworkColorPreference.MUTED_FIRST,
+    val shapePreference: ShapePreference = ShapePreference.SQUARE,
     // Indexing
     val advancedMetadataExtraction: Boolean = false,
     @NonNls
@@ -145,6 +150,17 @@ enum class ArtworkColorPreference(val stringId: Int) {
     VIBRANT_FIRST(R.string.preferences_artwork_color_vibrant_first),
     MUTED_FIRST(R.string.preferences_artwork_color_muted_first),
     MUTED_ONLY(R.string.preferences_artwork_color_muted_only),
+}
+
+@Serializable
+enum class ShapePreference(val stringId: Int, val artworkShape: Shape, val cardShape: Shape) {
+    SQUARE(R.string.preferences_shape_square, RoundedCornerShape(0.dp), RoundedCornerShape(0.dp)),
+    ROUNDED_SQUARE(
+        R.string.preferences_shape_rounded_square,
+        RoundedCornerShape(8.dp),
+        RoundedCornerShape(12.dp),
+    ),
+    CIRCLE(R.string.preferences_shape_circle, CircleShape, RoundedCornerShape(12.dp)),
 }
 
 @Stable

@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
@@ -25,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.sunsetware.phocid.R
@@ -124,6 +124,7 @@ inline fun LibraryListItemCard(
     title: String,
     subtitle: String,
     color: Color,
+    shape: Shape,
     crossinline image: @Composable () -> Unit,
     @Suppress("UNUSED_PARAMETER")
     menuItems: List<MenuItem>, // TODO: Maybe find a way to fit the overflow menu in
@@ -132,7 +133,7 @@ inline fun LibraryListItemCard(
 ) {
     val contentColor = color.contentColor()
     Card(
-        shape = RoundedCornerShape(0.dp),
+        shape = shape,
         colors = CardColors(color, contentColor, color, contentColor),
         modifier = modifier,
     ) {
@@ -189,11 +190,12 @@ inline fun LibraryListItemCard(
 inline fun LibraryListItemCompactCard(
     title: String,
     subtitle: String,
+    shape: Shape,
     crossinline image: @Composable () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val secondaryColor = contentColorVariant()
-    Card(shape = RoundedCornerShape(0.dp), modifier = modifier) {
+    Card(shape = shape, modifier = modifier) {
         image()
         Column(modifier = Modifier.padding(16.dp)) {
             SingleLineText(

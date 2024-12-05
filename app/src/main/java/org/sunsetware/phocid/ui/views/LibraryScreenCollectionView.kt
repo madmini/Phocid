@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.MaterialTheme
@@ -699,6 +700,7 @@ fun LibraryScreenCollectionView(
                             ArtworkImage(
                                 artwork = info.artwork!!,
                                 artworkColorPreference = preferences.artworkColorPreference,
+                                shape = RoundedCornerShape(0.dp),
                                 modifier =
                                     Modifier.fillMaxWidth()
                                         .aspectRatio(1f, matchHeightConstraintsFirst = true),
@@ -727,11 +729,13 @@ fun LibraryScreenCollectionView(
                                         LibraryListItemCompactCard(
                                             title = card.title,
                                             subtitle = card.subtitle,
+                                            shape = preferences.shapePreference.cardShape,
                                             image = {
                                                 ArtworkImage(
                                                     artwork = card.artwork,
                                                     artworkColorPreference =
                                                         preferences.artworkColorPreference,
+                                                    shape = RoundedCornerShape(0.dp),
                                                     modifier =
                                                         Modifier.fillMaxWidth()
                                                             .aspectRatio(
@@ -794,7 +798,9 @@ fun LibraryScreenCollectionView(
                                                             as
                                                             LibraryScreenCollectionViewItemLead.Artwork)
                                                         .artwork,
-                                                preferences.artworkColorPreference,
+                                                artworkColorPreference =
+                                                    preferences.artworkColorPreference,
+                                                shape = preferences.shapePreference.artworkShape,
                                                 modifier = Modifier.fillMaxSize(),
                                             )
                                         }

@@ -20,6 +20,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -220,6 +221,7 @@ fun LibraryScreen(playerScreenDragLock: DragLock, viewModel: MainViewModel = vie
                 playerWrapper,
                 libraryIndex,
                 preferences.artworkColorPreference,
+                preferences.shapePreference.artworkShape,
                 uiManager.playerScreenDragState,
                 playerScreenDragLock,
             )
@@ -461,6 +463,7 @@ private fun BottomBar(
     playerWrapper: PlayerWrapper,
     libraryIndex: LibraryIndex,
     artworkColorPreference: ArtworkColorPreference,
+    artworkShape: Shape,
     playerScreenDragState: BinaryDragState,
     playerScreenDragLock: DragLock,
 ) {
@@ -586,6 +589,7 @@ private fun BottomBar(
                                     ArtworkImage(
                                         artwork = Artwork.Track(track),
                                         artworkColorPreference = artworkColorPreference,
+                                        shape = artworkShape,
                                         modifier = Modifier.fillMaxSize(),
                                     )
                                 },

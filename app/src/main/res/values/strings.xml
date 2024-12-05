@@ -159,6 +159,10 @@
     <string name="preferences_playlist_io_settings_remove_invalid">Remove unresolved tracks</string>
     <string name="preferences_pure_background_color">Pure black/white background</string>
     <string name="preferences_scrollable_tabs">Scrollable tabs</string>
+    <string name="preferences_shape">Artwork shape</string>
+    <string name="preferences_shape_circle">Circle</string>
+    <string name="preferences_shape_rounded_square">Rounded square</string>
+    <string name="preferences_shape_square">Square</string>
     <string name="preferences_sorting_language">Sorting language</string>
     <string name="preferences_sorting_language_system">System language</string>
     <string name="preferences_tab_style">Tab style</string>

@@ -12,7 +12,9 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -46,6 +48,7 @@ sealed class Artwork {
 fun ArtworkImage(
     artwork: Artwork,
     artworkColorPreference: ArtworkColorPreference,
+    shape: Shape,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
 ) {
@@ -66,14 +69,14 @@ fun ArtworkImage(
         Image(
             painter = BitmapPainter(image),
             contentDescription = null,
-            modifier = modifier,
+            modifier = modifier.clip(shape),
             contentScale = contentScale,
         )
     } else {
         val color =
             remember(artwork, artworkColorPreference) { artwork.getColor(artworkColorPreference) }
         Box(
-            modifier = modifier.background(color.contentColor()),
+            modifier = modifier.clip(shape).background(color.contentColor()),
             contentAlignment = Alignment.Center,
         ) {
             Icon(icon!!, null, tint = color, modifier = Modifier.fillMaxSize(0.5f))
