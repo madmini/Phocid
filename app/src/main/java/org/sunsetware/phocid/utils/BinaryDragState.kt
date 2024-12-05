@@ -1,6 +1,7 @@
 package org.sunsetware.phocid.utils
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.setValue
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.sunsetware.phocid.DRAG_THRESHOLD
+import org.sunsetware.phocid.ui.theme.emphasizedStandard
 
 /**
  * Reminder: [androidx.compose.foundation.gestures.AnchoredDraggableState] and other official APIs
@@ -30,6 +32,7 @@ class BinaryDragState(
     val onSnapToZero: () -> Unit = {},
     val onSnapToOne: () -> Unit = {},
     val reversed: Boolean = false,
+    val animationSpec: AnimationSpec<Float> = emphasizedStandard<Float>(),
 ) {
     private val _position = Animatable(initialValue)
     val position by _position.asState()
@@ -78,7 +81,7 @@ class BinaryDragState(
     }
 
     fun animateTo(value: Float) {
-        coroutineScope.get()?.launch { _position.animateTo(value) }
+        coroutineScope.get()?.launch { _position.animateTo(value, animationSpec) }
         if (value == 0f) onSnapToZero() else if (value == 1f) onSnapToOne()
         _targetValue.update { value }
     }

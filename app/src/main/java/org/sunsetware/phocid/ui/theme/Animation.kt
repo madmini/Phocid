@@ -15,6 +15,7 @@ import androidx.core.graphics.PathParser
 
 const val ENTER_DURATION = 500
 const val EXIT_DURATION = 200
+const val STANDARD_DURATION = 300
 
 fun <T> emphasized(durationMillis: Int, delayMillis: Int = 0): TweenSpec<T> {
     return tween(
@@ -30,6 +31,10 @@ fun <T> emphasizedEnter(delayMillis: Int = 0): TweenSpec<T> {
 
 fun <T> emphasizedExit(delayMillis: Int = 0): TweenSpec<T> {
     return emphasized(EXIT_DURATION, delayMillis)
+}
+
+fun <T> emphasizedStandard(delayMillis: Int = 0): TweenSpec<T> {
+    return emphasized(STANDARD_DURATION, delayMillis)
 }
 
 // region AnimatedVisibility
