@@ -73,7 +73,7 @@ data class Track(
         get() = ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id)
 
     val displayTitle
-        get() = title ?: UNKNOWN
+        get() = title ?: FilenameUtils.getBaseName(path)
 
     val displayArtistOrNull
         get() = if (artists.any()) Strings.conjoin(artists) else null
@@ -116,7 +116,7 @@ data class Track(
     override val searchableStrings = listOfNotNull(displayTitle, displayArtist, album, albumArtist)
 
     override val sortTitle
-        get() = title ?: ""
+        get() = displayTitle
 
     override val sortArtist
         get() = Strings.conjoin(artists)

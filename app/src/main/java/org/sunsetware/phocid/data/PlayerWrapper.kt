@@ -429,7 +429,7 @@ private fun Track.getMediaItem(unshuffledIndex: Int?): MediaItem {
             .setMediaId(id.toString())
             .setMediaMetadata(
                 MediaMetadata.Builder()
-                    .setTitle(title)
+                    .setTitle(displayTitle)
                     .setArtist(displayArtist)
                     .setAlbumTitle(album)
                     .setAlbumArtist(albumArtist)
