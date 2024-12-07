@@ -132,9 +132,12 @@ class MainActivity : ComponentActivity(), IntentLauncher {
                         AnimatedForwardBackwardTransition(topLevelScreenStack) { screen ->
                             when (screen) {
                                 null -> {
-                                    if (playerScreenDragState.position < 1) {
-                                        LibraryScreen(playerScreenOpenDragLock)
-                                    }
+                                    LibraryScreen(
+                                        playerScreenOpenDragLock,
+                                        isObscured =
+                                            playerScreenDragState.position == 1f ||
+                                                topLevelScreenStack.isNotEmpty(),
+                                    )
 
                                     if (playerScreenDragState.position > 0) {
                                         val scrimColor = MaterialTheme.colorScheme.scrim

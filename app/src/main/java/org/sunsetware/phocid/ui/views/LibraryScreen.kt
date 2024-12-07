@@ -64,7 +64,11 @@ interface LibraryScreenItem<T : LibraryScreenItem<T>> {
 }
 
 @Composable
-fun LibraryScreen(playerScreenDragLock: DragLock, viewModel: MainViewModel = viewModel()) {
+fun LibraryScreen(
+    playerScreenDragLock: DragLock,
+    isObscured: Boolean,
+    viewModel: MainViewModel = viewModel(),
+) {
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
     val playerWrapper = viewModel.playerWrapper
@@ -224,6 +228,7 @@ fun LibraryScreen(playerScreenDragLock: DragLock, viewModel: MainViewModel = vie
                 preferences.shapePreference.artworkShape,
                 uiManager.playerScreenDragState,
                 playerScreenDragLock,
+                isObscured,
             )
         },
     ) { scaffoldPadding ->
@@ -335,8 +340,7 @@ private fun TopBar(
             ) {
                 AnimatedForwardBackwardTransition(
                     if (titles.isEmpty()) emptyList() else listOf(Unit),
-                    forward = ForwardFadeSpec,
-                    backward = BackwardFadeSpec,
+                    slide = false,
                     modifier = Modifier.padding(horizontal = 4.dp).height(48.dp),
                 ) { animatedCollectionTitle ->
                     if (animatedCollectionTitle != null) {
@@ -358,8 +362,7 @@ private fun TopBar(
                 }
                 AnimatedForwardBackwardTransition(
                     titles,
-                    forward = ForwardFadeSpec,
-                    backward = BackwardFadeSpec,
+                    slide = false,
                     modifier = Modifier.padding(start = 16.dp).fillMaxWidth().height(48.dp),
                 ) { animatedTitle ->
                     if (animatedTitle == null) {
@@ -370,8 +373,7 @@ private fun TopBar(
                 }
                 AnimatedForwardBackwardTransition(
                     titles,
-                    forward = ForwardFadeSpec,
-                    backward = BackwardFadeSpec,
+                    slide = false,
                     modifier =
                         Modifier.padding(start = (48 + 4 * 2).dp).fillMaxWidth().height(48.dp),
                 ) { animatedTitle ->
@@ -420,7 +422,7 @@ private fun SearchBar(value: String, onValueChange: (String) -> Unit) {
         keyboardActions = KeyboardActions { focusManager.clearFocus() },
         textStyle = Typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
         cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
-        modifier = Modifier.onFocusChanged { focus = it.isFocused },
+        modifier = Modifier.onFocusChanged { focus = it.isFocused }.height(48.dp),
     ) { innerTextField ->
         Surface(
             shape = CircleShape,
@@ -466,6 +468,7 @@ private fun BottomBar(
     artworkShape: Shape,
     playerScreenDragState: BinaryDragState,
     playerScreenDragLock: DragLock,
+    isObscured: Boolean,
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -492,7 +495,9 @@ private fun BottomBar(
             .collectAsStateWithLifecycle()
 
     // Update progress
-    LaunchedEffect(currentTrack) {
+    LaunchedEffect(currentTrack, isObscured) {
+        if (isObscured) return@LaunchedEffect
+
         val frameTime = (1f / context.display.refreshRate).toDouble().milliseconds
 
         while (isActive) {
