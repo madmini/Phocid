@@ -9,17 +9,24 @@ import androidx.compose.material.icons.outlined.MusicNote
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.sunsetware.phocid.data.ArtworkColorPreference
 import org.sunsetware.phocid.data.getArtworkColor
 import org.sunsetware.phocid.data.loadArtwork
@@ -51,27 +58,55 @@ fun ArtworkImage(
     shape: Shape,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
+    async: Boolean = true,
 ) {
     val context = LocalContext.current
-    val (image, icon) =
+    var image by
         remember(artwork) {
-            when (artwork) {
-                is Artwork.Track -> {
-                    loadArtwork(context, artwork.track.id)?.let { Pair(it.asImageBitmap(), null) }
-                        ?: Pair(null, Icons.Outlined.MusicNote)
+            mutableStateOf(
+                if (!async && artwork is Artwork.Track) {
+                    loadArtwork(context, artwork.track.id)?.asImageBitmap()
+                } else {
+                    null as ImageBitmap?
                 }
-                is Artwork.Icon -> {
-                    Pair(null, artwork.icon)
+            )
+        }
+    val icon =
+        when (artwork) {
+            is Artwork.Track -> Icons.Outlined.MusicNote
+            is Artwork.Icon -> artwork.icon
+        }
+    var isIcon by
+        remember(artwork) {
+            mutableStateOf(
+                if (async) {
+                    artwork is Artwork.Icon
+                } else {
+                    image == null
                 }
+            )
+        }
+
+    LaunchedEffect(artwork) {
+        if (artwork is Artwork.Track && async) {
+            withContext(Dispatchers.IO) {
+                image = loadArtwork(context, artwork.track.id)?.asImageBitmap()
+                if (image == null) isIcon = true
             }
         }
-    if (image != null) {
-        Image(
-            painter = BitmapPainter(image),
-            contentDescription = null,
-            modifier = modifier.clip(shape),
-            contentScale = contentScale,
-        )
+    }
+
+    if (!isIcon) {
+        if (image != null) {
+            Image(
+                painter = BitmapPainter(image!!),
+                contentDescription = null,
+                modifier = modifier.clip(shape),
+                contentScale = contentScale,
+            )
+        } else {
+            Box(modifier = modifier)
+        }
     } else {
         val color =
             remember(artwork, artworkColorPreference) { artwork.getColor(artworkColorPreference) }

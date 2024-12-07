@@ -595,6 +595,7 @@ private fun BottomBar(
                                         artwork = Artwork.Track(track),
                                         artworkColorPreference = artworkColorPreference,
                                         shape = artworkShape,
+                                        async = false,
                                         modifier = Modifier.fillMaxSize(),
                                     )
                                 },

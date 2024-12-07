@@ -533,6 +533,7 @@ private fun Artwork(
                 artworkColorPreference = artworkColorPreference,
                 shape = RoundedCornerShape(0.dp),
                 modifier = Modifier.fillMaxSize(),
+                async = false,
             )
         }
         FilledTonalIconButton(
