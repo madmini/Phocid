@@ -15,8 +15,8 @@ android {
         applicationId = "org.sunsetware.phocid"
         minSdk = 30
         targetSdk = 35
-        versionCode = 20241207
-        versionName = "20241207"
+        versionCode = 20241208
+        versionName = "20241208"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
