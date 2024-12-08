@@ -4,20 +4,16 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker1D
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -86,7 +82,6 @@ inline fun <reified T> TrackCarousel(
     }
     var isLastAdjacent by remember { mutableStateOf(true) }
     var lastNonadjacentDirection by remember { mutableIntStateOf(-1) }
-    var width by remember { mutableIntStateOf(0) }
     val offset = remember { Animatable(0f) }
     val velocityTracker = remember { VelocityTracker1D(true) }
 
@@ -158,7 +153,6 @@ inline fun <reified T> TrackCarousel(
             modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(0.dp))
-                .onSizeChanged { width = it.width }
                 .pointerInput(tapKey) { detectTapGestures { onTap() } }
                 .pointerInput(Unit) { onVerticalDrag() }
                 .pointerInput(Unit) {
@@ -192,10 +186,13 @@ inline fun <reified T> TrackCarousel(
                         },
                     ) { change, dragAmount ->
                         coroutineScope.launch(dispatcher) {
-                            velocityTracker.addDataPoint(change.uptimeMillis, dragAmount / width)
+                            velocityTracker.addDataPoint(
+                                change.uptimeMillis,
+                                dragAmount / size.width,
+                            )
                             horizontalDragTotal += dragAmount
                             isLastAdjacent = true
-                            offset.snapTo(horizontalDragTotal / width)
+                            offset.snapTo(horizontalDragTotal / size.width)
                         }
                     }
                 }
@@ -204,9 +201,7 @@ inline fun <reified T> TrackCarousel(
             key(stateBatch.currentIndex) {
                 Box(
                     modifier =
-                        Modifier.absoluteOffset {
-                            IntOffset(((0 + offset.value) * width).roundToInt(), 0)
-                        }
+                        Modifier.graphicsLayer { translationX = (0 + offset.value) * size.width }
                 ) {
                     content(stateBatch.state, stateBatch.currentIndex)
                 }
@@ -216,8 +211,8 @@ inline fun <reified T> TrackCarousel(
                     key(stateBatch.previousIndex!!) {
                         Box(
                             modifier =
-                                Modifier.absoluteOffset {
-                                    IntOffset(((-1 + offset.value) * width).roundToInt(), 0)
+                                Modifier.graphicsLayer {
+                                    translationX = (-1 + offset.value) * size.width
                                 }
                         ) {
                             content(stateBatch.state, stateBatch.previousIndex!!)
@@ -228,8 +223,8 @@ inline fun <reified T> TrackCarousel(
                     key(stateBatch.nextIndex!!) {
                         Box(
                             modifier =
-                                Modifier.absoluteOffset {
-                                    IntOffset(((1 + offset.value) * width).roundToInt(), 0)
+                                Modifier.graphicsLayer {
+                                    translationX = (1 + offset.value) * size.width
                                 }
                         ) {
                             content(stateBatch.state, stateBatch.nextIndex!!)
@@ -240,12 +235,9 @@ inline fun <reified T> TrackCarousel(
                 key(stateBatch.lastIndex) {
                     Box(
                         modifier =
-                            Modifier.offset {
-                                IntOffset(
-                                    ((lastNonadjacentDirection + offset.value) * width)
-                                        .roundToInt(),
-                                    0,
-                                )
+                            Modifier.graphicsLayer {
+                                translationX =
+                                    (lastNonadjacentDirection + offset.value) * size.width
                             }
                     ) {
                         content(stateBatch.state, stateBatch.lastIndex)
