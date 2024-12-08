@@ -145,9 +145,8 @@ class MainActivity : ComponentActivity(), IntentLauncher {
                                             modifier =
                                                 Modifier.fillMaxSize().drawBehind {
                                                     drawRect(
-                                                        scrimColor.copy(
-                                                            alpha = playerScreenDragState.position
-                                                        )
+                                                        scrimColor,
+                                                        alpha = playerScreenDragState.position,
                                                     )
                                                 }
                                         )
