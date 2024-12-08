@@ -25,6 +25,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
@@ -33,15 +34,16 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.times
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.Player
@@ -72,6 +74,8 @@ import org.sunsetware.phocid.ui.theme.customColorScheme
 import org.sunsetware.phocid.ui.theme.emphasizedExit
 import org.sunsetware.phocid.ui.theme.pureBackgroundColor
 import org.sunsetware.phocid.utils.*
+
+private const val LAYOUT_ASPECT_RATIO_THRESHOLD = 1.5f
 
 @Composable
 fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
@@ -132,8 +136,6 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
             }
         }
 
-    var layoutType by remember { mutableStateOf(LayoutType.PORTRAIT) }
-
     val defaultColor = LocalThemeAccent.current
     val animatedContainerColor = remember {
         Animatable(
@@ -144,6 +146,7 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
     }
     val animatedContentColor = animatedContainerColor.value.contentColor()
 
+    var layoutType by remember { mutableStateOf(LayoutType.PORTRAIT) }
     val controlsDragLock = remember { DragLock() }
     val playQueueDragLock = remember { DragLock() }
     val playQueueLazyListState = rememberLazyListState()
@@ -261,8 +264,32 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
     ) {
         Scaffold(
             topBar = {
-                Column {
-                    if (layoutType == LayoutType.SQUARE) {
+                Box(
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .windowInsetsTopHeight(WindowInsets.statusBars)
+                            .background(animatedContainerColor.value)
+                )
+            },
+            bottomBar = {
+                Box(
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .windowInsetsBottomHeight(WindowInsets.navigationBars)
+                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                )
+            },
+            contentWindowInsets = WindowInsets(0.dp),
+        ) { scaffoldPadding ->
+            Box(
+                modifier =
+                    Modifier.fillMaxSize()
+                        .padding(scaffoldPadding)
+                        .consumeWindowInsets(scaffoldPadding)
+                        .systemBarsPadding()
+            ) {
+                PlayerLayout(
+                    topBar = {
                         // Hack to remove animation delay
                         // https://stackoverflow.com/q/77928923
                         key(animatedContainerColor.value) {
@@ -286,42 +313,17 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                     ),
                             )
                         }
-                    } else {
+                    },
+                    carousel = {
+                        val scrimColor = MaterialTheme.colorScheme.scrim
                         Box(
                             modifier =
-                                Modifier.fillMaxWidth()
-                                    .windowInsetsTopHeight(WindowInsets.statusBars)
-                                    .background(animatedContainerColor.value)
-                        )
-                    }
-                }
-            },
-            bottomBar = {
-                Box(
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .windowInsetsBottomHeight(WindowInsets.navigationBars)
-                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                )
-            },
-        ) { scaffoldPadding ->
-            Surface(
-                modifier =
-                    Modifier.padding(scaffoldPadding).fillMaxSize().onSizeChanged {
-                        val threshold = 1.5f
-                        layoutType =
-                            when {
-                                it.width.toFloat() / it.height >= threshold -> LayoutType.LANDSCAPE
-                                it.height.toFloat() / it.width >= threshold -> LayoutType.PORTRAIT
-                                else -> LayoutType.SQUARE
-                            }
-                    },
-                color = MaterialTheme.colorScheme.background,
-            ) {
-                Box {
-                    if (layoutType != LayoutType.SQUARE) {
-                        Box(
-                            modifier = Modifier.width(IntrinsicSize.Max).height(IntrinsicSize.Max)
+                                Modifier.drawWithContent {
+                                    drawContent()
+                                    if (layoutType == LayoutType.PORTRAIT) {
+                                        drawRect(scrimColor, alpha = playQueueDragState.position)
+                                    }
+                                }
                         ) {
                             Artwork(
                                 playerWrapper = playerWrapper,
@@ -341,10 +343,7 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                         )
                                     }
                                 },
-                                modifier =
-                                    Modifier.onSizeChanged {
-                                        playQueueDragState.length = it.height.toFloat()
-                                    },
+                                modifier = Modifier.fillMaxSize(),
                             )
                             LyricsOverlay(
                                 currentTrackLyrics,
@@ -355,46 +354,16 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                 modifier = Modifier.fillMaxSize(),
                             )
                         }
-                        if (playQueueDragState.position > 0) {
-                            Box(
-                                modifier =
-                                    Modifier.fillMaxWidth()
-                                        .aspectRatio(1f, matchHeightConstraintsFirst = true)
-                                        .background(
-                                            MaterialTheme.colorScheme.scrim.copy(
-                                                alpha = playQueueDragState.position
-                                            )
-                                        )
-                            )
-                        }
-                    }
-                    Column(
-                        modifier =
-                            when (layoutType) {
-                                LayoutType.SQUARE -> {
-                                    Modifier
-                                }
-                                LayoutType.LANDSCAPE -> {
-                                    Modifier.padding(
-                                        start =
-                                            with(LocalDensity.current) {
-                                                playQueueDragState.length.toDp()
-                                            }
-                                    )
-                                }
-                                LayoutType.PORTRAIT -> {
-                                    Modifier.padding(
-                                            top =
-                                                with(LocalDensity.current) {
-                                                    (1 - playQueueDragState.position) *
-                                                        playQueueDragState.length.toDp()
-                                                }
-                                        )
-                                        .pointerInput(Unit) {
-                                            // Block non-vertical gestures
-                                            detectHorizontalDragGestures { _, _ -> }
-                                        }
-                                        .pointerInput(Unit) {
+                    },
+                    main = {
+                        Column(
+                            modifier =
+                                Modifier.pointerInput(Unit) {
+                                        // Block non-vertical gestures
+                                        detectHorizontalDragGestures { _, _ -> }
+                                    }
+                                    .pointerInput(layoutType) {
+                                        if (layoutType == LayoutType.PORTRAIT) {
                                             detectVerticalDragGestures(
                                                 onDragStart = {
                                                     coroutineScope.launch {
@@ -427,56 +396,123 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                                 )
                                             }
                                         }
-                                        .nestedScroll(nestedScrollConnection)
-                                }
-                            }
-                    ) {
-                        Controls(
-                            playerWrapper,
-                            uiManager,
-                            libraryIndex,
-                            currentTrack,
-                            currentTrackIndex,
-                            currentTrackIsFavorite,
-                            onToggleCurrentTrackFavorite = {
-                                viewModel.playlistManager.updatePlaylist(
-                                    SpecialPlaylist.FAVORITES.key
-                                ) { playlist ->
-                                    if (playlist.entries.any { it.path == currentTrack.path }) {
-                                        playlist.copy(
-                                            entries =
-                                                playlist.entries.filter {
-                                                    it.path != currentTrack.path
-                                                }
-                                        )
-                                    } else {
-                                        playlist.addTracks(listOf(currentTrack))
                                     }
-                                }
-                            },
-                            onToggleShuffle = { playerWrapper.toggleShuffle(libraryIndex) },
-                            onTogglePlayQueue = {
-                                playQueueDragState.animateTo(
-                                    if (playQueueDragState.position <= 0) 1f else 0f
-                                )
-                            },
-                            animatedContainerColor.value,
-                            animatedContentColor,
+                                    .nestedScroll(nestedScrollConnection)
+                        ) {
+                            Controls(
+                                playerWrapper,
+                                uiManager,
+                                libraryIndex,
+                                currentTrack,
+                                currentTrackIndex,
+                                currentTrackIsFavorite,
+                                onToggleCurrentTrackFavorite = {
+                                    viewModel.playlistManager.updatePlaylist(
+                                        SpecialPlaylist.FAVORITES.key
+                                    ) { playlist ->
+                                        if (playlist.entries.any { it.path == currentTrack.path }) {
+                                            playlist.copy(
+                                                entries =
+                                                    playlist.entries.filter {
+                                                        it.path != currentTrack.path
+                                                    }
+                                            )
+                                        } else {
+                                            playlist.addTracks(listOf(currentTrack))
+                                        }
+                                    }
+                                },
+                                onToggleShuffle = { playerWrapper.toggleShuffle(libraryIndex) },
+                                onTogglePlayQueue = {
+                                    playQueueDragState.animateTo(
+                                        if (playQueueDragState.position <= 0) 1f else 0f
+                                    )
+                                },
+                                animatedContainerColor.value,
+                                animatedContentColor,
+                            )
+                            PlayQueue(
+                                playerWrapper,
+                                uiManager,
+                                playQueue,
+                                playQueueLazyListState,
+                                onTogglePlayQueue = {
+                                    playQueueDragState.animateTo(
+                                        if (playQueueDragState.position <= 0) 1f else 0f
+                                    )
+                                },
+                            )
+                        }
+                    },
+                    onSetLayoutType = { layoutType = it },
+                    onSetWidth = { playQueueDragState.length = it.toFloat() },
+                    dragState = playQueueDragState,
+                )
+            }
+        }
+    }
+}
+
+/** @param topBarHeight temporary hack for incorrectly measured height */
+@Composable
+private inline fun PlayerLayout(
+    crossinline topBar: @Composable () -> Unit,
+    crossinline carousel: @Composable () -> Unit,
+    crossinline main: @Composable () -> Unit,
+    crossinline onSetLayoutType: (LayoutType) -> Unit,
+    crossinline onSetWidth: (Int) -> Unit,
+    dragState: BinaryDragState,
+    topBarHeight: Dp = 64.dp,
+) {
+    Layout(
+        content = {
+            Box { topBar() }
+            Box { carousel() }
+            Box { main() }
+        },
+        modifier = Modifier.fillMaxSize(),
+    ) { measurables, constraints ->
+        val type = layoutType(constraints.maxWidth, constraints.maxHeight)
+
+        val width = constraints.maxWidth
+        val height = constraints.maxHeight
+
+        layout(width, height) {
+            when (type) {
+                LayoutType.LANDSCAPE -> {
+                    measurables[1]
+                        .measure(Constraints(maxWidth = height, maxHeight = height))
+                        .placeRelative(0, 0)
+                    measurables[2]
+                        .measure(Constraints(maxWidth = width - height, maxHeight = height))
+                        .placeRelative(height, 0)
+                }
+                LayoutType.SQUARE -> {
+                    val topBarPlaceable = measurables[0].measure(constraints)
+                    topBarPlaceable.placeRelative(0, 0)
+                    val topBarHeightPx = topBarHeight.roundToPx()
+                    measurables[2]
+                        .measure(
+                            Constraints(
+                                maxWidth = width,
+                                maxHeight = (height - topBarHeightPx).coerceAtLeast(0),
+                            )
                         )
-                        PlayQueue(
-                            playerWrapper,
-                            uiManager,
-                            playQueue,
-                            playQueueLazyListState,
-                            onTogglePlayQueue = {
-                                playQueueDragState.animateTo(
-                                    if (playQueueDragState.position <= 0) 1f else 0f
-                                )
-                            },
-                        )
-                    }
+                        .placeRelative(0, topBarHeightPx)
+                }
+                LayoutType.PORTRAIT -> {
+                    val offset = (dragState.length * dragState.position).roundToInt()
+                    measurables[1]
+                        .measure(Constraints(maxWidth = width, maxHeight = width))
+                        .placeRelative(0, 0)
+                    measurables[2]
+                        .measure(Constraints(maxWidth = width, maxHeight = height - width + offset))
+                        .placeRelative(0, width - offset)
                 }
             }
+
+            onSetLayoutType(type)
+            onSetWidth(width)
         }
     }
 }
@@ -957,4 +993,13 @@ private enum class LayoutType {
     LANDSCAPE,
     SQUARE,
     PORTRAIT,
+}
+
+@Stable
+private fun layoutType(width: Int, height: Int): LayoutType {
+    return when {
+        width.toFloat() / height >= LAYOUT_ASPECT_RATIO_THRESHOLD -> LayoutType.LANDSCAPE
+        height.toFloat() / width >= LAYOUT_ASPECT_RATIO_THRESHOLD -> LayoutType.PORTRAIT
+        else -> LayoutType.SQUARE
+    }
 }
