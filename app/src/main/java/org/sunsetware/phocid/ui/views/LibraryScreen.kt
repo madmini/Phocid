@@ -364,6 +364,7 @@ private fun TopBar(
                     titles,
                     slide = false,
                     modifier = Modifier.padding(start = 16.dp).fillMaxWidth().height(48.dp),
+                    keepRoot = false,
                 ) { animatedTitle ->
                     if (animatedTitle == null) {
                         SearchBar(searchQuery, onSearchQueryChange)
