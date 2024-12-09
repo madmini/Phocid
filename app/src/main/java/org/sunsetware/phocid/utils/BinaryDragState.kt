@@ -2,6 +2,7 @@ package org.sunsetware.phocid.utils
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.setValue
@@ -21,6 +22,7 @@ import org.sunsetware.phocid.ui.theme.emphasizedStandard
  * Reminder: [androidx.compose.foundation.gestures.AnchoredDraggableState] and other official APIs
  * are unusable traps, don't bother "migrating".
  */
+@Stable
 class BinaryDragState(
     /**
      * Must be a [CoroutineScope] from a composition context (i.e. not the view model scope).
@@ -94,6 +96,7 @@ class BinaryDragState(
 }
 
 /** This is used to prevent out-of-order execution of [BinaryDragState.onDragEnd] etc. */
+@Stable
 class DragLock {
     val isDragging = AtomicBoolean(false)
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import java.util.UUID
@@ -39,6 +40,7 @@ enum class SpecialPlaylist(
 
 val SpecialPlaylistLookup = SpecialPlaylist.entries.associateBy { it.key }
 
+@Stable
 class PlaylistManager(
     private val coroutineScope: CoroutineScope,
     libraryIndex: StateFlow<LibraryIndex>,

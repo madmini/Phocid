@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
@@ -93,6 +94,7 @@ private fun MediaController.captureTransientState(version: Long): PlayerTransien
     return PlayerTransientState(version, playbackState == Player.STATE_READY && playWhenReady)
 }
 
+@Stable
 class PlayerWrapper : AutoCloseable {
     private val _state = MutableStateFlow(PlayerState())
     val state = _state.asStateFlow()

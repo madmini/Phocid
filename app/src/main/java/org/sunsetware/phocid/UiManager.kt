@@ -39,6 +39,7 @@ abstract class TopLevelScreen {
     @Composable abstract fun Compose(viewModel: MainViewModel)
 }
 
+@Stable
 class UiManager(
     private val context: Context,
     coroutineScope: CoroutineScope,
