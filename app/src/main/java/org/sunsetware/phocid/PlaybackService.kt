@@ -44,7 +44,11 @@ class PlaybackService : MediaSessionService() {
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                 .build()
-        val player = ExoPlayer.Builder(this).setAudioAttributes(audioAttributes, true).build()
+        val player =
+            ExoPlayer.Builder(this)
+                .setAudioAttributes(audioAttributes, true)
+                .setHandleAudioBecomingNoisy(true)
+                .build()
         player.addListener(
             object : Player.Listener {
                 override fun onEvents(player: Player, events: Player.Events) {
