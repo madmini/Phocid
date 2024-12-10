@@ -626,6 +626,11 @@ private fun LyricsOverlay(
 
                 delay(42.milliseconds) // 24 fps
             }
+        } else {
+            currentLineIndex = null
+            currentLine = ""
+            nextLine = ""
+            visibility = false
         }
     }
 
