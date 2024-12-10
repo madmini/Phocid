@@ -37,6 +37,8 @@ data class Preferences(
     val sortingLocaleLanguageTag: String? = null,
     val lyricsDisplay: LyricsDisplayPreference = LyricsDisplayPreference.DEFAULT,
     val densityMultiplier: Float = 1f,
+    // Playback
+    val playOnOutputDeviceConnection: Boolean = false,
     // Theme
     val darkTheme: DarkThemePreference = DarkThemePreference.SYSTEM,
     val themeColorSource: ThemeColorSource = ThemeColorSource.MATERIAL_YOU,

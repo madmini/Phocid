@@ -153,6 +153,8 @@
     <string name="preferences_lyrics_display_default">Default</string>
     <string name="preferences_lyrics_display_disabled">Disabled</string>
     <string name="preferences_lyrics_display_two_lines">Two lines</string>
+    <string name="preferences_play_on_output_device_connection">Play on headphones connection</string>
+    <string name="preferences_playback">Playback</string>
     <string name="preferences_playlist_io_settings">Playlist I/O settings</string>
     <string name="preferences_playlist_io_settings_ignore_case">Ignore file name case</string>
     <string name="preferences_playlist_io_settings_ignore_location">Ignore file location</string>

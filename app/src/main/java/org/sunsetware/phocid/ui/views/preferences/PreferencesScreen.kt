@@ -156,6 +156,16 @@ object PreferencesScreen : TopLevelScreen() {
                                 uiManager.openDialog(PreferencesDensityMultiplierDialog())
                             },
                     )
+                    UtilityListHeader(Strings[R.string.preferences_playback])
+                    UtilitySwitchListItem(
+                        title = Strings[R.string.preferences_play_on_output_device_connection],
+                        checked = preferences.playOnOutputDeviceConnection,
+                        onCheckedChange = { checked ->
+                            viewModel.updatePreferences {
+                                it.copy(playOnOutputDeviceConnection = checked)
+                            }
+                        },
+                    )
                     UtilityListHeader(Strings[R.string.preferences_theme])
                     UtilityListItem(
                         title = Strings[R.string.preferences_dark_theme],

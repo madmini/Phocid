@@ -143,6 +143,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                                     application.applicationContext,
                                     unfilteredTrackIndex,
                                     viewModelScope,
+                                    _preferences,
                                 )
 
                                 libraryIndexInputReady.update { true }

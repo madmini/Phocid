@@ -25,7 +25,10 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.Serializable
 import org.sunsetware.phocid.*
@@ -109,7 +112,10 @@ class PlayerWrapper : AutoCloseable {
     val currentPosition: Long
         get() = mediaController.currentPosition
 
+    private var playbackPreferenceJob = null as Job?
+
     override fun close() {
+        playbackPreferenceJob?.cancel()
         mediaController.release()
         saveManager.close()
     }
@@ -118,6 +124,7 @@ class PlayerWrapper : AutoCloseable {
         context: Context,
         unfilteredTrackIndex: UnfilteredTrackIndex,
         coroutineScope: CoroutineScope,
+        preferences: StateFlow<Preferences>,
     ) {
         val sessionToken =
             SessionToken(context, ComponentName(context, PlaybackService::class.java))
@@ -174,6 +181,23 @@ class PlayerWrapper : AutoCloseable {
         while (!completed.get()) {
             delay(1)
         }
+
+        playbackPreferenceJob =
+            coroutineScope.launch {
+                preferences
+                    .onEach {
+                        mediaController.sendCustomCommand(
+                            SessionCommand(SET_PLAYBACK_PREFERENCE_COMMAND, Bundle.EMPTY),
+                            bundleOf(
+                                Pair(
+                                    PLAY_ON_OUTPUT_DEVICE_CONNECTION_KEY,
+                                    it.playOnOutputDeviceConnection,
+                                )
+                            ),
+                        )
+                    }
+                    .collect()
+            }
     }
 
     private fun updateState() {
