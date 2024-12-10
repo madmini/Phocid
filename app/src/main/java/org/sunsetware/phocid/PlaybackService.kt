@@ -48,6 +48,7 @@ class PlaybackService : MediaSessionService() {
             ExoPlayer.Builder(this)
                 .setAudioAttributes(audioAttributes, true)
                 .setHandleAudioBecomingNoisy(true)
+                .setWakeMode(C.WAKE_MODE_LOCAL)
                 .build()
         player.addListener(
             object : Player.Listener {
