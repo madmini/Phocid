@@ -42,6 +42,12 @@ interface Sortable {
 
     val sortFilename: String?
         get() = null
+
+    val sortDateAdded: Long?
+        get() = null
+
+    val sortDateModified: Long?
+        get() = null
 }
 
 @Immutable
@@ -56,6 +62,8 @@ enum class SortingKey {
     GENRE,
     PLAYLIST,
     FILE_NAME,
+    DATE_ADDED,
+    DATE_MODIFIED,
 }
 
 @Immutable data class SortingOption(val stringId: Int?, val keys: List<SortingKey>)
@@ -95,6 +103,9 @@ inline fun <T> Iterable<T>.sortedBy(
                         SortingKey.FILE_NAME ->
                             a.sortIsFile!!.compareTo(b.sortIsFile!!).takeIf { it != 0 }
                                 ?: collator.compare(a.sortFilename!!, b.sortFilename!!)
+                        SortingKey.DATE_ADDED -> a.sortDateAdded!!.compareTo(b.sortDateAdded!!)
+                        SortingKey.DATE_MODIFIED ->
+                            a.sortDateModified!!.compareTo(b.sortDateModified!!)
                     }
                 if (result != 0) return@Comparator result
             }

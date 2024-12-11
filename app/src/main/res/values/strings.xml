@@ -200,6 +200,8 @@
     <string name="sorting_artist">Artist</string>
     <string name="sorting_ascending">Ascending</string>
     <string name="sorting_custom">Custom</string>
+    <string name="sorting_date_added">Date added</string>
+    <string name="sorting_date_modified">Date modified</string>
     <string name="sorting_descending">Descending</string>
     <string name="sorting_file_name">File name</string>
     <string name="sorting_name">Name</string>
@@ -234,6 +236,8 @@
     <string name="track_details_artist">Artist</string>
     <string name="track_details_bit_depth">Bit depth</string>
     <string name="track_details_bit_rate">Bit rate</string>
+    <string name="track_details_date_added">Date added</string>
+    <string name="track_details_date_modified">Date modified</string>
     <string name="track_details_format">Format</string>
     <string name="track_details_genre">Genre</string>
     <string name="track_details_path">Path</string>

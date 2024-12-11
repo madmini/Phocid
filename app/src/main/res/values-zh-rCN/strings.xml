@@ -173,6 +173,8 @@
     <string name="sorting_artist">艺术家</string>
     <string name="sorting_ascending">升序</string>
     <string name="sorting_custom">自定义</string>
+    <string name="sorting_date_added">添加日期</string>
+    <string name="sorting_date_modified">修改日期</string>
     <string name="sorting_descending">降序</string>
     <string name="sorting_file_name">文件名</string>
     <string name="sorting_name">名称</string>
@@ -201,6 +203,8 @@
     <string name="track_details_artist">艺术家</string>
     <string name="track_details_bit_depth">位深度</string>
     <string name="track_details_bit_rate">比特率</string>
+    <string name="track_details_date_added">添加日期</string>
+    <string name="track_details_date_modified">修改日期</string>
     <string name="track_details_format">格式</string>
     <string name="track_details_genre">流派</string>
     <string name="track_details_path">路径</string>

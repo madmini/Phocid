@@ -17,7 +17,9 @@ import com.ibm.icu.number.LocalizedNumberFormatter
 import com.ibm.icu.number.Notation
 import com.ibm.icu.number.NumberFormatter
 import com.ibm.icu.number.Precision
+import com.ibm.icu.text.DateFormat
 import com.ibm.icu.util.MeasureUnit
+import java.util.Date
 import java.util.Locale
 import org.sunsetware.phocid.Dialog
 import org.sunsetware.phocid.MainViewModel
@@ -48,6 +50,10 @@ class TrackDetailsDialog(private val track: Track) : Dialog() {
                     Strings[R.string.track_details_year] to track.displayYear,
                     Strings[R.string.track_details_track_number] to track.displayNumber,
                     Strings[R.string.track_details_path] to track.path,
+                    Strings[R.string.track_details_date_added] to
+                        DateFormat.getInstance().format(Date(track.dateAdded * 1000)),
+                    Strings[R.string.track_details_date_modified] to
+                        DateFormat.getInstance().format(Date(track.version * 1000)),
                     Strings[R.string.track_details_size] to
                         formatterBase()
                             .unit(MeasureUnit.MEGABYTE)

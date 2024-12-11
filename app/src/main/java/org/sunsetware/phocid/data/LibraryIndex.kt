@@ -50,6 +50,7 @@ data class Track(
     val id: Long,
     val path: String,
     val fileName: String,
+    val dateAdded: Long,
     val version: Long,
     val title: String?,
     val artists: List<String>,
@@ -145,6 +146,12 @@ data class Track(
     override val sortFilename
         get() = fileName
 
+    override val sortDateAdded
+        get() = dateAdded
+
+    override val sortDateModified
+        get() = version
+
     companion object {
         @NonNls
         val SortingOptions =
@@ -209,6 +216,32 @@ data class Track(
                             SortingKey.ARTIST,
                         ),
                     ),
+                "Date added" to
+                    SortingOption(
+                        R.string.sorting_date_added,
+                        listOf(
+                            SortingKey.DATE_ADDED,
+                            SortingKey.TITLE,
+                            SortingKey.ARTIST,
+                            SortingKey.ALBUM_ARTIST,
+                            SortingKey.ALBUM,
+                            SortingKey.TRACK,
+                            SortingKey.YEAR,
+                        ),
+                    ),
+                "Date modified" to
+                    SortingOption(
+                        R.string.sorting_date_modified,
+                        listOf(
+                            SortingKey.DATE_MODIFIED,
+                            SortingKey.TITLE,
+                            SortingKey.ARTIST,
+                            SortingKey.ALBUM_ARTIST,
+                            SortingKey.ALBUM,
+                            SortingKey.TRACK,
+                            SortingKey.YEAR,
+                        ),
+                    ),
             )
     }
 }
@@ -267,6 +300,7 @@ val InvalidTrack =
         -1,
         "",
         "",
+        0,
         0,
         "<error>",
         listOf("<error>"),
@@ -810,6 +844,7 @@ private val contentResolverColumns =
     arrayOf(
         Media._ID,
         Media.DATA,
+        Media.DATE_ADDED,
         Media.DATE_MODIFIED,
         Media.TITLE,
         Media.ARTIST,
@@ -874,6 +909,7 @@ fun scanTracks(
                             .let { FilenameUtils.normalize(it) }
                             .let { FilenameUtils.separatorsToUnix(it) }
                     val fileName = FilenameUtils.getName(path)
+                    val dateAdded = cursor.getLong(ci[Media.DATE_ADDED]!!)
                     var title = cursor.getStringOrNull(ci[Media.TITLE]!!)?.trimAndNormalize()
                     var artists =
                         listOfNotNull(
@@ -991,6 +1027,7 @@ fun scanTracks(
                         id,
                         path,
                         fileName,
+                        dateAdded,
                         trackVersion,
                         title,
                         artists,
