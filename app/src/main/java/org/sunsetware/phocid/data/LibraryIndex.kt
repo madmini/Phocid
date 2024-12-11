@@ -69,6 +69,8 @@ data class Track(
     val hasArtwork: Boolean,
     @Serializable(with = ColorSerializer::class) val vibrantColor: Color?,
     @Serializable(with = ColorSerializer::class) val mutedColor: Color?,
+    val unsyncedLyrics: String?,
+    val comment: String?,
 ) : Searchable, Sortable {
     val uri
         get() = ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id)
@@ -324,6 +326,8 @@ val InvalidTrack =
         0,
         0,
         false,
+        null,
+        null,
         null,
         null,
     )
@@ -968,6 +972,8 @@ fun scanTracks(
                     var sampleRate = 0
                     val bitRate = cursor.getLongOrNull(ci[Media.BITRATE]!!) ?: 0
                     var bitDepth = 0
+                    var unsyncedLyrics = null as String?
+                    var comment = null as String?
 
                     if (advancedMetadataExtraction) {
                         try {
@@ -1028,6 +1034,14 @@ fun scanTracks(
                             try {
                                 discNumber = file.tag.getFirst(FieldKey.DISC_NO).toIntOrNull()
                             } catch (_: KeyNotFoundException) {}
+                            try {
+                                unsyncedLyrics =
+                                    file.tag.getFirst(FieldKey.LYRICS).takeIf { it.isNotEmpty() }
+                            } catch (_: KeyNotFoundException) {}
+                            try {
+                                comment =
+                                    file.tag.getFirst(FieldKey.COMMENT).takeIf { it.isNotEmpty() }
+                            } catch (_: KeyNotFoundException) {}
                             format = file.audioHeader.format
                             sampleRate = file.audioHeader.sampleRateAsNumber
                             bitDepth = file.audioHeader.bitsPerSample
@@ -1085,6 +1099,8 @@ fun scanTracks(
                         palette != null,
                         vibrantColor,
                         mutedColor,
+                        unsyncedLyrics,
+                        comment,
                     )
                 }
         }

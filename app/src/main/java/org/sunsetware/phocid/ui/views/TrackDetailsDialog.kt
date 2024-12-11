@@ -41,7 +41,7 @@ class TrackDetailsDialog(private val track: Track) : Dialog() {
                         .notation(Notation.simple())
                 }
 
-                listOf(
+                listOfNotNull(
                     Strings[R.string.track_details_title] to track.displayTitle,
                     Strings[R.string.track_details_artist] to track.displayArtist,
                     Strings[R.string.track_details_album] to track.displayAlbum,
@@ -71,6 +71,10 @@ class TrackDetailsDialog(private val track: Track) : Dialog() {
                             .format(track.bitRate / 1024.0)
                             .toString(),
                     Strings[R.string.track_details_bit_depth] to track.bitDepth.toString(),
+                    track.unsyncedLyrics?.let {
+                        Strings[R.string.track_details_unsynced_lyrics] to it
+                    },
+                    track.comment?.let { Strings[R.string.track_details_comment] to it },
                 )
             }
         DialogBase(

@@ -236,6 +236,7 @@
     <string name="track_details_artist">Artist</string>
     <string name="track_details_bit_depth">Bit depth</string>
     <string name="track_details_bit_rate">Bit rate</string>
+    <string name="track_details_comment">Comment</string>
     <string name="track_details_date_added">Date added</string>
     <string name="track_details_date_modified">Date modified</string>
     <string name="track_details_format">Format</string>
@@ -245,6 +246,7 @@
     <string name="track_details_size">Size</string>
     <string name="track_details_title">Title</string>
     <string name="track_details_track_number">Track number</string>
+    <string name="track_details_unsynced_lyrics">Unsynced lyrics</string>
     <string name="track_details_year">Year</string>
     <string name="track_disc_without_number">{0}-?</string>
     <string name="track_number_not_available">-</string>
