@@ -83,14 +83,18 @@ class BinaryDragState(
     }
 
     fun animateTo(value: Float) {
-        coroutineScope.get()?.launch { _position.animateTo(value, animationSpec) }
-        if (value == 0f) onSnapToZero() else if (value == 1f) onSnapToOne()
+        coroutineScope.get()?.launch {
+            _position.animateTo(value, animationSpec)
+            if (value == 0f) onSnapToZero() else if (value == 1f) onSnapToOne()
+        }
         _targetValue.update { value }
     }
 
     fun snapTo(value: Float) {
-        coroutineScope.get()?.launch { _position.snapTo(value) }
-        if (value == 0f) onSnapToZero() else if (value == 1f) onSnapToOne()
+        coroutineScope.get()?.launch {
+            _position.snapTo(value)
+            if (value == 0f) onSnapToZero() else if (value == 1f) onSnapToOne()
+        }
         _targetValue.update { value }
     }
 }
