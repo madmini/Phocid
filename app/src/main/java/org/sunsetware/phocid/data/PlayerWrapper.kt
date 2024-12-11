@@ -302,14 +302,24 @@ class PlayerWrapper : AutoCloseable {
             val mediaItems =
                 (0..<mediaController.mediaItemCount).map { mediaController.getMediaItemAt(it) }
             val currentIndex = mediaController.currentMediaItemIndex
+            val currentUnshuffledIndex = mediaItems[currentIndex].getUnshuffledIndex()!!
             val offsetOriginal =
-                mediaItems.map { it.setUnshuffledIndex(it.getUnshuffledIndex()!! + tracks.size) }
-            val new = tracks.mapIndexed { i, track -> track.getMediaItem(currentIndex + 1 + i) }
+                mediaItems.map {
+                    it.setUnshuffledIndex(
+                        it.getUnshuffledIndex()!!.let {
+                            if (it > currentUnshuffledIndex) it + tracks.size else it
+                        }
+                    )
+                }
+            val new =
+                tracks.mapIndexed { i, track -> track.getMediaItem(currentUnshuffledIndex + 1 + i) }
             mediaController.replaceMediaItems(
-                0,
+                currentIndex + 1,
                 Int.MAX_VALUE,
-                offsetOriginal.take(currentIndex + 1) + new + offsetOriginal.drop(currentIndex + 1),
+                new + offsetOriginal.drop(currentIndex + 1),
             )
+            mediaController.replaceMediaItem(currentIndex, offsetOriginal[currentIndex])
+            mediaController.replaceMediaItems(0, currentIndex, offsetOriginal.take(currentIndex))
         }
     }
 
