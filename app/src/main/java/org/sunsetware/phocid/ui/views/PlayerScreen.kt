@@ -203,7 +203,10 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
 
     BackHandler(playerScreenDragState.position >= 1) {
         if (playQueueDragState.position >= 1) {
-            playQueueDragState.animateTo(0f)
+            coroutineScope.launch {
+                playQueueLazyListState.stopScroll()
+                playQueueDragState.animateTo(0f)
+            }
         } else {
             playerScreenDragState.animateTo(0f)
         }
