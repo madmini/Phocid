@@ -140,8 +140,8 @@ data class Track(
     override val sortYear
         get() = year ?: 0
 
-    override val sortIsFile
-        get() = true
+    override val sortIsFolder
+        get() = false
 
     override val sortFilename
         get() = fileName
@@ -166,6 +166,7 @@ data class Track(
                             SortingKey.ALBUM,
                             SortingKey.TRACK,
                             SortingKey.YEAR,
+                            SortingKey.FILE_NAME,
                         ),
                     ),
                 "Artist" to
@@ -178,6 +179,7 @@ data class Track(
                             SortingKey.TRACK,
                             SortingKey.TITLE,
                             SortingKey.YEAR,
+                            SortingKey.FILE_NAME,
                         ),
                     ),
                 "Album" to
@@ -190,6 +192,7 @@ data class Track(
                             SortingKey.TITLE,
                             SortingKey.ARTIST,
                             SortingKey.YEAR,
+                            SortingKey.FILE_NAME,
                         ),
                     ),
                 "Album artist" to
@@ -202,6 +205,7 @@ data class Track(
                             SortingKey.TITLE,
                             SortingKey.ARTIST,
                             SortingKey.YEAR,
+                            SortingKey.FILE_NAME,
                         ),
                     ),
                 "Year" to
@@ -214,6 +218,7 @@ data class Track(
                             SortingKey.TRACK,
                             SortingKey.TITLE,
                             SortingKey.ARTIST,
+                            SortingKey.FILE_NAME,
                         ),
                     ),
                 "Date added" to
@@ -227,6 +232,7 @@ data class Track(
                             SortingKey.ALBUM,
                             SortingKey.TRACK,
                             SortingKey.YEAR,
+                            SortingKey.FILE_NAME,
                         ),
                     ),
                 "Date modified" to
@@ -240,6 +246,7 @@ data class Track(
                             SortingKey.ALBUM,
                             SortingKey.TRACK,
                             SortingKey.YEAR,
+                            SortingKey.FILE_NAME,
                         ),
                     ),
             )
@@ -564,11 +571,43 @@ data class Folder(
     override val searchableStrings: List<String>
         get() = listOf(fileName)
 
-    override val sortIsFile
-        get() = false
+    // Dummy sortable properties are required for compatibility with tracks.
+
+    override val sortTitle
+        get() = ""
+
+    override val sortArtist
+        get() = ""
+
+    override val sortAlbum
+        get() = ""
+
+    override val sortAlbumArtist
+        get() = ""
+
+    override val sortDiscNumber
+        get() = 0
+
+    override val sortTrackNumber
+        get() = 0
+
+    override val sortGenre
+        get() = ""
+
+    override val sortYear
+        get() = 0
+
+    override val sortIsFolder
+        get() = true
 
     override val sortFilename
         get() = fileName
+
+    override val sortDateAdded
+        get() = 0L
+
+    override val sortDateModified
+        get() = 0L
 
     companion object {
         @NonNls
@@ -576,7 +615,7 @@ data class Folder(
             mapOf(
                 "File name" to
                     SortingOption(R.string.sorting_file_name, listOf(SortingKey.FILE_NAME))
-            )
+            ) + Track.SortingOptions
     }
 }
 

@@ -37,7 +37,7 @@ interface Sortable {
     val sortPlaylist: Pair<SpecialPlaylist?, String>?
         get() = null
 
-    val sortIsFile: Boolean?
+    val sortIsFolder: Boolean?
         get() = null
 
     val sortFilename: String?
@@ -79,6 +79,9 @@ inline fun <T> Iterable<T>.sortedBy(
         Comparator<T> { genericA, genericB ->
             val a = selector(genericA)
             val b = selector(genericB)
+            val isFolderResult =
+                a.sortIsFolder?.compareTo(b.sortIsFolder!!)?.let { -it }?.takeIf { it != 0 }
+            if (isFolderResult != null) return@Comparator isFolderResult
             sortingKeys.forEach { item ->
                 val result =
                     when (item) {
@@ -100,9 +103,7 @@ inline fun <T> Iterable<T>.sortedBy(
                                     a.sortPlaylist!!.second,
                                     b.sortPlaylist!!.second,
                                 )
-                        SortingKey.FILE_NAME ->
-                            a.sortIsFile!!.compareTo(b.sortIsFile!!).takeIf { it != 0 }
-                                ?: collator.compare(a.sortFilename!!, b.sortFilename!!)
+                        SortingKey.FILE_NAME -> collator.compare(a.sortFilename!!, b.sortFilename!!)
                         SortingKey.DATE_ADDED -> a.sortDateAdded!!.compareTo(b.sortDateAdded!!)
                         SortingKey.DATE_MODIFIED ->
                             a.sortDateModified!!.compareTo(b.sortDateModified!!)

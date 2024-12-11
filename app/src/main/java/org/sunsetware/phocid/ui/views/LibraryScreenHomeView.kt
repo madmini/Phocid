@@ -331,17 +331,18 @@ class LibraryScreenHomeViewState(
     ): List<LibraryScreenHomeViewItem> {
         val tab = preferences.tabSettings[TabType.FOLDERS]!!
         val rootFolder = libraryIndex.folders[libraryIndex.rootFolder]!!
-        val filteredSortedChildFolders =
+        val filteredChildFolders =
             rootFolder.childFolders
                 .map { libraryIndex.folders[it]!! }
                 .search(searchQuery, preferences.searchCollator)
                 .sorted(preferences.sortCollator, tab.sortingKeys, tab.sortAscending)
+        // Sorting is required here because onClick is "baked" with this order.
         val filteredSortedChildTracks =
             rootFolder.childTracks
                 .search(searchQuery, preferences.searchCollator)
                 .sorted(preferences.sortCollator, tab.sortingKeys, tab.sortAscending)
         val folderItems =
-            filteredSortedChildFolders.map { folder ->
+            filteredChildFolders.map { folder ->
                 folder to
                     LibraryScreenHomeViewItem(
                         key = folder.path,
