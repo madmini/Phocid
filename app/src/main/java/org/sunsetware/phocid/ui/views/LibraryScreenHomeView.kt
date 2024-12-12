@@ -464,7 +464,7 @@ fun LibraryScreenHomeView(
         Column {
             ViewTabRow(preferences, state)
             HorizontalPager(state = pagerState, beyondViewportPageCount = Int.MAX_VALUE) { i ->
-                if (state.tabStates.size > i) {
+                if (preferences.tabs.size > i && state.tabStates.size > i) {
                     val tab = preferences.tabs[i]
                     val (multiSelectState, lazyGridState) = state.tabStates[tab.type]!!
                     val items by multiSelectState.items.collectAsStateWithLifecycle()
@@ -478,6 +478,9 @@ fun LibraryScreenHomeView(
                         cardShape = preferences.shapePreference.cardShape,
                         coloredCards = preferences.coloredCards,
                     )
+                } else {
+                    // Not providing a composable will cause internal crash in pager
+                    Box {}
                 }
             }
         }
