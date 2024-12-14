@@ -295,31 +295,47 @@ class PlayerWrapper : AutoCloseable {
     fun playNext(tracks: List<Track>) {
         if (!_state.value.shuffle) {
             mediaController.addMediaItems(
-                _state.value.currentIndex + 1,
+                if (_state.value.actualPlayQueue.isEmpty()) {
+                    _state.value.currentIndex + 1
+                } else {
+                    0
+                },
                 tracks.map { it.getMediaItem(null) },
             )
         } else {
-            val mediaItems =
-                (0..<mediaController.mediaItemCount).map { mediaController.getMediaItemAt(it) }
-            val currentIndex = mediaController.currentMediaItemIndex
-            val currentUnshuffledIndex = mediaItems[currentIndex].getUnshuffledIndex()!!
-            val offsetOriginal =
-                mediaItems.map {
-                    it.setUnshuffledIndex(
-                        it.getUnshuffledIndex()!!.let {
-                            if (it > currentUnshuffledIndex) it + tracks.size else it
-                        }
-                    )
-                }
-            val new =
-                tracks.mapIndexed { i, track -> track.getMediaItem(currentUnshuffledIndex + 1 + i) }
-            mediaController.replaceMediaItems(
-                currentIndex + 1,
-                Int.MAX_VALUE,
-                new + offsetOriginal.drop(currentIndex + 1),
-            )
-            mediaController.replaceMediaItem(currentIndex, offsetOriginal[currentIndex])
-            mediaController.replaceMediaItems(0, currentIndex, offsetOriginal.take(currentIndex))
+            if (_state.value.actualPlayQueue.isNotEmpty()) {
+                val mediaItems =
+                    (0..<mediaController.mediaItemCount).map { mediaController.getMediaItemAt(it) }
+                val currentIndex = mediaController.currentMediaItemIndex
+                val currentUnshuffledIndex = mediaItems[currentIndex].getUnshuffledIndex()!!
+                val offsetOriginal =
+                    mediaItems.map {
+                        it.setUnshuffledIndex(
+                            it.getUnshuffledIndex()!!.let {
+                                if (it > currentUnshuffledIndex) it + tracks.size else it
+                            }
+                        )
+                    }
+                val new =
+                    tracks.mapIndexed { i, track ->
+                        track.getMediaItem(currentUnshuffledIndex + 1 + i)
+                    }
+                mediaController.replaceMediaItems(
+                    currentIndex + 1,
+                    Int.MAX_VALUE,
+                    new + offsetOriginal.drop(currentIndex + 1),
+                )
+                mediaController.replaceMediaItem(currentIndex, offsetOriginal[currentIndex])
+                mediaController.replaceMediaItems(
+                    0,
+                    currentIndex,
+                    offsetOriginal.take(currentIndex),
+                )
+            } else {
+                mediaController.addMediaItems(
+                    tracks.mapIndexed { i, track -> track.getMediaItem(i) }
+                )
+            }
         }
     }
 
