@@ -104,6 +104,9 @@ inline fun <reified T> TrackCarousel(
             val currentIndexEquality = indexEqualitySelector(state, index)
             if (lastIndexEquality == currentIndexEquality) {
                 isLastAdjacent = true
+            } else if (previousIndex == nextIndex && index == previousIndex) {
+                isLastAdjacent = true
+                offset.snapTo(offset.value.let { if (it < 0) it + 1 else it - 1 })
             } else {
                 when (index) {
                     nextIndex -> {
