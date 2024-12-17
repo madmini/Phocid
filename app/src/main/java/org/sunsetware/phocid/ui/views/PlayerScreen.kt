@@ -38,12 +38,15 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import androidx.core.view.HapticFeedbackConstantsCompat
+import androidx.core.view.ViewCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.Player
@@ -74,6 +77,8 @@ import org.sunsetware.phocid.ui.theme.customColorScheme
 import org.sunsetware.phocid.ui.theme.emphasizedExit
 import org.sunsetware.phocid.ui.theme.pureBackgroundColor
 import org.sunsetware.phocid.utils.*
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 private const val LAYOUT_ASPECT_RATIO_THRESHOLD = 1.5f
 
@@ -91,10 +96,14 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
     val playQueue by
         playerWrapper.state
             .combine(coroutineScope, viewModel.libraryIndex) { state, library ->
-                state.actualPlayQueue.mapIndexed { index, id ->
-                    val unshuffledIndex = state.unshuffledPlayQueueMapping?.indexOf(index) ?: index
-                    Pair(unshuffledIndex, library.tracks[id] ?: InvalidTrack)
-                }
+                val trackCounts = mutableMapOf<Long, Int>()
+                state.actualPlayQueue
+                    .mapIndexed { index, id -> library.tracks[id] ?: InvalidTrack }
+                    .map { track ->
+                        val occurrence = trackCounts.getOrPut(track.id) { 0 }
+                        trackCounts[track.id] = trackCounts[track.id]!! + 1
+                        (Pair(track.id, occurrence) as Any) to track
+                    }
             }
             .collectAsStateWithLifecycle()
     val currentTrackIndex by
@@ -899,11 +908,12 @@ private fun Controls(
 private fun PlayQueue(
     playerWrapper: PlayerWrapper,
     uiManager: UiManager,
-    playQueue: List<Pair<Int, Track>>,
+    playQueue: List<Pair<Any, Track>>,
     lazyListState: LazyListState,
     onTogglePlayQueue: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val view = LocalView.current
 
     val currentIndex by
         playerWrapper.state.map(coroutineScope) { it.currentIndex }.collectAsStateWithLifecycle()
@@ -913,6 +923,24 @@ private fun PlayQueue(
         remember(playQueue, currentIndex) {
             playQueue.drop(currentIndex + 1).sumOf { it.second.duration }.toShortString()
         }
+
+    var reorderableQueue by remember { mutableStateOf(null as List<Pair<Any, Track>>?) }
+    var reorderInfo by remember { mutableStateOf(null as Pair<Int, Int>?) }
+    val reorderableLazyListState =
+        rememberReorderableLazyListState(lazyListState) { from, to ->
+            ViewCompat.performHapticFeedback(
+                view,
+                HapticFeedbackConstantsCompat.SEGMENT_FREQUENT_TICK,
+            )
+            reorderInfo =
+                if (reorderInfo == null) playQueue.indexOfFirst { it.first == from.key } to to.index
+                else reorderInfo!!.first to to.index
+
+            reorderableQueue =
+                reorderableQueue?.toMutableList()?.apply { add(to.index, removeAt(from.index)) }
+        }
+
+    LaunchedEffect(playQueue) { reorderableQueue = null }
 
     Surface(
         modifier = Modifier.fillMaxHeight(),
@@ -931,32 +959,64 @@ private fun PlayQueue(
 
             Scrollbar(lazyListState) {
                 LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize()) {
-                    playQueue.forEachIndexed { index, (unshuffledIndex, track) ->
-                        item(unshuffledIndex) {
-                            LibraryListItemHorizontal(
-                                title = track.displayTitle,
-                                subtitle = track.displayArtistWithAlbum,
-                                lead = {
-                                    AnimatedContent(
-                                        targetState = (index - currentIndex).toString(),
-                                        transitionSpec = { fadeIn() togetherWith fadeOut() },
-                                    ) {
-                                        Text(
-                                            text = it,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier.fillMaxWidth(),
+                    (reorderableQueue ?: playQueue).forEachIndexed { index, (key, track) ->
+                        item(key) {
+                            ReorderableItem(
+                                reorderableLazyListState,
+                                key,
+                                animateItemModifier =
+                                    Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
+                            ) {
+                                LibraryListItemHorizontal(
+                                    title = track.displayTitle,
+                                    subtitle = track.displayArtistWithAlbum,
+                                    lead = {
+                                        AnimatedContent(
+                                            targetState = (index - currentIndex).toString(),
+                                            transitionSpec = { fadeIn() togetherWith fadeOut() },
+                                            modifier =
+                                                Modifier.draggableHandle(
+                                                    onDragStarted = {
+                                                        ViewCompat.performHapticFeedback(
+                                                            view,
+                                                            HapticFeedbackConstantsCompat.DRAG_START,
+                                                        )
+                                                        reorderInfo = null
+                                                        reorderableQueue = playQueue
+                                                    },
+                                                    onDragStopped = {
+                                                        ViewCompat.performHapticFeedback(
+                                                            view,
+                                                            HapticFeedbackConstantsCompat
+                                                                .GESTURE_END,
+                                                        )
+                                                        reorderInfo?.let { (from, to) ->
+                                                            playerWrapper.moveTrack(from, to)
+                                                        }
+                                                    },
+                                                ),
+                                        ) {
+                                            Text(
+                                                text = it,
+                                                textAlign = TextAlign.Center,
+                                                modifier = Modifier.fillMaxWidth(),
+                                            )
+                                        }
+                                    },
+                                    actions = {
+                                        OverflowMenu(
+                                            listOf(removeFromQueueMenuItem(playerWrapper, index)) +
+                                                trackMenuItems(track, playerWrapper, uiManager)
                                         )
-                                    }
-                                },
-                                actions = {
-                                    OverflowMenu(
-                                        listOf(removeFromQueueMenuItem(playerWrapper, index)) +
-                                            trackMenuItems(track, playerWrapper, uiManager)
-                                    )
-                                },
-                                deemphasized = index <= currentIndex,
-                                modifier = Modifier.clickable { playerWrapper.seekTo(index) },
-                            )
+                                    },
+                                    deemphasized = index <= currentIndex,
+                                    modifier =
+                                        Modifier.clickable { playerWrapper.seekTo(index) }
+                                            .background(
+                                                MaterialTheme.colorScheme.surfaceContainerLow
+                                            ),
+                                )
+                            }
                         }
                     }
                 }

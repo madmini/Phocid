@@ -339,6 +339,10 @@ class PlayerWrapper : AutoCloseable {
         }
     }
 
+    fun moveTrack(from: Int, to: Int) {
+        mediaController.moveMediaItem(from, to)
+    }
+
     fun removeTrack(index: Int) {
         // [capturePlayerState] should take care of discontinuous [UNSHUFFLED_INDEX_KEY].
         mediaController.removeMediaItem(index)

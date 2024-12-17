@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.jaudiotagger)
+    implementation(libs.reorderable)
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
