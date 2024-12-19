@@ -906,6 +906,7 @@ private val contentResolverColumns =
 fun scanTracks(
     context: Context,
     advancedMetadataExtraction: Boolean,
+    disableArtworkColorExtraction: Boolean,
     old: UnfilteredTrackIndex?,
     artistSeparators: List<String>,
     artistSeparatorExceptions: List<String>,
@@ -1063,14 +1064,16 @@ fun scanTracks(
                             .filter { it.isNotEmpty() }
 
                     val palette =
-                        loadArtwork(context, id, 64)
-                            ?.let { Palette.from(it) }
-                            ?.clearTargets()
-                            ?.apply {
-                                addTarget(Target.VIBRANT)
-                                addTarget(Target.MUTED)
-                            }
-                            ?.generate()
+                        if (disableArtworkColorExtraction) null
+                        else
+                            loadArtwork(context, id, 64)
+                                ?.let { Palette.from(it) }
+                                ?.clearTargets()
+                                ?.apply {
+                                    addTarget(Target.VIBRANT)
+                                    addTarget(Target.MUTED)
+                                }
+                                ?.generate()
                     val vibrantColor =
                         palette?.getSwatchForTarget(Target.VIBRANT)?.rgb?.let { Color(it) }
                     val mutedColor =
@@ -1096,7 +1099,7 @@ fun scanTracks(
                         sampleRate,
                         bitRate,
                         bitDepth,
-                        palette != null,
+                        palette != null || disableArtworkColorExtraction,
                         vibrantColor,
                         mutedColor,
                         unsyncedLyrics,

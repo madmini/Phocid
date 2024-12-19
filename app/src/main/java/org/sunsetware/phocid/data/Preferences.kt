@@ -50,6 +50,7 @@ data class Preferences(
     val shapePreference: ShapePreference = ShapePreference.SQUARE,
     // Indexing
     val advancedMetadataExtraction: Boolean = false,
+    val disableArtworkColorExtraction: Boolean = false,
     @NonNls
     val artistMetadataSeparators: List<String> = listOf("&", ";", ",", "+", "/", " feat.", " ft."),
     val artistMetadataSeparatorExceptions: List<String> = emptyList(),

@@ -132,6 +132,8 @@
     <string name="preferences_indexing_blacklist_subtitle">{0, plural, one {# rule} other {# rules}}, {1, plural, one {# track} other {# tracks}} filtered</string>
     <string name="preferences_indexing_dialog_input_placeholder">Add rule</string>
     <string name="preferences_indexing_dialog_match_count">{0, plural, one {# track} other {# tracks}} match this rule</string>
+    <string name="preferences_indexing_disable_artwork_color_extraction">Disable artwork color extraction</string>
+    <string name="preferences_indexing_disable_artwork_color_extraction_subtitle">Might speed up scanning</string>
     <string name="preferences_indexing_help">Indexing help</string>
     <string name="preferences_indexing_help_artist_separator_exceptions_body">These strings will be exempt from the aforementioned separation. For example, adding “A &amp; B” will cause “A &amp; B” to be recognized as a single artist no matter what.</string>
     <string name="preferences_indexing_help_artist_separator_exceptions_title">Artist separator exceptions</string>

@@ -178,6 +178,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                             scanTracks(
                                 application.applicationContext,
                                 _preferences.value.advancedMetadataExtraction,
+                                _preferences.value.disableArtworkColorExtraction,
                                 if (force) null else _unfilteredTrackIndex.value,
                                 _preferences.value.artistMetadataSeparators,
                                 _preferences.value.artistMetadataSeparatorExceptions,

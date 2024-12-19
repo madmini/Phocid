@@ -270,6 +270,20 @@ object PreferencesScreen : TopLevelScreen() {
                             }
                         },
                     )
+                    UtilitySwitchListItem(
+                        title =
+                            Strings[R.string.preferences_indexing_disable_artwork_color_extraction],
+                        subtitle =
+                            Strings[
+                                R.string
+                                    .preferences_indexing_disable_artwork_color_extraction_subtitle],
+                        checked = preferences.disableArtworkColorExtraction,
+                        onCheckedChange = { checked ->
+                            viewModel.updatePreferences {
+                                it.copy(disableArtworkColorExtraction = checked)
+                            }
+                        },
+                    )
                     UtilityListItem(
                         title = Strings[R.string.preferences_indexing_artist_separators],
                         subtitle =
