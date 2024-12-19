@@ -307,6 +307,28 @@ object PreferencesScreen : TopLevelScreen() {
                             },
                     )
                     UtilityListItem(
+                        title = Strings[R.string.preferences_indexing_genre_separators],
+                        subtitle =
+                            Strings[R.string.preferences_indexing_genre_separators_subtitle]
+                                .icuFormat(preferences.genreMetadataSeparators.size),
+                        modifier =
+                            Modifier.clickable {
+                                uiManager.openDialog(PreferencesGenreSeparatorDialog())
+                            },
+                    )
+                    UtilityListItem(
+                        title = Strings[R.string.preferences_indexing_genre_separator_exceptions],
+                        subtitle =
+                            Strings[
+                                    R.string
+                                        .preferences_indexing_genre_separator_exceptions_subtitle]
+                                .icuFormat(preferences.genreMetadataSeparatorExceptions.size),
+                        modifier =
+                            Modifier.clickable {
+                                uiManager.openDialog(PreferencesGenreSeparatorExceptionDialog())
+                            },
+                    )
+                    UtilityListItem(
                         title = Strings[R.string.preferences_indexing_blacklist],
                         subtitle =
                             Strings[R.string.preferences_indexing_blacklist_subtitle].icuFormat(

@@ -182,6 +182,8 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                                 if (force) null else _unfilteredTrackIndex.value,
                                 _preferences.value.artistMetadataSeparators,
                                 _preferences.value.artistMetadataSeparatorExceptions,
+                                _preferences.value.genreMetadataSeparators,
+                                _preferences.value.genreMetadataSeparatorExceptions,
                             ) { current, total ->
                                 _libraryScanProgress.update { current to total }
                             }

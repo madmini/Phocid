@@ -54,6 +54,10 @@ data class Preferences(
     @NonNls
     val artistMetadataSeparators: List<String> = listOf("&", ";", ",", "+", "/", " feat.", " ft."),
     val artistMetadataSeparatorExceptions: List<String> = emptyList(),
+    val genreMetadataSeparators: List<String> = listOf("&", ";", ",", "+", "/"),
+    @NonNls
+    val genreMetadataSeparatorExceptions: List<String> =
+        listOf("R&B", "Rhythm & Blues", "D&B", "Drum & Bass"),
     val blacklist: List<String> = emptyList(),
     val whitelist: List<String> = emptyList(),
     // Data

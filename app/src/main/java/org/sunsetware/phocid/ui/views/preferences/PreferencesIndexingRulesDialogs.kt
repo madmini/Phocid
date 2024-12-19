@@ -153,6 +153,70 @@ class PreferencesArtistSeparatorExceptionDialog() : Dialog() {
 }
 
 @Stable
+class PreferencesGenreSeparatorDialog() : Dialog() {
+    @Composable
+    override fun Compose(viewModel: MainViewModel) {
+        val preferences by viewModel.preferences.collectAsStateWithLifecycle()
+        val unfilteredTrackIndex by viewModel.unfilteredTrackIndex.collectAsStateWithLifecycle()
+        IndexRulesDialog(
+            title = Strings[R.string.preferences_indexing_genre_separators],
+            onConfirmOrDismiss = { viewModel.uiManager.closeDialog() },
+            rules = preferences.genreMetadataSeparators,
+            unfilteredTrackIndex = unfilteredTrackIndex,
+            onRemoveRule = { index ->
+                viewModel.updatePreferences {
+                    it.copy(genreMetadataSeparators = it.genreMetadataSeparators.removeAt(index))
+                }
+            },
+            onAddRule = { rule ->
+                viewModel.updatePreferences {
+                    it.copy(genreMetadataSeparators = it.genreMetadataSeparators + rule)
+                }
+            },
+            validate = { true },
+            matchCount = null,
+            errorText = null,
+            footnote = Strings[R.string.preferences_indexing_rescan_footnote],
+        )
+    }
+}
+
+@Stable
+class PreferencesGenreSeparatorExceptionDialog() : Dialog() {
+    @Composable
+    override fun Compose(viewModel: MainViewModel) {
+        val preferences by viewModel.preferences.collectAsStateWithLifecycle()
+        val unfilteredTrackIndex by viewModel.unfilteredTrackIndex.collectAsStateWithLifecycle()
+        IndexRulesDialog(
+            title = Strings[R.string.preferences_indexing_genre_separator_exceptions],
+            onConfirmOrDismiss = { viewModel.uiManager.closeDialog() },
+            rules = preferences.genreMetadataSeparatorExceptions,
+            unfilteredTrackIndex = unfilteredTrackIndex,
+            onRemoveRule = { index ->
+                viewModel.updatePreferences {
+                    it.copy(
+                        genreMetadataSeparatorExceptions =
+                            it.genreMetadataSeparatorExceptions.removeAt(index)
+                    )
+                }
+            },
+            onAddRule = { rule ->
+                viewModel.updatePreferences {
+                    it.copy(
+                        genreMetadataSeparatorExceptions =
+                            it.genreMetadataSeparatorExceptions + rule
+                    )
+                }
+            },
+            validate = { true },
+            matchCount = null,
+            errorText = null,
+            footnote = Strings[R.string.preferences_indexing_rescan_footnote],
+        )
+    }
+}
+
+@Stable
 class PreferencesIndexingHelpDialog() : Dialog() {
     @Composable
     override fun Compose(viewModel: MainViewModel) {

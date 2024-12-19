@@ -910,6 +910,8 @@ fun scanTracks(
     old: UnfilteredTrackIndex?,
     artistSeparators: List<String>,
     artistSeparatorExceptions: List<String>,
+    genreSeparators: List<String>,
+    genreSeparatorExceptions: List<String>,
     onProgressReport: (Int, Int) -> Unit,
 ): UnfilteredTrackIndex? {
     if (
@@ -1057,11 +1059,7 @@ fun scanTracks(
                         splitArtists(title, artists, artistSeparators, artistSeparatorExceptions)
                     album = album?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
                     albumArtist = albumArtist?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
-                    genres =
-                        genres
-                            .flatMap { it.split("\u0000") }
-                            .map { it.trimAndNormalize() }
-                            .filter { it.isNotEmpty() }
+                    genres = splitGenres(genres, genreSeparators, genreSeparatorExceptions)
 
                     val palette =
                         if (disableArtworkColorExtraction) null
@@ -1156,6 +1154,41 @@ private fun splitArtists(
                 ?.restoreExceptions()
         }
     return (artists + listOfNotNull(featuringArtistInTitle))
+        .flatMap { string ->
+            string
+                .replaceExceptions()
+                .split(*(arrayOf("\u0000") + separators), ignoreCase = true)
+                .map { it.restoreExceptions() }
+        }
+        .map { it.trimAndNormalize() }
+        .filter { it.isNotEmpty() }
+}
+
+private fun splitGenres(
+    genres: Iterable<String>,
+    separators: Collection<String>,
+    exceptions: Iterable<String>,
+): List<String> {
+    val exceptionSurrogates =
+        exceptions.take(6400).mapIndexed { index, exception ->
+            exception to (0xe000 + index).toChar().toString()
+        }
+    fun String.replaceExceptions(): String {
+        var replaced = this
+        exceptionSurrogates.forEach { (exception, surrogate) ->
+            replaced = replaced.replace(exception, surrogate, ignoreCase = true)
+        }
+        return replaced
+    }
+    fun String.restoreExceptions(): String {
+        var restored = this
+        exceptionSurrogates.forEach { (exception, surrogate) ->
+            restored = restored.replace(surrogate, exception)
+        }
+        return restored
+    }
+
+    return genres
         .flatMap { string ->
             string
                 .replaceExceptions()

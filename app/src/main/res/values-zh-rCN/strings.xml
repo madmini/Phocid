@@ -111,6 +111,10 @@
     <string name="preferences_indexing_dialog_match_count">{0, plural, other {#}} 首曲目匹配此规则</string>
     <string name="preferences_indexing_disable_artwork_color_extraction">不提取图像色彩</string>
     <string name="preferences_indexing_disable_artwork_color_extraction_subtitle">可加速曲目扫描</string>
+    <string name="preferences_indexing_genre_separator_exceptions">流派分隔符例外</string>
+    <string name="preferences_indexing_genre_separator_exceptions_subtitle">{0, plural, other {#}} 个例外</string>
+    <string name="preferences_indexing_genre_separators">流派分隔符</string>
+    <string name="preferences_indexing_genre_separators_subtitle">{0, plural, other {#}} 个分隔符</string>
     <string name="preferences_indexing_help">索引帮助</string>
     <string name="preferences_indexing_help_artist_separator_exceptions_body">上述的艺术家拆分将避开这些字符串。例如，添加“甲与乙”可以防止“甲与乙”被拆分成两个艺术家。</string>
     <string name="preferences_indexing_help_artist_separator_exceptions_title">艺术家分隔符例外</string>
