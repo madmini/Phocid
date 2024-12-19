@@ -1,6 +1,7 @@
 package org.sunsetware.phocid.ui.views.preferences
 
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -40,16 +41,14 @@ class PreferencesSortingLocaleDialog : Dialog() {
             onDismiss = { viewModel.uiManager.closeDialog() },
         ) {
             LazyColumn {
-                availableLocales.forEachIndexed { index, locale ->
-                    item {
-                        UtilityRadioButtonListItem(
-                            text =
-                                locale?.let { "${it.displayName} (${it.toLanguageTag()})" }
-                                    ?: Strings[R.string.preferences_sorting_language_system],
-                            selected = selectedIndex == index,
-                            onSelect = { selectedIndex = index },
-                        )
-                    }
+                itemsIndexed(availableLocales) { index, locale ->
+                    UtilityRadioButtonListItem(
+                        text =
+                            locale?.let { "${it.displayName} (${it.toLanguageTag()})" }
+                                ?: Strings[R.string.preferences_sorting_language_system],
+                        selected = selectedIndex == index,
+                        onSelect = { selectedIndex = index },
+                    )
                 }
             }
         }

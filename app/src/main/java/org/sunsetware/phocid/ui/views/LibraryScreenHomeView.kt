@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -597,34 +598,32 @@ private fun LibraryList(
                 columns = GridCells.Fixed(1),
                 modifier = Modifier.fillMaxSize(),
             ) {
-                items.forEachIndexed { index, (info, selected) ->
-                    item(info.key) {
-                        with(info) {
-                            LibraryListItemHorizontal(
-                                title = title,
-                                subtitle = subtitle,
-                                lead = {
-                                    ArtworkImage(
-                                        artwork = artwork,
-                                        artworkColorPreference = artworkColorPreference,
-                                        shape = artworkShape,
-                                        modifier = Modifier.fillMaxSize(),
-                                    )
-                                },
-                                actions = { OverflowMenu(menuItems(viewModel)) },
-                                modifier =
-                                    Modifier.multiSelectClickable(
-                                            items,
-                                            index,
-                                            multiSelectManager,
-                                            haptics,
-                                        ) {
-                                            info.onClick(viewModel)
-                                        }
-                                        .animateItem(fadeInSpec = null, fadeOutSpec = null),
-                                selected = selected,
-                            )
-                        }
+                itemsIndexed(items, { _, (info, _) -> info.key }) { index, (info, selected) ->
+                    with(info) {
+                        LibraryListItemHorizontal(
+                            title = title,
+                            subtitle = subtitle,
+                            lead = {
+                                ArtworkImage(
+                                    artwork = artwork,
+                                    artworkColorPreference = artworkColorPreference,
+                                    shape = artworkShape,
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            },
+                            actions = { OverflowMenu(menuItems(viewModel)) },
+                            modifier =
+                                Modifier.multiSelectClickable(
+                                        items,
+                                        index,
+                                        multiSelectManager,
+                                        haptics,
+                                    ) {
+                                        info.onClick(viewModel)
+                                    }
+                                    .animateItem(fadeInSpec = null, fadeOutSpec = null),
+                            selected = selected,
+                        )
                     }
                 }
             }
@@ -637,39 +636,37 @@ private fun LibraryList(
                 contentPadding = PaddingValues(2.dp),
                 modifier = Modifier.fillMaxSize(),
             ) {
-                items.forEachIndexed { index, (info, selected) ->
-                    item(info.key) {
-                        with(info) {
-                            LibraryListItemCard(
-                                title = title,
-                                subtitle = subtitle,
-                                color =
-                                    if (coloredCards) artwork.getColor(artworkColorPreference)
-                                    else MaterialTheme.colorScheme.surfaceContainerHighest,
-                                shape = cardShape,
-                                image = {
-                                    ArtworkImage(
-                                        artwork = artwork,
-                                        artworkColorPreference = artworkColorPreference,
-                                        shape = RoundedCornerShape(0.dp),
-                                        modifier = Modifier.fillMaxSize(),
-                                    )
-                                },
-                                menuItems = menuItems(viewModel),
-                                modifier =
-                                    Modifier.padding(2.dp)
-                                        .multiSelectClickable(
-                                            items,
-                                            index,
-                                            multiSelectManager,
-                                            haptics,
-                                        ) {
-                                            info.onClick(viewModel)
-                                        }
-                                        .animateItem(fadeInSpec = null, fadeOutSpec = null),
-                                selected = selected,
-                            )
-                        }
+                itemsIndexed(items, { _, (info, _) -> info.key }) { index, (info, selected) ->
+                    with(info) {
+                        LibraryListItemCard(
+                            title = title,
+                            subtitle = subtitle,
+                            color =
+                                if (coloredCards) artwork.getColor(artworkColorPreference)
+                                else MaterialTheme.colorScheme.surfaceContainerHighest,
+                            shape = cardShape,
+                            image = {
+                                ArtworkImage(
+                                    artwork = artwork,
+                                    artworkColorPreference = artworkColorPreference,
+                                    shape = RoundedCornerShape(0.dp),
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            },
+                            menuItems = menuItems(viewModel),
+                            modifier =
+                                Modifier.padding(2.dp)
+                                    .multiSelectClickable(
+                                        items,
+                                        index,
+                                        multiSelectManager,
+                                        haptics,
+                                    ) {
+                                        info.onClick(viewModel)
+                                    }
+                                    .animateItem(fadeInSpec = null, fadeOutSpec = null),
+                            selected = selected,
+                        )
                     }
                 }
             }

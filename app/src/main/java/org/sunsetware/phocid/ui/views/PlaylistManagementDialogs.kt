@@ -2,6 +2,7 @@ package org.sunsetware.phocid.ui.views
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
@@ -172,15 +173,12 @@ class AddToPlaylistDialog(private val tracks: List<Track> = emptyList()) : Dialo
                         onSelect = { viewModel.uiManager.openDialog(NewPlaylistDialog(tracks)) },
                     )
                 }
-                sortedPlaylists.forEach { (key, playlist) ->
-                    val stringKey = key.toString()
-                    item(stringKey) {
-                        UtilityRadioButtonListItem(
-                            text = playlist.displayName,
-                            selected = selectedPlaylist == stringKey,
-                            onSelect = { selectedPlaylist = stringKey },
-                        )
-                    }
+                items(sortedPlaylists, key = { (key, _) -> key.toString() }) { (key, playlist) ->
+                    UtilityRadioButtonListItem(
+                        text = playlist.displayName,
+                        selected = selectedPlaylist == key.toString(),
+                        onSelect = { selectedPlaylist = key.toString() },
+                    )
                 }
             }
         }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -295,20 +296,18 @@ private inline fun IndexRulesDialog(
             )
 
             LazyColumn(modifier = Modifier.weight(1f)) {
-                rules.forEachIndexed { index, rule ->
-                    item {
-                        UtilityListItem(
-                            title = rule,
-                            actions = {
-                                IconButton(onClick = { onRemoveRule(index) }) {
-                                    Icon(
-                                        Icons.Filled.Remove,
-                                        contentDescription = Strings[R.string.commons_remove],
-                                    )
-                                }
-                            },
-                        )
-                    }
+                itemsIndexed(rules) { index, rule ->
+                    UtilityListItem(
+                        title = rule,
+                        actions = {
+                            IconButton(onClick = { onRemoveRule(index) }) {
+                                Icon(
+                                    Icons.Filled.Remove,
+                                    contentDescription = Strings[R.string.commons_remove],
+                                )
+                            }
+                        },
+                    )
                 }
             }
 

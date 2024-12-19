@@ -1,6 +1,7 @@
 package org.sunsetware.phocid.ui.views.preferences
 
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -23,16 +24,12 @@ class PreferencesSingleChoiceDialog<T>(
         val preferences by viewModel.preferences.collectAsStateWithLifecycle()
         DialogBase(title = title, onConfirmOrDismiss = { viewModel.uiManager.closeDialog() }) {
             LazyColumn {
-                options.forEach { (option, name) ->
-                    item {
-                        UtilityRadioButtonListItem(
-                            text = name,
-                            selected = activeOption(preferences) == option,
-                            onSelect = {
-                                viewModel.updatePreferences { updatePreferences(it, option) }
-                            },
-                        )
-                    }
+                items(options) { (option, name) ->
+                    UtilityRadioButtonListItem(
+                        text = name,
+                        selected = activeOption(preferences) == option,
+                        onSelect = { viewModel.updatePreferences { updatePreferences(it, option) } },
+                    )
                 }
             }
         }

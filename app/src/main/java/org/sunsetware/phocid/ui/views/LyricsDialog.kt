@@ -2,6 +2,7 @@ package org.sunsetware.phocid.ui.views
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -18,7 +19,7 @@ class LyricsDialog(val title: String, val lyrics: Lyrics) : Dialog() {
     override fun Compose(viewModel: MainViewModel) {
         DialogBase(title = title, onConfirmOrDismiss = { viewModel.uiManager.closeDialog() }) {
             LazyColumn(modifier = Modifier.padding(horizontal = 24.dp)) {
-                lyrics.lines.forEach { (_, text) -> item { Text(text) } }
+                items(lyrics.lines) { (_, text) -> Text(text) }
             }
         }
     }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
@@ -61,86 +62,84 @@ class PreferencesTabsDialog() : Dialog() {
             onConfirmOrDismiss = { viewModel.uiManager.closeDialog() },
         ) {
             LazyColumn(state = lazyListState) {
-                preferences.tabOrderAndVisibility.forEachIndexed { index, (type, visibility) ->
-                    item(type) {
-                        ReorderableItem(reorderableLazyListState, type) { isDragging ->
-                            UtilityCheckBoxListItem(
-                                text = Strings[type.stringId],
-                                checked = visibility,
-                                onCheckedChange = { newVisibility ->
-                                    viewModel.updatePreferences { preferences ->
-                                        preferences.copy(
-                                            tabOrderAndVisibility =
-                                                preferences.tabOrderAndVisibility.map {
-                                                    it.first to
-                                                        (if (it.first == type) newVisibility
-                                                        else it.second)
-                                                }
-                                        )
-                                    }
-                                },
-                                actions = {
-                                    IconButton(
-                                        onClick = {
-                                            if (index > 0) {
-                                                viewModel.updatePreferences {
-                                                    it.copy(
-                                                        tabOrderAndVisibility =
-                                                            it.tabOrderAndVisibility.swap(
-                                                                index,
-                                                                index - 1,
-                                                            )
-                                                    )
-                                                }
+                itemsIndexed(preferences.tabOrderAndVisibility, { _, (type, _) -> type }) {
+                    index,
+                    (type, visibility) ->
+                    ReorderableItem(reorderableLazyListState, type) { isDragging ->
+                        UtilityCheckBoxListItem(
+                            text = Strings[type.stringId],
+                            checked = visibility,
+                            onCheckedChange = { newVisibility ->
+                                viewModel.updatePreferences { preferences ->
+                                    preferences.copy(
+                                        tabOrderAndVisibility =
+                                            preferences.tabOrderAndVisibility.map {
+                                                it.first to
+                                                    (if (it.first == type) newVisibility
+                                                    else it.second)
+                                            }
+                                    )
+                                }
+                            },
+                            actions = {
+                                IconButton(
+                                    onClick = {
+                                        if (index > 0) {
+                                            viewModel.updatePreferences {
+                                                it.copy(
+                                                    tabOrderAndVisibility =
+                                                        it.tabOrderAndVisibility.swap(
+                                                            index,
+                                                            index - 1,
+                                                        )
+                                                )
                                             }
                                         }
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.ArrowUpward,
-                                            contentDescription = Strings[R.string.list_move_up],
-                                        )
                                     }
-                                    IconButton(
-                                        onClick = {
-                                            if (
-                                                index < preferences.tabOrderAndVisibility.size - 1
-                                            ) {
-                                                viewModel.updatePreferences {
-                                                    it.copy(
-                                                        tabOrderAndVisibility =
-                                                            it.tabOrderAndVisibility.swap(
-                                                                index,
-                                                                index + 1,
-                                                            )
-                                                    )
-                                                }
+                                ) {
+                                    Icon(
+                                        Icons.Filled.ArrowUpward,
+                                        contentDescription = Strings[R.string.list_move_up],
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        if (index < preferences.tabOrderAndVisibility.size - 1) {
+                                            viewModel.updatePreferences {
+                                                it.copy(
+                                                    tabOrderAndVisibility =
+                                                        it.tabOrderAndVisibility.swap(
+                                                            index,
+                                                            index + 1,
+                                                        )
+                                                )
                                             }
                                         }
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.ArrowDownward,
-                                            contentDescription = Strings[R.string.list_move_down],
-                                        )
                                     }
-                                },
-                                modifier =
-                                    Modifier.draggableHandle(
-                                            onDragStarted = {
-                                                ViewCompat.performHapticFeedback(
-                                                    view,
-                                                    HapticFeedbackConstantsCompat.DRAG_START,
-                                                )
-                                            },
-                                            onDragStopped = {
-                                                ViewCompat.performHapticFeedback(
-                                                    view,
-                                                    HapticFeedbackConstantsCompat.GESTURE_END,
-                                                )
-                                            },
-                                        )
-                                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                            )
-                        }
+                                ) {
+                                    Icon(
+                                        Icons.Filled.ArrowDownward,
+                                        contentDescription = Strings[R.string.list_move_down],
+                                    )
+                                }
+                            },
+                            modifier =
+                                Modifier.draggableHandle(
+                                        onDragStarted = {
+                                            ViewCompat.performHapticFeedback(
+                                                view,
+                                                HapticFeedbackConstantsCompat.DRAG_START,
+                                            )
+                                        },
+                                        onDragStopped = {
+                                            ViewCompat.performHapticFeedback(
+                                                view,
+                                                HapticFeedbackConstantsCompat.GESTURE_END,
+                                            )
+                                        },
+                                    )
+                                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                        )
                     }
                 }
             }

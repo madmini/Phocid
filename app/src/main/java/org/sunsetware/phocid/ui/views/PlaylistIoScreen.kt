@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -274,20 +275,18 @@ private constructor(isImportTab: Boolean, initialExportSelection: Set<UUID>) : T
                     EmptyListIndicator()
                 } else {
                     LazyColumn(state = importLazyListState, modifier = Modifier.fillMaxSize()) {
-                        m3uFiles.forEach { file ->
-                            item(file.uri) {
-                                UtilityCheckBoxListItem(
-                                    text = file.name ?: file.uri.toString(),
-                                    checked = importSelection.contains(file.uri),
-                                    onCheckedChange = {
-                                        if (it) {
-                                            importSelection += file.uri
-                                        } else {
-                                            importSelection -= file.uri
-                                        }
-                                    },
-                                )
-                            }
+                        items(m3uFiles, { it.uri }) { file ->
+                            UtilityCheckBoxListItem(
+                                text = file.name ?: file.uri.toString(),
+                                checked = importSelection.contains(file.uri),
+                                onCheckedChange = {
+                                    if (it) {
+                                        importSelection += file.uri
+                                    } else {
+                                        importSelection -= file.uri
+                                    }
+                                },
+                            )
                         }
                     }
                 }
@@ -315,20 +314,18 @@ private constructor(isImportTab: Boolean, initialExportSelection: Set<UUID>) : T
                     EmptyListIndicator()
                 } else {
                     LazyColumn(state = exportLazyListState, modifier = Modifier.fillMaxSize()) {
-                        playlists.forEach { (key, playlist) ->
-                            item(key) {
-                                UtilityCheckBoxListItem(
-                                    text = playlist.displayName,
-                                    checked = exportSelection.contains(key),
-                                    onCheckedChange = {
-                                        if (it) {
-                                            exportSelection += key
-                                        } else {
-                                            exportSelection -= key
-                                        }
-                                    },
-                                )
-                            }
+                        items(playlists.toList(), { (key, _) -> key }) { (key, playlist) ->
+                            UtilityCheckBoxListItem(
+                                text = playlist.displayName,
+                                checked = exportSelection.contains(key),
+                                onCheckedChange = {
+                                    if (it) {
+                                        exportSelection += key
+                                    } else {
+                                        exportSelection -= key
+                                    }
+                                },
+                            )
                         }
                     }
                 }

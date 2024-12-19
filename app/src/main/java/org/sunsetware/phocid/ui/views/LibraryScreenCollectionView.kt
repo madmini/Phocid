@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Folder
@@ -724,34 +726,32 @@ fun LibraryScreenCollectionView(
                                 contentPadding = PaddingValues(horizontal = (16 - 8).dp),
                                 modifier = Modifier.padding(vertical = 16.dp),
                             ) {
-                                sortedCards.forEach { card ->
-                                    item {
-                                        LibraryListItemCompactCard(
-                                            title = card.title,
-                                            subtitle = card.subtitle,
-                                            shape = preferences.shapePreference.cardShape,
-                                            image = {
-                                                ArtworkImage(
-                                                    artwork = card.artwork,
-                                                    artworkColorPreference =
-                                                        preferences.artworkColorPreference,
-                                                    shape = RoundedCornerShape(0.dp),
-                                                    modifier =
-                                                        Modifier.fillMaxWidth()
-                                                            .aspectRatio(
-                                                                1f,
-                                                                matchHeightConstraintsFirst = true,
-                                                            ),
-                                                )
-                                            },
-                                            modifier =
-                                                Modifier.padding(horizontal = 8.dp)
-                                                    .width(144.dp)
-                                                    .clickable {
-                                                        uiManager.openCollectionView(card.content)
-                                                    },
-                                        )
-                                    }
+                                items(sortedCards) { card ->
+                                    LibraryListItemCompactCard(
+                                        title = card.title,
+                                        subtitle = card.subtitle,
+                                        shape = preferences.shapePreference.cardShape,
+                                        image = {
+                                            ArtworkImage(
+                                                artwork = card.artwork,
+                                                artworkColorPreference =
+                                                    preferences.artworkColorPreference,
+                                                shape = RoundedCornerShape(0.dp),
+                                                modifier =
+                                                    Modifier.fillMaxWidth()
+                                                        .aspectRatio(
+                                                            1f,
+                                                            matchHeightConstraintsFirst = true,
+                                                        ),
+                                            )
+                                        },
+                                        modifier =
+                                            Modifier.padding(horizontal = 8.dp)
+                                                .width(144.dp)
+                                                .clickable {
+                                                    uiManager.openCollectionView(card.content)
+                                                },
+                                    )
                                 }
                             }
                         }
@@ -773,53 +773,52 @@ fun LibraryScreenCollectionView(
                             )
                         )
                     }
-                    items.forEachIndexed { index, (item, selected) ->
-                        item(item.composeKey) {
-                            LibraryListItemHorizontal(
-                                title = item.title,
-                                subtitle = item.subtitle,
-                                lead = {
-                                    when (item.lead) {
-                                        is LibraryScreenCollectionViewItemLead.Text -> {
-                                            Text(
-                                                text =
-                                                    (item.lead
-                                                            as
-                                                            LibraryScreenCollectionViewItemLead.Text)
-                                                        .text,
-                                                textAlign = TextAlign.Center,
-                                                modifier = Modifier.fillMaxWidth(),
-                                            )
-                                        }
-                                        is LibraryScreenCollectionViewItemLead.Artwork -> {
-                                            ArtworkImage(
-                                                artwork =
-                                                    (item.lead
-                                                            as
-                                                            LibraryScreenCollectionViewItemLead.Artwork)
-                                                        .artwork,
-                                                artworkColorPreference =
-                                                    preferences.artworkColorPreference,
-                                                shape = preferences.shapePreference.artworkShape,
-                                                modifier = Modifier.fillMaxSize(),
-                                            )
-                                        }
+                    itemsIndexed(items, { _, (item, _) -> item.composeKey }) {
+                        index,
+                        (item, selected) ->
+                        LibraryListItemHorizontal(
+                            title = item.title,
+                            subtitle = item.subtitle,
+                            lead = {
+                                when (item.lead) {
+                                    is LibraryScreenCollectionViewItemLead.Text -> {
+                                        Text(
+                                            text =
+                                                (item.lead
+                                                        as LibraryScreenCollectionViewItemLead.Text)
+                                                    .text,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.fillMaxWidth(),
+                                        )
                                     }
-                                },
-                                actions = { OverflowMenu(item.getMenuItems(viewModel)) },
-                                modifier =
-                                    Modifier.multiSelectClickable(
-                                            items,
-                                            index,
-                                            multiSelectState,
-                                            haptics,
-                                        ) {
-                                            item.onClick(items.map { it.value }, index, viewModel)
-                                        }
-                                        .animateItem(fadeInSpec = null, fadeOutSpec = null),
-                                selected = selected,
-                            )
-                        }
+                                    is LibraryScreenCollectionViewItemLead.Artwork -> {
+                                        ArtworkImage(
+                                            artwork =
+                                                (item.lead
+                                                        as
+                                                        LibraryScreenCollectionViewItemLead.Artwork)
+                                                    .artwork,
+                                            artworkColorPreference =
+                                                preferences.artworkColorPreference,
+                                            shape = preferences.shapePreference.artworkShape,
+                                            modifier = Modifier.fillMaxSize(),
+                                        )
+                                    }
+                                }
+                            },
+                            actions = { OverflowMenu(item.getMenuItems(viewModel)) },
+                            modifier =
+                                Modifier.multiSelectClickable(
+                                        items,
+                                        index,
+                                        multiSelectState,
+                                        haptics,
+                                    ) {
+                                        item.onClick(items.map { it.value }, index, viewModel)
+                                    }
+                                    .animateItem(fadeInSpec = null, fadeOutSpec = null),
+                            selected = selected,
+                        )
                     }
                 }
             }
