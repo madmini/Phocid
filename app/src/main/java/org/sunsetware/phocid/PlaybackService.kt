@@ -12,6 +12,7 @@ import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -81,11 +82,13 @@ class PlaybackService : MediaSessionService() {
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                 .build()
         val player =
-            ExoPlayer.Builder(this)
-                .setAudioAttributes(audioAttributes, true)
-                .setHandleAudioBecomingNoisy(true)
-                .setWakeMode(C.WAKE_MODE_LOCAL)
-                .build()
+            CustomizedPlayer(
+                ExoPlayer.Builder(this)
+                    .setAudioAttributes(audioAttributes, true)
+                    .setHandleAudioBecomingNoisy(true)
+                    .setWakeMode(C.WAKE_MODE_LOCAL)
+                    .build()
+            )
         player.addListener(
             object : Player.Listener {
                 override fun onEvents(player: Player, events: Player.Events) {
@@ -251,4 +254,14 @@ class PlaybackService : MediaSessionService() {
         action(bundle)
         sessionExtras = bundle
     }
+}
+
+/** TODO: try to find a way to move shuffling logic here instead of blocking the built-in shuffle */
+@UnstableApi
+private class CustomizedPlayer(player: Player) : ForwardingPlayer(player) {
+    override fun getShuffleModeEnabled(): Boolean {
+        return false
+    }
+
+    override fun setShuffleModeEnabled(shuffleModeEnabled: Boolean) {}
 }
