@@ -355,7 +355,7 @@ class PlayerWrapper : AutoCloseable {
     fun toggleShuffle(libraryIndex: LibraryIndex) {
         val stateSnapshot = _state.value
         with(stateSnapshot) {
-            if (actualPlayQueue.count() > 1) {
+            if (actualPlayQueue.count() > 0) {
                 if (shuffle) {
                     // Disable shuffling.
                     val unshuffledIndex = unshuffledPlayQueueMapping!!.indexOf(currentIndex)
