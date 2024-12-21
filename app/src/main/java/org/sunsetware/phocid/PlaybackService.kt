@@ -14,6 +14,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.Player
+import androidx.media3.common.TrackSelectionParameters.AudioOffloadPreferences
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
@@ -81,6 +82,10 @@ class PlaybackService : MediaSessionService() {
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                 .build()
+        val audioOffloadPreferences =
+            AudioOffloadPreferences.Builder()
+                .setAudioOffloadMode(AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED)
+                .build()
         val player =
             CustomizedPlayer(
                 ExoPlayer.Builder(this)
@@ -88,6 +93,13 @@ class PlaybackService : MediaSessionService() {
                     .setHandleAudioBecomingNoisy(true)
                     .setWakeMode(C.WAKE_MODE_LOCAL)
                     .build()
+                    .apply {
+                        trackSelectionParameters =
+                            trackSelectionParameters
+                                .buildUpon()
+                                .setAudioOffloadPreferences(audioOffloadPreferences)
+                                .build()
+                    }
             )
         player.addListener(
             object : Player.Listener {
