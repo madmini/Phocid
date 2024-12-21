@@ -109,7 +109,6 @@ fun ProgressSliderThumb(interactionSource: MutableInteractionSource, colors: Sli
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@NonSkippableComposable
 fun ProgressSliderTrack(
     sliderState: SliderState,
     animate: Boolean,
