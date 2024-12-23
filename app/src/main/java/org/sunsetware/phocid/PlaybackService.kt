@@ -1,15 +1,13 @@
 package org.sunsetware.phocid
 
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Bundle
 import android.os.SystemClock
 import androidx.annotation.OptIn
-import androidx.core.content.ContextCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
@@ -43,35 +41,13 @@ class PlaybackService : MediaSessionService() {
     @Volatile private var timerTarget = -1L
     @Volatile private var timerFinishLastTrack = true
     @Volatile private var playOnOutputDeviceConnection = false
-    private val broadcastReceiver =
-        object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                // ACTION_HEADSET_PLUG is sticky
-                if (isInitialStickyBroadcast) return
-
-                when (intent.action) {
-                    // https://developer.android.com/reference/android/media/AudioManager#ACTION_HEADSET_PLUG
-                    AudioManager.ACTION_HEADSET_PLUG -> {
-                        if (playOnOutputDeviceConnection && intent.getIntExtra("state", -1) == 1) {
-                            mediaSession?.player?.play()
-                        }
-                    }
-                    AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED -> {
-                        if (
-                            playOnOutputDeviceConnection &&
-                                intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_STATE, -1) ==
-                                    AudioManager.SCO_AUDIO_STATE_CONNECTED
-                        ) {
-                            mediaSession?.player?.play()
-                        }
-                    }
+    private val audioDeviceCallback =
+        object : AudioDeviceCallback() {
+            override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo?>?) {
+                if (playOnOutputDeviceConnection) {
+                    mediaSession?.player?.play()
                 }
             }
-        }
-    private val intentFilter =
-        IntentFilter().apply {
-            addAction(AudioManager.ACTION_HEADSET_PLUG)
-            addAction(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED)
         }
 
     // Create your player and media session in the onCreate lifecycle event
@@ -234,12 +210,8 @@ class PlaybackService : MediaSessionService() {
                     }
                 )
                 .build()
-        ContextCompat.registerReceiver(
-            this,
-            broadcastReceiver,
-            intentFilter,
-            ContextCompat.RECEIVER_EXPORTED,
-        )
+        getSystemService(AudioManager::class.java)
+            .registerAudioDeviceCallback(audioDeviceCallback, null)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
@@ -251,7 +223,8 @@ class PlaybackService : MediaSessionService() {
 
     // Remember to release the player and media session in onDestroy
     override fun onDestroy() {
-        unregisterReceiver(broadcastReceiver)
+        getSystemService(AudioManager::class.java)
+            .unregisterAudioDeviceCallback(audioDeviceCallback)
         mediaSession?.run {
             player.release()
             release()
