@@ -5,6 +5,7 @@ import android.content.Intent
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.media.audiofx.AudioEffect
 import android.os.Bundle
 import android.os.SystemClock
 import androidx.annotation.OptIn
@@ -77,6 +78,12 @@ class PlaybackService : MediaSessionService() {
                                 .build()
                     }
             )
+        sendBroadcast(
+            Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION).apply {
+                putExtra(AudioEffect.EXTRA_AUDIO_SESSION, player.inner.audioSessionId)
+                putExtra(AudioEffect.EXTRA_PACKAGE_NAME, packageName)
+            }
+        )
         player.addListener(
             object : Player.Listener {
                 override fun onEvents(player: Player, events: Player.Events) {
@@ -243,7 +250,7 @@ class PlaybackService : MediaSessionService() {
 
 /** TODO: try to find a way to move shuffling logic here instead of blocking the built-in shuffle */
 @UnstableApi
-private class CustomizedPlayer(player: Player) : ForwardingPlayer(player) {
+private class CustomizedPlayer(val inner: ExoPlayer) : ForwardingPlayer(inner) {
     override fun getShuffleModeEnabled(): Boolean {
         return false
     }
