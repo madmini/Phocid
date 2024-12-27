@@ -295,7 +295,7 @@ class PlayerWrapper : AutoCloseable {
     fun playNext(tracks: List<Track>) {
         if (!_state.value.shuffle) {
             mediaController.addMediaItems(
-                if (_state.value.actualPlayQueue.isEmpty()) {
+                if (_state.value.actualPlayQueue.isNotEmpty()) {
                     _state.value.currentIndex + 1
                 } else {
                     0
