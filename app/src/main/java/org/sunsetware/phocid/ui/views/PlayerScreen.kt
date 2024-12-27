@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Subtitles
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -211,6 +212,13 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
         }
     }
 
+    val lyricsButtonEnabled = currentTrack.unsyncedLyrics != null || currentTrackLyrics != null
+
+    fun showLyrics() {
+        (currentTrackLyrics?.lines?.map { it.second } ?: currentTrack.unsyncedLyrics?.lines())
+            ?.let { uiManager.openDialog(LyricsDialog(currentTrack.displayTitle, it)) }
+    }
+
     BackHandler(playerScreenDragState.position >= 1) {
         if (playQueueDragState.position >= 1) {
             coroutineScope.launch {
@@ -316,13 +324,24 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                         )
                                     }
                                 },
+                                actions = {
+                                    IconButton(
+                                        enabled = lyricsButtonEnabled,
+                                        onClick = { showLyrics() },
+                                    ) {
+                                        Icon(
+                                            Icons.Outlined.Subtitles,
+                                            contentDescription = Strings[R.string.player_lyrics],
+                                        )
+                                    }
+                                },
                                 colors =
                                     TopAppBarDefaults.topAppBarColors(
                                         containerColor = animatedContainerColor.value,
                                         scrolledContainerColor = animatedContainerColor.value,
                                         navigationIconContentColor = animatedContentColor,
                                         titleContentColor = animatedContentColor,
-                                        actionIconContentColor = Color.Unspecified,
+                                        actionIconContentColor = animatedContentColor,
                                     ),
                             )
                         }
@@ -345,17 +364,6 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                 playerState = playerState,
                                 playerScreenDragState = playerScreenDragState,
                                 dragLock = dragLock,
-                                tapKey = currentTrackLyrics,
-                                onTap = {
-                                    if (currentTrackLyrics != null) {
-                                        uiManager.openDialog(
-                                            LyricsDialog(
-                                                currentTrack.displayTitle,
-                                                currentTrackLyrics,
-                                            )
-                                        )
-                                    }
-                                },
                                 modifier = Modifier.fillMaxSize(),
                             )
                             LyricsOverlay(
@@ -366,6 +374,40 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                 animatedContentColor,
                                 modifier = Modifier.fillMaxSize(),
                             )
+                            FilledTonalIconButton(
+                                onClick = { uiManager.back() },
+                                modifier = Modifier.padding(start = 8.dp, top = 8.dp),
+                                colors =
+                                    IconButtonDefaults.filledTonalIconButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.surface
+                                    ),
+                            ) {
+                                Icon(
+                                    Icons.AutoMirrored.Default.ArrowBack,
+                                    contentDescription = Strings[R.string.commons_back],
+                                )
+                            }
+                            AnimatedVisibility(
+                                lyricsButtonEnabled,
+                                enter = fadeIn(),
+                                exit = fadeOut(),
+                                modifier =
+                                    Modifier.align(Alignment.TopEnd).padding(end = 8.dp, top = 8.dp),
+                            ) {
+                                FilledTonalIconButton(
+                                    onClick = { showLyrics() },
+                                    colors =
+                                        IconButtonDefaults.filledTonalIconButtonColors(
+                                            containerColor = animatedContainerColor.value,
+                                            contentColor = animatedContentColor,
+                                        ),
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.Subtitles,
+                                        contentDescription = Strings[R.string.player_lyrics],
+                                    )
+                                }
+                            }
                         }
                     },
                     main = {
@@ -538,8 +580,6 @@ private fun Artwork(
     playerState: PlayerState,
     playerScreenDragState: BinaryDragState,
     dragLock: DragLock,
-    tapKey: Any?,
-    onTap: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -548,56 +588,41 @@ private fun Artwork(
         playerWrapper.transientState
             .map(coroutineScope) { it.version }
             .collectAsStateWithLifecycle()
-    Box(modifier = modifier) {
-        TrackCarousel(
-            state = playerState,
-            key = playerTransientStateVersion,
-            countSelector = { it.actualPlayQueue.size },
-            indexSelector = { it.currentIndex },
-            repeatSelector = { it.repeat != Player.REPEAT_MODE_OFF },
-            indexEqualitySelector = { state, index ->
-                if (state.shuffle) state.unshuffledPlayQueueMapping!!.indexOf(index) else index
-            },
-            tapKey = tapKey,
-            onTap = onTap,
-            onVerticalDrag = {
-                detectVerticalDragGestures(
-                    onDragStart = { playerScreenDragState.onDragStart(dragLock) },
-                    onDragCancel = { playerScreenDragState.onDragEnd(dragLock, density) },
-                    onDragEnd = { playerScreenDragState.onDragEnd(dragLock, density) },
-                ) { _, dragAmount ->
-                    playerScreenDragState.onDrag(dragLock, dragAmount)
-                }
-            },
-            onPrevious = { playerWrapper.seekToPrevious() },
-            onNext = { playerWrapper.seekToNext() },
-            modifier = Modifier.aspectRatio(1f, matchHeightConstraintsFirst = true),
-        ) { state, index ->
-            ArtworkImage(
-                artwork =
-                    Artwork.Track(
-                        state.actualPlayQueue.getOrNull(index)?.let { libraryIndex.tracks[it] }
-                            ?: InvalidTrack
-                    ),
-                artworkColorPreference = artworkColorPreference,
-                shape = RoundedCornerShape(0.dp),
-                modifier = Modifier.fillMaxSize(),
-                async = false,
-            )
-        }
-        FilledTonalIconButton(
-            onClick = { playerScreenDragState.animateTo(0f) },
-            modifier = Modifier.padding(start = 8.dp, top = 8.dp),
-            colors =
-                IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+    TrackCarousel(
+        state = playerState,
+        key = playerTransientStateVersion,
+        countSelector = { it.actualPlayQueue.size },
+        indexSelector = { it.currentIndex },
+        repeatSelector = { it.repeat != Player.REPEAT_MODE_OFF },
+        indexEqualitySelector = { state, index ->
+            if (state.shuffle) state.unshuffledPlayQueueMapping!!.indexOf(index) else index
+        },
+        tapKey = Unit,
+        onTap = {},
+        onVerticalDrag = {
+            detectVerticalDragGestures(
+                onDragStart = { playerScreenDragState.onDragStart(dragLock) },
+                onDragCancel = { playerScreenDragState.onDragEnd(dragLock, density) },
+                onDragEnd = { playerScreenDragState.onDragEnd(dragLock, density) },
+            ) { _, dragAmount ->
+                playerScreenDragState.onDrag(dragLock, dragAmount)
+            }
+        },
+        onPrevious = { playerWrapper.seekToPrevious() },
+        onNext = { playerWrapper.seekToNext() },
+        modifier = modifier.aspectRatio(1f, matchHeightConstraintsFirst = true),
+    ) { state, index ->
+        ArtworkImage(
+            artwork =
+                Artwork.Track(
+                    state.actualPlayQueue.getOrNull(index)?.let { libraryIndex.tracks[it] }
+                        ?: InvalidTrack
                 ),
-        ) {
-            Icon(
-                Icons.AutoMirrored.Default.ArrowBack,
-                contentDescription = Strings[R.string.commons_back],
-            )
-        }
+            artworkColorPreference = artworkColorPreference,
+            shape = RoundedCornerShape(0.dp),
+            modifier = Modifier.fillMaxSize(),
+            async = false,
+        )
     }
 }
 

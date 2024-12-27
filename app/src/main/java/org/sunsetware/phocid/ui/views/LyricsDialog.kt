@@ -10,16 +10,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.sunsetware.phocid.Dialog
 import org.sunsetware.phocid.MainViewModel
-import org.sunsetware.phocid.data.Lyrics
 import org.sunsetware.phocid.ui.components.DialogBase
 
 @Stable
-class LyricsDialog(val title: String, val lyrics: Lyrics) : Dialog() {
+class LyricsDialog(val title: String, val lyrics: List<String>) : Dialog() {
     @Composable
     override fun Compose(viewModel: MainViewModel) {
         DialogBase(title = title, onConfirmOrDismiss = { viewModel.uiManager.closeDialog() }) {
             LazyColumn(modifier = Modifier.padding(horizontal = 24.dp)) {
-                items(lyrics.lines) { (_, text) -> Text(text) }
+                items(lyrics) { Text(it) }
             }
         }
     }

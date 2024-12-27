@@ -50,6 +50,7 @@
     <string name="permission_dialog_title">Permission required</string>
 
     <string name="player_clear_queue">Clear queue</string>
+    <string name="player_lyrics">Lyrics</string>
     <string name="player_next">Next</string>
     <string name="player_now_playing">Now playing</string>
     <!-- Alt text of the "favorite" button next to the currently playing track -->
