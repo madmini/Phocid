@@ -36,6 +36,7 @@ import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.roundToInt
+import org.sunsetware.phocid.data.preferencesSystemLocale
 import org.sunsetware.phocid.ui.components.AnimatedForwardBackwardTransition
 import org.sunsetware.phocid.ui.theme.PhocidTheme
 import org.sunsetware.phocid.ui.views.LibraryScreen
@@ -57,6 +58,7 @@ class MainActivity : ComponentActivity(), IntentLauncher {
         window.isNavigationBarContrastEnforced = false
 
         // Set locale to the actual locale displayed, or the user might see funny formatting
+        preferencesSystemLocale = requireNotNull(LocaleListCompat.getDefault()[0])
         val resourceLocaleTag = Strings[R.string.locale]
         val resourceLocale = Locale.forLanguageTag(resourceLocaleTag)
         val systemLocale = LocaleListCompat.getDefault().getFirstMatch(arrayOf(resourceLocaleTag))

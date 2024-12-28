@@ -22,6 +22,8 @@ import org.sunsetware.phocid.ui.theme.toOklch
 import org.sunsetware.phocid.ui.views.TabInfo
 import org.sunsetware.phocid.ui.views.TabType
 
+@Volatile var preferencesSystemLocale = Locale.getDefault()
+
 /**
  * Changes to this class should not change types of existing members, and new members must have a
  * default value, or else the user will have their preferences wiped after an app update.
@@ -109,7 +111,8 @@ data class Preferences(
 
     @Transient
     val sortCollator =
-        (if (sortingLocale != null) Collator.getInstance(sortingLocale) else Collator.getInstance())
+        (if (sortingLocale != null) Collator.getInstance(sortingLocale)
+            else Collator.getInstance(preferencesSystemLocale))
             .apply {
                 this.strength = Collator.PRIMARY
                 (this as RuleBasedCollator).numericCollation = true
@@ -118,7 +121,8 @@ data class Preferences(
 
     @Transient
     val searchCollator =
-        (if (sortingLocale != null) Collator.getInstance(sortingLocale) else Collator.getInstance())
+        (if (sortingLocale != null) Collator.getInstance(sortingLocale)
+            else Collator.getInstance(preferencesSystemLocale))
             .apply { this.strength = Collator.PRIMARY }
             .freeze() as RuleBasedCollator
 }
