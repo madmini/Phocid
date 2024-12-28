@@ -787,7 +787,10 @@ private fun Controls(
                         progressSeconds.seconds.toShortString(),
                         style = Typography.labelMedium.copy(fontFeatureSettings = TNUM),
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.width(36.dp),
+                        modifier =
+                            Modifier.defaultMinSize(
+                                minWidth = 36.dp * LocalDensity.current.fontScale
+                            ),
                     )
                     ProgressSlider(
                         value = progress,
@@ -806,7 +809,10 @@ private fun Controls(
                         currentTrack.duration.toShortString(),
                         style = Typography.labelMedium.copy(fontFeatureSettings = TNUM),
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.width(36.dp),
+                        modifier =
+                            Modifier.defaultMinSize(
+                                minWidth = 36.dp * LocalDensity.current.fontScale
+                            ),
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
