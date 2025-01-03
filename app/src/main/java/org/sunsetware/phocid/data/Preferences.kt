@@ -36,6 +36,7 @@ data class Preferences(
     val tabOrderAndVisibility: List<Pair<TabType, Boolean>> = TabType.entries.map { it to true },
     val tabStyle: TabStylePreference = TabStylePreference.TEXT_ONLY,
     val scrollableTabs: Boolean = true,
+    val playerScreenLayout: PlayerScreenLayoutPreference = PlayerScreenLayoutPreference.DEFAULT,
     val sortingLocaleLanguageTag: String? = null,
     val lyricsDisplay: LyricsDisplayPreference = LyricsDisplayPreference.DEFAULT,
     val densityMultiplier: Float = 1f,
@@ -132,6 +133,12 @@ enum class TabStylePreference(val stringId: Int) {
     TEXT_AND_ICON(R.string.preferences_tab_style_text_and_icon),
     TEXT_ONLY(R.string.preferences_tab_style_text_only),
     ICON_ONLY(R.string.preferences_tab_style_icon_only),
+}
+
+@Serializable
+enum class PlayerScreenLayoutPreference(val stringId: Int) {
+    DEFAULT(R.string.preferences_player_screen_layout_default),
+    NO_QUEUE(R.string.preferences_player_screen_layout_no_queue),
 }
 
 @Serializable

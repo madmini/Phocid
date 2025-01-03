@@ -30,6 +30,7 @@ import org.sunsetware.phocid.TopLevelScreen
 import org.sunsetware.phocid.data.ArtworkColorPreference
 import org.sunsetware.phocid.data.DarkThemePreference
 import org.sunsetware.phocid.data.LyricsDisplayPreference
+import org.sunsetware.phocid.data.PlayerScreenLayoutPreference
 import org.sunsetware.phocid.data.ShapePreference
 import org.sunsetware.phocid.data.TabStylePreference
 import org.sunsetware.phocid.ui.components.UtilityListHeader
@@ -94,6 +95,26 @@ object PreferencesScreen : TopLevelScreen() {
                         onCheckedChange = { checked ->
                             viewModel.updatePreferences { it.copy(scrollableTabs = checked) }
                         },
+                    )
+                    UtilityListItem(
+                        title = Strings[R.string.preferences_player_screen_layout],
+                        subtitle = Strings[preferences.playerScreenLayout.stringId],
+                        modifier =
+                            Modifier.clickable {
+                                uiManager.openDialog(
+                                    PreferencesSingleChoiceDialog<PlayerScreenLayoutPreference>(
+                                        title = Strings[R.string.preferences_player_screen_layout],
+                                        options =
+                                            PlayerScreenLayoutPreference.entries.map {
+                                                it to Strings[it.stringId]
+                                            },
+                                        activeOption = { it.playerScreenLayout },
+                                        updatePreferences = { preferences, new ->
+                                            preferences.copy(playerScreenLayout = new)
+                                        },
+                                    )
+                                )
+                            },
                     )
                     UtilityListItem(
                         title = Strings[R.string.preferences_tab_style],

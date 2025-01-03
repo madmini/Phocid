@@ -139,6 +139,9 @@
     <string name="preferences_lyrics_display_two_lines">双行</string>
     <string name="preferences_play_on_output_device_connection">连接耳机时播放</string>
     <string name="preferences_playback">播放</string>
+    <string name="preferences_player_screen_layout">播放界面布局</string>
+    <string name="preferences_player_screen_layout_default">默认</string>
+    <string name="preferences_player_screen_layout_no_queue">隐藏队列</string>
     <string name="preferences_playlist_io_settings">播放列表导入与导出设置</string>
     <string name="preferences_playlist_io_settings_ignore_case">忽略文件名大小写</string>
     <string name="preferences_playlist_io_settings_ignore_location">忽略文件位置</string>

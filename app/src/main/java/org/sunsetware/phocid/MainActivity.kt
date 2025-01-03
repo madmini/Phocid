@@ -41,7 +41,7 @@ import org.sunsetware.phocid.ui.components.AnimatedForwardBackwardTransition
 import org.sunsetware.phocid.ui.theme.PhocidTheme
 import org.sunsetware.phocid.ui.views.LibraryScreen
 import org.sunsetware.phocid.ui.views.PermissionRequestDialog
-import org.sunsetware.phocid.ui.views.PlayerScreen
+import org.sunsetware.phocid.ui.views.player.PlayerScreen
 import org.sunsetware.phocid.utils.DragLock
 import org.sunsetware.phocid.utils.ReadPermission
 

@@ -22,6 +22,15 @@ fun Color.contentColor(): Color {
     return if (luminance() < 0.5f) lerp(this, Color.White, 0.9f) else lerp(this, Color.Black, 0.4f)
 }
 
+@Stable
+fun Color.darken(): Color {
+    return lerp(
+        this,
+        Color.Black,
+        this.luminance().let { if (it < 0.5f) it * 0.05f + 0.2f else 0.4f },
+    )
+}
+
 @Composable
 fun contentColorVariant(): Color {
     val contentColor = LocalContentColor.current

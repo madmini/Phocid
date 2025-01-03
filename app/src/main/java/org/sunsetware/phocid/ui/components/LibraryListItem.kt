@@ -214,10 +214,11 @@ inline fun LibraryListItemCompactCard(
 }
 
 @Composable
-fun LibraryListHeader(text: String, onClick: (() -> Unit)? = null) {
+fun LibraryListHeader(text: String, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
     Box(
         modifier =
-            Modifier.fillMaxWidth()
+            modifier
+                .fillMaxWidth()
                 .height(56.dp)
                 .let { if (onClick != null) it.clickable(onClick = onClick) else it }
                 .padding(horizontal = 16.dp),
