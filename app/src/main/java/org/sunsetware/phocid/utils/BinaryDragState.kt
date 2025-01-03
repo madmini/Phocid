@@ -44,8 +44,8 @@ class BinaryDragState(
 
     var length by mutableFloatStateOf(0f)
 
-    private var dragTotal = 0f
-    private var dragInitialPosition = initialValue
+    @Volatile private var dragTotal = 0f
+    @Volatile private var dragInitialPosition = initialValue
 
     fun onDragStart(lock: DragLock) {
         dragTotal = 0f
