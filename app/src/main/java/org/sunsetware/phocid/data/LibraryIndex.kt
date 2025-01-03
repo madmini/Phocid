@@ -1162,6 +1162,7 @@ private fun splitArtists(
         }
         .map { it.trimAndNormalize() }
         .filter { it.isNotEmpty() }
+        .distinctCaseInsensitive()
 }
 
 private fun splitGenres(
@@ -1197,4 +1198,5 @@ private fun splitGenres(
         }
         .map { it.trimAndNormalize() }
         .filter { it.isNotEmpty() }
+        .distinctCaseInsensitive()
 }
