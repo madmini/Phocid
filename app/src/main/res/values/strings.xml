@@ -54,9 +54,9 @@
     <string name="player_next">Next</string>
     <string name="player_now_playing">Now playing</string>
     <!-- Alt text of the "favorite" button next to the currently playing track -->
-    <string name="player_now_playing_add_favorites">Now playing - click to add to favorites</string>
+    <string name="player_now_playing_add_favorites">Add now playing to favorites</string>
     <!-- Alt text of the "favorite" button next to the currently playing track -->
-    <string name="player_now_playing_remove_favorites">Now playing - click to remove from favorites</string>
+    <string name="player_now_playing_remove_favorites">Remove now playing from favorites</string>
     <string name="player_pause">Pause</string>
     <string name="player_play">Play</string>
     <string name="player_previous">Previous</string>

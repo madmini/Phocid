@@ -37,8 +37,8 @@
     <string name="player_lyrics">歌词</string>
     <string name="player_next">下一首</string>
     <string name="player_now_playing">正在播放</string>
-    <string name="player_now_playing_add_favorites">正在播放；点击以收藏</string>
-    <string name="player_now_playing_remove_favorites">正在播放；点击以取消收藏</string>
+    <string name="player_now_playing_add_favorites">收藏当前曲目</string>
+    <string name="player_now_playing_remove_favorites">取消收藏当前曲目</string>
     <string name="player_pause">暂停</string>
     <string name="player_play">播放</string>
     <string name="player_previous">上一首</string>
