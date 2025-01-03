@@ -47,6 +47,7 @@ data class Preferences(
     val themeColorSource: ThemeColorSource = ThemeColorSource.MATERIAL_YOU,
     val customThemeColor: CustomThemeColor = CustomThemeColor(50, 0),
     val pureBackgroundColor: Boolean = false,
+    val coloredGlobalTheme: Boolean = true,
     val coloredCards: Boolean = true,
     val coloredPlayer: Boolean = true,
     val artworkColorPreference: ArtworkColorPreference = ArtworkColorPreference.MUTED_FIRST,

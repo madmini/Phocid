@@ -244,6 +244,13 @@ object PreferencesScreen : TopLevelScreen() {
                         },
                     )
                     UtilitySwitchListItem(
+                        title = Strings[R.string.preferences_colored_global_theme],
+                        checked = preferences.coloredGlobalTheme,
+                        onCheckedChange = { checked ->
+                            viewModel.updatePreferences { it.copy(coloredGlobalTheme = checked) }
+                        },
+                    )
+                    UtilitySwitchListItem(
                         title = Strings[R.string.preferences_colored_cards],
                         checked = preferences.coloredCards,
                         onCheckedChange = { checked ->

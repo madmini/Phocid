@@ -36,6 +36,7 @@ import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.roundToInt
+import org.sunsetware.phocid.data.getArtworkColor
 import org.sunsetware.phocid.data.preferencesSystemLocale
 import org.sunsetware.phocid.ui.components.AnimatedForwardBackwardTransition
 import org.sunsetware.phocid.ui.theme.PhocidTheme
@@ -44,6 +45,7 @@ import org.sunsetware.phocid.ui.views.PermissionRequestDialog
 import org.sunsetware.phocid.ui.views.player.PlayerScreen
 import org.sunsetware.phocid.utils.DragLock
 import org.sunsetware.phocid.utils.ReadPermission
+import org.sunsetware.phocid.utils.combine
 
 class MainActivity : ComponentActivity(), IntentLauncher {
     @OptIn(ExperimentalPermissionsApi::class)
@@ -97,6 +99,21 @@ class MainActivity : ComponentActivity(), IntentLauncher {
 
             val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 
+            val currentTrackColor by
+                remember {
+                        viewModel.playerWrapper.state.combine(
+                            coroutineScope,
+                            viewModel.libraryIndex,
+                            viewModel.preferences,
+                        ) { state, library, preferences ->
+                            if (state.actualPlayQueue.isEmpty()) null
+                            else
+                                library.tracks[state.actualPlayQueue[state.currentIndex]]
+                                    ?.getArtworkColor(preferences.artworkColorPreference)
+                        }
+                    }
+                    .collectAsStateWithLifecycle()
+
             LaunchedEffect(lifecycleState) {
                 if (lifecycleState != Lifecycle.State.DESTROYED) {
                     viewModel.initialize { dismissSplashScreen.set(true) }
@@ -119,6 +136,8 @@ class MainActivity : ComponentActivity(), IntentLauncher {
             PhocidTheme(
                 themeColorSource = preferences.themeColorSource,
                 customThemeColor = preferences.customThemeColor,
+                overrideThemeColor =
+                    if (preferences.coloredGlobalTheme) currentTrackColor else null,
                 darkTheme = preferences.darkTheme.boolean ?: isSystemInDarkTheme(),
                 pureBackgroundColor = preferences.pureBackgroundColor,
                 overrideStatusBarLightColor = overrideStatusBarLightColor,

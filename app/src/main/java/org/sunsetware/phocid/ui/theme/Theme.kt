@@ -35,6 +35,7 @@ val LocalThemeAccent = compositionLocalOf { primary400 }
 fun PhocidTheme(
     themeColorSource: ThemeColorSource,
     customThemeColor: CustomThemeColor,
+    overrideThemeColor: Color?,
     darkTheme: Boolean,
     pureBackgroundColor: Boolean,
     overrideStatusBarLightColor: Boolean?,
@@ -43,38 +44,55 @@ fun PhocidTheme(
 ) {
     val context = LocalContext.current
     val colorScheme =
-        remember(themeColorSource, customThemeColor, darkTheme, pureBackgroundColor) {
-            when (themeColorSource) {
-                ThemeColorSource.DEFAULT -> {
-                    if (darkTheme) darkScheme else lightScheme
-                }
-                ThemeColorSource.MATERIAL_YOU -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        if (darkTheme) dynamicDarkColorScheme(context)
-                        else dynamicLightColorScheme(context)
-                    } else {
-                        if (darkTheme) darkScheme else lightScheme
+        remember(
+            themeColorSource,
+            customThemeColor,
+            overrideThemeColor,
+            darkTheme,
+            pureBackgroundColor,
+        ) {
+            if (overrideThemeColor != null) {
+                    customColorScheme(overrideThemeColor, darkTheme)
+                } else {
+                    when (themeColorSource) {
+                        ThemeColorSource.DEFAULT -> {
+                            if (darkTheme) darkScheme else lightScheme
+                        }
+                        ThemeColorSource.MATERIAL_YOU -> {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                if (darkTheme) dynamicDarkColorScheme(context)
+                                else dynamicLightColorScheme(context)
+                            } else {
+                                if (darkTheme) darkScheme else lightScheme
+                            }
+                        }
+                        ThemeColorSource.CUSTOM -> {
+                            customColorScheme(customThemeColor.toColor(0.6f), darkTheme)
+                        }
                     }
                 }
-                ThemeColorSource.CUSTOM -> {
-                    customColorScheme(customThemeColor.toColor(0.6f), darkTheme)
-                }
-            }.let { if (pureBackgroundColor) it.pureBackgroundColor() else it }
+                .let { if (pureBackgroundColor) it.pureBackgroundColor() else it }
         }
     val accent =
-        when (themeColorSource) {
-            ThemeColorSource.DEFAULT -> {
-                primary400
-            }
-            ThemeColorSource.MATERIAL_YOU -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    colorResource(android.R.color.system_accent1_400)
-                } else {
+        if (overrideThemeColor != null) {
+            overrideThemeColor
+        } else {
+            when (themeColorSource) {
+                ThemeColorSource.DEFAULT -> {
                     primary400
                 }
-            }
-            ThemeColorSource.CUSTOM -> {
-                customThemeColor.toColor(0.6f)
+
+                ThemeColorSource.MATERIAL_YOU -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        colorResource(android.R.color.system_accent1_400)
+                    } else {
+                        primary400
+                    }
+                }
+
+                ThemeColorSource.CUSTOM -> {
+                    customThemeColor.toColor(0.6f)
+                }
             }
         }
 

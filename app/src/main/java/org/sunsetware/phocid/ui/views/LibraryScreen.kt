@@ -495,6 +495,8 @@ private fun BottomBar(
             .map(coroutineScope) { it.version }
             .collectAsStateWithLifecycle()
 
+    val animatedThemeAccent = animateColorAsState(LocalThemeAccent.current)
+
     // Update progress
     LaunchedEffect(currentTrack, isObscured) {
         if (isObscured) return@LaunchedEffect
@@ -529,8 +531,8 @@ private fun BottomBar(
                     floatingActionButton = {
                         FloatingActionButton(
                             onClick = { playerWrapper.togglePlay() },
-                            containerColor = LocalThemeAccent.current,
-                            contentColor = LocalThemeAccent.current.contentColor(),
+                            containerColor = animatedThemeAccent.value,
+                            contentColor = animatedThemeAccent.value.contentColor(),
                         ) {
                             AnimatedContent(targetState = isPlaying) { animatedIsPlaying ->
                                 if (animatedIsPlaying) {
