@@ -114,6 +114,8 @@
     <!-- "Muted" as in opposite of vibrant. This option will forcefully convert vibrant colors to muted ones. -->
     <string name="preferences_artwork_color_muted_only">Only muted</string>
     <string name="preferences_artwork_color_vibrant_first">Prefer vibrant</string>
+    <string name="preferences_audio_offloading">Audio offloading</string>
+    <string name="preferences_audio_offloading_subtitle">Reduces battery usage, but may cause playback issues.</string>
     <!-- "Cards" are rectangular list items displayed on the main screen. -->
     <string name="preferences_colored_cards">Color cards based on artwork</string>
     <string name="preferences_colored_global_theme">Change theme color based on artwork</string>

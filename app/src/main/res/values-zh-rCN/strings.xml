@@ -92,6 +92,8 @@
     <string name="preferences_artwork_color_muted_first">低饱和度优先</string>
     <string name="preferences_artwork_color_muted_only">强制低饱和度</string>
     <string name="preferences_artwork_color_vibrant_first">高饱和度优先</string>
+    <string name="preferences_audio_offloading">硬件音频加速</string>
+    <string name="preferences_audio_offloading_subtitle">减少电池用量，但可能导致播放问题。</string>
     <string name="preferences_colored_cards">用图像色彩着色卡片</string>
     <string name="preferences_colored_global_theme">用图像色彩覆盖主题色</string>
     <string name="preferences_colored_player">用图像色彩着色播放界面</string>

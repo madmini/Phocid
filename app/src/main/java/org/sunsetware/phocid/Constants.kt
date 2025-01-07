@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NonNls
 @NonNls const val TIMER_FINISH_LAST_TRACK_KEY = "timerFinishLastTrack"
 @NonNls const val SET_PLAYBACK_PREFERENCE_COMMAND = "setPlaybackPreference"
 @NonNls const val PLAY_ON_OUTPUT_DEVICE_CONNECTION_KEY = "playOnOutputDeviceConnection"
+@NonNls const val AUDIO_OFFLOADING_KEY = "audioOffloading"
 
 @NonNls const val UNKNOWN = "<unknown>"
 

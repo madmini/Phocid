@@ -43,6 +43,7 @@ class PlaybackService : MediaSessionService() {
     @Volatile private var timerTarget = -1L
     @Volatile private var timerFinishLastTrack = true
     @Volatile private var playOnOutputDeviceConnection = false
+    @Volatile private var audioOffloading = true
     private val audioDeviceCallback =
         object : AudioDeviceCallback() {
             override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo?>?) {
@@ -115,21 +116,7 @@ class PlaybackService : MediaSessionService() {
                 }
 
                 override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
-                    player.trackSelectionParameters =
-                        player.trackSelectionParameters
-                            .buildUpon()
-                            .setAudioOffloadPreferences(
-                                AudioOffloadPreferences.Builder()
-                                    .setAudioOffloadMode(
-                                        AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED
-                                    )
-                                    .setIsSpeedChangeSupportRequired(
-                                        playbackParameters.speed != 1f ||
-                                            playbackParameters.pitch != 1f
-                                    )
-                                    .build()
-                            )
-                            .build()
+                    player.updateAudioOffloading(audioOffloading)
                 }
             }
         )
@@ -204,6 +191,8 @@ class PlaybackService : MediaSessionService() {
                                 SET_PLAYBACK_PREFERENCE_COMMAND -> {
                                     playOnOutputDeviceConnection =
                                         args.getBoolean(PLAY_ON_OUTPUT_DEVICE_CONNECTION_KEY, false)
+                                    audioOffloading = args.getBoolean(AUDIO_OFFLOADING_KEY, true)
+                                    player.updateAudioOffloading(audioOffloading)
                                     return Futures.immediateFuture(
                                         SessionResult(SessionResult.RESULT_SUCCESS)
                                     )
@@ -266,6 +255,29 @@ class PlaybackService : MediaSessionService() {
         val bundle = sessionExtras.clone() as Bundle
         action(bundle)
         sessionExtras = bundle
+    }
+
+    private fun Player.updateAudioOffloading(audioOffloading: Boolean) {
+        trackSelectionParameters =
+            trackSelectionParameters
+                .buildUpon()
+                .setAudioOffloadPreferences(
+                    if (audioOffloading) {
+                        AudioOffloadPreferences.Builder()
+                            .setAudioOffloadMode(AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED)
+                            .setIsSpeedChangeSupportRequired(
+                                playbackParameters.speed != 1f || playbackParameters.pitch != 1f
+                            )
+                            .build()
+                    } else {
+                        AudioOffloadPreferences.Builder()
+                            .setAudioOffloadMode(
+                                AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED
+                            )
+                            .build()
+                    }
+                )
+                .build()
     }
 }
 

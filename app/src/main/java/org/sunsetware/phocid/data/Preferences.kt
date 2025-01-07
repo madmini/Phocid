@@ -42,6 +42,7 @@ data class Preferences(
     val densityMultiplier: Float = 1f,
     // Playback
     val playOnOutputDeviceConnection: Boolean = false,
+    val audioOffloading: Boolean = true,
     // Theme
     val darkTheme: DarkThemePreference = DarkThemePreference.SYSTEM,
     val themeColorSource: ThemeColorSource = ThemeColorSource.MATERIAL_YOU,

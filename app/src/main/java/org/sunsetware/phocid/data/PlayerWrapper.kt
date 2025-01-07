@@ -192,7 +192,8 @@ class PlayerWrapper : AutoCloseable {
                                 Pair(
                                     PLAY_ON_OUTPUT_DEVICE_CONNECTION_KEY,
                                     it.playOnOutputDeviceConnection,
-                                )
+                                ),
+                                Pair(AUDIO_OFFLOADING_KEY, it.audioOffloading),
                             ),
                         )
                     }
