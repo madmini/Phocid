@@ -3,9 +3,12 @@ package org.sunsetware.phocid
 import kotlin.collections.joinToString
 import org.assertj.core.api.Assertions.*
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import org.sunsetware.phocid.data.PlaylistIoSettings
 import org.sunsetware.phocid.data.parseM3u
 
+@RunWith(RobolectricTestRunner::class)
 class PlaylistIoTest {
     fun testParseM3u(
         m3u: String,

@@ -143,6 +143,7 @@ class LibraryIndexTest {
         id: Long,
         path: String = InvalidTrack.path,
         fileName: String = InvalidTrack.fileName,
+        dateAdded: Long = InvalidTrack.dateAdded,
         version: Long = InvalidTrack.version,
         title: String? = InvalidTrack.title,
         artists: List<String> = InvalidTrack.artists,
@@ -161,6 +162,8 @@ class LibraryIndexTest {
         hasArtwork: Boolean = InvalidTrack.hasArtwork,
         vibrantColor: Color? = InvalidTrack.vibrantColor,
         mutedColor: Color? = InvalidTrack.mutedColor,
+        unsyncedLyrics: String? = InvalidTrack.unsyncedLyrics,
+        comment: String? = InvalidTrack.comment,
     ): Track {
         return Track(
             id = id,
@@ -184,6 +187,9 @@ class LibraryIndexTest {
             hasArtwork = hasArtwork,
             vibrantColor = vibrantColor,
             mutedColor = mutedColor,
+            dateAdded = dateAdded,
+            unsyncedLyrics = unsyncedLyrics,
+            comment = comment,
         )
     }
 
