@@ -41,4 +41,4 @@ object Strings {
     }
 }
 
-@Volatile lateinit var stringSource: WeakReference<Context>
+@Volatile var stringSource = WeakReference<Context>(null)
