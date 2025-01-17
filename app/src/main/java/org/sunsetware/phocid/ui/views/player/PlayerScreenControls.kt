@@ -235,25 +235,25 @@ class PlayerScreenControlsDefaultBase(
         }
 
         Surface(color = containerColor, contentColor = contentColor, modifier = dragModifier) {
-            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                Column(
-                    modifier =
-                        if (fillMaxSize) {
-                            Modifier.fillMaxSize()
-                        } else Modifier,
-                    verticalArrangement = verticalArrangement,
-                ) {
-                    if (currentTrackInfoFirst) {
-                        currentTrackInfo(
-                            currentTrack,
-                            currentTrackIsFavorite,
-                            containerColor,
-                            overflowMenuItems,
-                            onTogglePlayQueue,
-                            onToggleCurrentTrackIsFavorite,
-                        )
-                    }
+            Column(
+                modifier =
+                    if (fillMaxSize) {
+                        Modifier.fillMaxSize()
+                    } else Modifier,
+                verticalArrangement = verticalArrangement,
+            ) {
+                if (currentTrackInfoFirst) {
+                    currentTrackInfo(
+                        currentTrack,
+                        currentTrackIsFavorite,
+                        containerColor,
+                        overflowMenuItems,
+                        onTogglePlayQueue,
+                        onToggleCurrentTrackIsFavorite,
+                    )
+                }
 
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                     Column {
                         Spacer(modifier = Modifier.height(16.dp))
                         Row(
@@ -372,17 +372,17 @@ class PlayerScreenControlsDefaultBase(
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                     }
+                }
 
-                    if (!currentTrackInfoFirst) {
-                        currentTrackInfo(
-                            currentTrack,
-                            currentTrackIsFavorite,
-                            containerColor,
-                            overflowMenuItems,
-                            onTogglePlayQueue,
-                            onToggleCurrentTrackIsFavorite,
-                        )
-                    }
+                if (!currentTrackInfoFirst) {
+                    currentTrackInfo(
+                        currentTrack,
+                        currentTrackIsFavorite,
+                        containerColor,
+                        overflowMenuItems,
+                        onTogglePlayQueue,
+                        onToggleCurrentTrackIsFavorite,
+                    )
                 }
             }
         }
