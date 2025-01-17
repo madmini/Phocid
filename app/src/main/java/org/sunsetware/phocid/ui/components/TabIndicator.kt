@@ -36,7 +36,7 @@ fun TabIndicatorScope.TabIndicator(pagerState: PagerState) {
                     val placeable =
                         measurable.measure(constraints.copy(minWidth = width, maxWidth = width))
                     layout(placeable.width, placeable.height) {
-                        placeable.place(
+                        placeable.placeRelative(
                             lerp(settledPosition.left, targetPosition.left, morph).roundToPx(),
                             constraints.maxHeight - placeable.height,
                         )
@@ -44,7 +44,7 @@ fun TabIndicatorScope.TabIndicator(pagerState: PagerState) {
                 }
                 .background(
                     color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(3.0.dp),
+                    shape = RoundedCornerShape(3.dp, 3.dp, 0.dp, 0.dp),
                 )
     )
 }
