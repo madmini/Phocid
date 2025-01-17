@@ -464,7 +464,7 @@ fun LibraryScreenHomeView(
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column {
             ViewTabRow(preferences, state)
-            HorizontalPager(state = pagerState, beyondViewportPageCount = Int.MAX_VALUE) { i ->
+            HorizontalPager(state = pagerState) { i ->
                 if (preferences.tabs.size > i && state.tabStates.size > i) {
                     val tab = preferences.tabs[i]
                     val (multiSelectState, lazyGridState) = state.tabStates[tab.type]!!
