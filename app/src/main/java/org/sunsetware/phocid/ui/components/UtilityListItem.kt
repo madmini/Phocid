@@ -83,6 +83,7 @@ inline fun UtilityCheckBoxListItem(
     checked: Boolean,
     crossinline onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    textModifier: Modifier = Modifier,
     enabled: Boolean = true,
     crossinline actions: @Composable () -> Unit = {},
 ) {
@@ -101,7 +102,7 @@ inline fun UtilityCheckBoxListItem(
             modifier = Modifier.padding(start = 12.dp, end = 4.dp),
             enabled = enabled,
         )
-        Text(text = text, style = Typography.bodyLarge, modifier = Modifier.weight(1f))
+        Text(text = text, style = Typography.bodyLarge, modifier = textModifier.weight(1f))
         actions()
     }
 }

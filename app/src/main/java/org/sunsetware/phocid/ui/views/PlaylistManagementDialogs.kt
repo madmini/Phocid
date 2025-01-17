@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -30,7 +31,8 @@ import org.sunsetware.phocid.data.RealizedPlaylist
 import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.data.sortedBy
 import org.sunsetware.phocid.ui.components.DialogBase
-import org.sunsetware.phocid.ui.components.UtilityRadioButtonListItem
+import org.sunsetware.phocid.ui.components.UtilityCheckBoxListItem
+import org.sunsetware.phocid.ui.theme.INACTIVE_ALPHA
 import org.sunsetware.phocid.utils.icuFormat
 
 @Stable
@@ -144,40 +146,62 @@ class AddToPlaylistDialog(private val tracks: List<Track> = emptyList()) : Dialo
         val preferences by viewModel.preferences.collectAsStateWithLifecycle()
         val sortedPlaylists =
             remember(playlists, preferences) {
-                playlists.asIterable().sortedBy(
-                    preferences.sortCollator,
-                    RealizedPlaylist.CollectionSortingOptions.values.first().keys,
-                    true,
-                ) {
-                    it.value
-                }
+                playlists
+                    .asIterable()
+                    .sortedBy(
+                        preferences.sortCollator,
+                        RealizedPlaylist.CollectionSortingOptions.values.first().keys,
+                        true,
+                    ) {
+                        it.value
+                    }
+                    .map { (key, playlist) ->
+                        Triple(
+                            key,
+                            playlist.displayName,
+                            if (tracks.size == 1)
+                                playlist.entries.any { it.track?.id == tracks.first().id }
+                            else false,
+                        )
+                    }
             }
-        var selectedPlaylist by rememberSaveable { mutableStateOf(null as String?) }
+        var selectedPlaylists by rememberSaveable { mutableStateOf(emptySet<String>()) }
         DialogBase(
             title = stringResource(R.string.playlist_add_to),
             onConfirm = {
-                viewModel.playlistManager.updatePlaylist(UUID.fromString(selectedPlaylist)) {
-                    playlist ->
-                    playlist.addTracks(tracks)
+                for (playlist in selectedPlaylists) {
+                    viewModel.playlistManager.updatePlaylist(UUID.fromString(playlist)) { playlist
+                        ->
+                        playlist.addTracks(tracks)
+                    }
                 }
                 viewModel.uiManager.closeDialog()
             },
             onDismiss = { viewModel.uiManager.closeDialog() },
-            confirmEnabled = selectedPlaylist != null,
+            confirmEnabled = selectedPlaylists.isNotEmpty(),
         ) {
             LazyColumn {
                 item {
-                    UtilityRadioButtonListItem(
+                    UtilityCheckBoxListItem(
                         text = stringResource(R.string.playlist_new),
-                        selected = false,
-                        onSelect = { viewModel.uiManager.openDialog(NewPlaylistDialog(tracks)) },
+                        checked = false,
+                        onCheckedChange = {
+                            viewModel.uiManager.openDialog(NewPlaylistDialog(tracks))
+                        },
                     )
                 }
-                items(sortedPlaylists, key = { (key, _) -> key.toString() }) { (key, playlist) ->
-                    UtilityRadioButtonListItem(
-                        text = playlist.displayName,
-                        selected = selectedPlaylist == key.toString(),
-                        onSelect = { selectedPlaylist = key.toString() },
+                items(sortedPlaylists, key = { (key, _, _) -> key.toString() }) {
+                    (key, name, alreadyContainsTrack) ->
+                    UtilityCheckBoxListItem(
+                        text = name,
+                        checked = selectedPlaylists.contains(key.toString()),
+                        onCheckedChange = {
+                            val key = key.toString()
+                            if (!selectedPlaylists.contains(key)) selectedPlaylists += key
+                            else selectedPlaylists -= key
+                        },
+                        textModifier =
+                            if (alreadyContainsTrack) Modifier.alpha(INACTIVE_ALPHA) else Modifier,
                     )
                 }
             }
