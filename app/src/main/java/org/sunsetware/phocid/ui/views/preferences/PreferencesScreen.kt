@@ -97,26 +97,6 @@ object PreferencesScreen : TopLevelScreen() {
                         },
                     )
                     UtilityListItem(
-                        title = Strings[R.string.preferences_player_screen_layout],
-                        subtitle = Strings[preferences.playerScreenLayout.stringId],
-                        modifier =
-                            Modifier.clickable {
-                                uiManager.openDialog(
-                                    PreferencesSingleChoiceDialog<PlayerScreenLayoutPreference>(
-                                        title = Strings[R.string.preferences_player_screen_layout],
-                                        options =
-                                            PlayerScreenLayoutPreference.entries.map {
-                                                it to Strings[it.stringId]
-                                            },
-                                        activeOption = { it.playerScreenLayout },
-                                        updatePreferences = { preferences, new ->
-                                            preferences.copy(playerScreenLayout = new)
-                                        },
-                                    )
-                                )
-                            },
-                    )
-                    UtilityListItem(
                         title = Strings[R.string.preferences_tab_style],
                         subtitle = Strings[preferences.tabStyle.stringId],
                         modifier =
@@ -131,6 +111,26 @@ object PreferencesScreen : TopLevelScreen() {
                                         activeOption = { it.tabStyle },
                                         updatePreferences = { preferences, new ->
                                             preferences.copy(tabStyle = new)
+                                        },
+                                    )
+                                )
+                            },
+                    )
+                    UtilityListItem(
+                        title = Strings[R.string.preferences_player_screen_layout],
+                        subtitle = Strings[preferences.playerScreenLayout.stringId],
+                        modifier =
+                            Modifier.clickable {
+                                uiManager.openDialog(
+                                    PreferencesSingleChoiceDialog<PlayerScreenLayoutPreference>(
+                                        title = Strings[R.string.preferences_player_screen_layout],
+                                        options =
+                                            PlayerScreenLayoutPreference.entries.map {
+                                                it to Strings[it.stringId]
+                                            },
+                                        activeOption = { it.playerScreenLayout },
+                                        updatePreferences = { preferences, new ->
+                                            preferences.copy(playerScreenLayout = new)
                                         },
                                     )
                                 )
