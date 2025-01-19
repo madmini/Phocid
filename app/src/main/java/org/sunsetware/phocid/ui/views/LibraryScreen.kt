@@ -93,10 +93,7 @@ fun LibraryScreen(
             }
             .collectAsStateWithLifecycle()
     val currentCollection = collectionViewStack.lastOrNull()
-    val currentCollectionSortingOptionId =
-        currentCollection?.sortingOptionId?.collectAsStateWithLifecycle()
-    val currentCollectionSortAscending =
-        currentCollection?.sortAscending?.collectAsStateWithLifecycle()
+    val currentCollectionType = collectionInfos.lastOrNull()?.type
     val currentHomeTabIndex =
         homeViewState.pagerState.targetPage.coerceIn(0, preferences.tabs.size - 1)
     val currentHomeTab = preferences.tabs[currentHomeTabIndex]
@@ -285,22 +282,45 @@ fun LibraryScreen(
         visibility = viewSettingsVisibility,
         onDismissRequest = { viewSettingsVisibility = false },
         sortingOptions =
-            collectionInfos.lastOrNull()?.sortingOptions ?: currentHomeTab.type.sortingOptions,
+            currentCollectionType?.sortingOptions ?: currentHomeTab.type.sortingOptions,
         activeSortingOptionId =
-            currentCollectionSortingOptionId?.value ?: currentHomeTab.sortingOptionId,
+            currentCollectionType?.let { preferences.collectionViewSorting[it]!!.first }
+                ?: currentHomeTab.sortingOptionId,
         onSetSortingOption = { sortingOptionId ->
-            if (currentCollection != null) {
-                currentCollection.sortingOptionId.value = sortingOptionId
+            if (currentCollectionType != null) {
+                viewModel.updatePreferences {
+                    it.copy(
+                        collectionViewSorting =
+                            it.collectionViewSorting +
+                                (currentCollectionType to
+                                    Pair(
+                                        sortingOptionId,
+                                        it.collectionViewSorting[currentCollectionType]!!.second,
+                                    ))
+                    )
+                }
             } else {
                 viewModel.updateTabInfo(currentHomeTabIndex) {
                     it.copy(sortingOptionId = sortingOptionId)
                 }
             }
         },
-        sortAscending = currentCollectionSortAscending?.value ?: currentHomeTab.sortAscending,
+        sortAscending =
+            currentCollectionType?.let { preferences.collectionViewSorting[it]!!.second }
+                ?: currentHomeTab.sortAscending,
         onSetSortAscending = { sortAscending ->
-            if (currentCollection != null) {
-                currentCollection.sortAscending.value = sortAscending
+            if (currentCollectionType != null) {
+                viewModel.updatePreferences {
+                    it.copy(
+                        collectionViewSorting =
+                            it.collectionViewSorting +
+                                (currentCollectionType to
+                                    Pair(
+                                        it.collectionViewSorting[currentCollectionType]!!.first,
+                                        sortAscending,
+                                    ))
+                    )
+                }
             } else {
                 viewModel.updateTabInfo(currentHomeTabIndex) {
                     it.copy(sortAscending = sortAscending)

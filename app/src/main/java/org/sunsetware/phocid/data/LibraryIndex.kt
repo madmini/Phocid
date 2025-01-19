@@ -645,7 +645,7 @@ private data class MutableFolder(
 data class AlbumSlice(val album: Album, val tracks: List<Track> = emptyList()) {
     companion object {
         @NonNls
-        val CollectionSortingOptions =
+        val TrackSortingOptions =
             mapOf(
                 "Number" to
                     SortingOption(
@@ -665,7 +665,7 @@ data class AlbumSlice(val album: Album, val tracks: List<Track> = emptyList()) {
 data class ArtistSlice(val artist: Artist, val tracks: List<Track> = emptyList()) {
     companion object {
         @NonNls
-        val CollectionSortingOptions =
+        val TrackSortingOptions =
             mapOf(
                 "Title" to
                     SortingOption(

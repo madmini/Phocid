@@ -34,9 +34,9 @@ import java.util.UUID
 import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.serialization.Serializable
 import org.sunsetware.phocid.MainViewModel
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
@@ -273,26 +273,22 @@ class LibraryScreenCollectionViewState(
     val info: StateFlow<CollectionViewInfo?>,
     val cardsLazyListState: LazyListState = LazyListState(),
     val tracksLazyListState: LazyListState = LazyListState(),
-    val sortingOptionId: MutableStateFlow<String> =
-        MutableStateFlow(info.value?.sortingOptions?.keys?.first() ?: ""),
-    val sortAscending: MutableStateFlow<Boolean> = MutableStateFlow(true),
 ) : AutoCloseable {
     val multiSelectState =
         MultiSelectState(
             stateScope,
-            info.combine(stateScope, preferences, sortingOptionId, sortAscending) {
-                info,
-                preferences,
-                sortingOptionId,
-                sortAscending ->
-                info?.items?.sortedBy(
+            info.combine(stateScope, preferences) { info, preferences ->
+                if (info == null) return@combine emptyList()
+
+                val type = info.type
+                val (id, ascending) = preferences.collectionViewSorting[type]!!
+                info.items.sortedBy(
                     preferences.sortCollator,
-                    (info.sortingOptions[sortingOptionId] ?: info.sortingOptions.values.first())
-                        .keys,
-                    sortAscending,
+                    (type.sortingOptions[id] ?: type.sortingOptions.values.first()).keys,
+                    ascending,
                 ) {
                     it.sortable
-                } ?: emptyList()
+                }
             },
         )
 
@@ -303,18 +299,21 @@ class LibraryScreenCollectionViewState(
 
 @Immutable
 abstract class CollectionViewInfo {
+    abstract val type: CollectionViewType
     abstract val title: String
     abstract val artwork: Artwork?
     abstract val cards: CollectionViewCards?
     abstract val additionalStatistics: List<String>
     abstract val items: List<LibraryScreenCollectionViewItem>
-    abstract val sortingOptions: Map<String, SortingOption>
 
     @Stable abstract fun extraCollectionMenuItems(viewModel: MainViewModel): List<MenuItem>
 }
 
 val InvalidCollectionViewInfo =
     object : CollectionViewInfo() {
+        override val type
+            get() = CollectionViewType.INVALID
+
         override val title
             get() = ""
 
@@ -329,8 +328,6 @@ val InvalidCollectionViewInfo =
 
         override val items
             get() = emptyList<LibraryScreenCollectionViewItem>()
-
-        override val sortingOptions = mapOf("" to SortingOption(null, emptyList()))
 
         override fun extraCollectionMenuItems(viewModel: MainViewModel): List<MenuItem> {
             return emptyList()
@@ -370,6 +367,9 @@ fun UiManager.openFolderCollectionView(path: String) {
 
 @Immutable
 data class AlbumCollectionViewInfo(val album: Album) : CollectionViewInfo() {
+    override val type
+        get() = CollectionViewType.ALBUM
+
     override val title
         get() = album.name
 
@@ -394,9 +394,6 @@ data class AlbumCollectionViewInfo(val album: Album) : CollectionViewInfo() {
                 )
             }
 
-    override val sortingOptions
-        get() = Album.TrackSortingOptions
-
     @Stable
     override fun extraCollectionMenuItems(viewModel: MainViewModel): List<MenuItem> {
         return emptyList()
@@ -405,6 +402,9 @@ data class AlbumCollectionViewInfo(val album: Album) : CollectionViewInfo() {
 
 @Immutable
 data class ArtistCollectionViewInfo(val artist: Artist) : CollectionViewInfo() {
+    override val type
+        get() = CollectionViewType.ARTIST
+
     override val title
         get() = artist.name
 
@@ -445,9 +445,6 @@ data class ArtistCollectionViewInfo(val artist: Artist) : CollectionViewInfo() {
                 )
             }
 
-    override val sortingOptions
-        get() = Artist.TrackSortingOptions
-
     @Stable
     override fun extraCollectionMenuItems(viewModel: MainViewModel): List<MenuItem> {
         return emptyList()
@@ -456,6 +453,9 @@ data class ArtistCollectionViewInfo(val artist: Artist) : CollectionViewInfo() {
 
 @Immutable
 data class GenreCollectionViewInfo(val genre: Genre) : CollectionViewInfo() {
+    override val type
+        get() = CollectionViewType.GENRE
+
     override val title
         get() = genre.name
 
@@ -497,9 +497,6 @@ data class GenreCollectionViewInfo(val genre: Genre) : CollectionViewInfo() {
                 )
             }
 
-    override val sortingOptions
-        get() = Genre.TrackSortingOptions
-
     @Stable
     override fun extraCollectionMenuItems(viewModel: MainViewModel): List<MenuItem> {
         return emptyList()
@@ -509,6 +506,9 @@ data class GenreCollectionViewInfo(val genre: Genre) : CollectionViewInfo() {
 @Immutable
 data class FolderCollectionViewInfo(val folder: Folder, val folderIndex: Map<String, Folder>) :
     CollectionViewInfo() {
+    override val type
+        get() = CollectionViewType.FOLDER
+
     override val title
         get() = folder.fileName
 
@@ -549,9 +549,6 @@ data class FolderCollectionViewInfo(val folder: Folder, val folderIndex: Map<Str
                     )
                 }
 
-    override val sortingOptions
-        get() = Folder.SortingOptions
-
     @Stable
     override fun extraCollectionMenuItems(viewModel: MainViewModel): List<MenuItem> {
         return emptyList()
@@ -561,6 +558,9 @@ data class FolderCollectionViewInfo(val folder: Folder, val folderIndex: Map<Str
 @Immutable
 data class PlaylistCollectionViewInfo(val key: UUID, val playlist: RealizedPlaylist) :
     CollectionViewInfo() {
+    override val type
+        get() = CollectionViewType.PLAYLIST
+
     override val title
         get() = playlist.displayName
 
@@ -589,9 +589,6 @@ data class PlaylistCollectionViewInfo(val key: UUID, val playlist: RealizedPlayl
                     )
                 }
 
-    override val sortingOptions
-        get() = RealizedPlaylist.TrackSortingOptions
-
     @Stable
     override fun extraCollectionMenuItems(viewModel: MainViewModel): List<MenuItem> {
         return playlistCollectionMenuItems(key, viewModel.uiManager)
@@ -600,6 +597,9 @@ data class PlaylistCollectionViewInfo(val key: UUID, val playlist: RealizedPlayl
 
 @Immutable
 data class AlbumSliceCollectionViewInfo(val albumSlice: AlbumSlice) : CollectionViewInfo() {
+    override val type
+        get() = CollectionViewType.ALBUM_SLICE
+
     override val title
         get() = albumSlice.album.name
 
@@ -623,9 +623,6 @@ data class AlbumSliceCollectionViewInfo(val albumSlice: AlbumSlice) : Collection
                 )
             }
 
-    override val sortingOptions
-        get() = AlbumSlice.CollectionSortingOptions
-
     @Stable
     override fun extraCollectionMenuItems(viewModel: MainViewModel): List<MenuItem> {
         return emptyList()
@@ -634,6 +631,9 @@ data class AlbumSliceCollectionViewInfo(val albumSlice: AlbumSlice) : Collection
 
 @Immutable
 data class ArtistSliceCollectionViewInfo(val artistSlice: ArtistSlice) : CollectionViewInfo() {
+    override val type
+        get() = CollectionViewType.ARTIST_SLICE
+
     override val title
         get() = artistSlice.artist.name
 
@@ -656,9 +656,6 @@ data class ArtistSliceCollectionViewInfo(val artistSlice: ArtistSlice) : Collect
                     lead = LibraryScreenCollectionViewItemLead.Artwork(Artwork.Track(track)),
                 )
             }
-
-    override val sortingOptions
-        get() = ArtistSlice.CollectionSortingOptions
 
     @Stable
     override fun extraCollectionMenuItems(viewModel: MainViewModel): List<MenuItem> {
@@ -832,4 +829,17 @@ fun LibraryScreenCollectionView(
             scrollOffset = tracksLazyListState.firstVisibleItemScrollOffset,
         )
     }
+}
+
+@Immutable
+@Serializable
+enum class CollectionViewType(val sortingOptions: Map<String, SortingOption>) {
+    INVALID(mapOf("" to SortingOption(null, emptyList()))),
+    ALBUM(Album.TrackSortingOptions),
+    ARTIST(Artist.TrackSortingOptions),
+    GENRE(Genre.TrackSortingOptions),
+    FOLDER(Folder.SortingOptions),
+    PLAYLIST(RealizedPlaylist.TrackSortingOptions),
+    ALBUM_SLICE(AlbumSlice.TrackSortingOptions),
+    ARTIST_SLICE(ArtistSlice.TrackSortingOptions),
 }

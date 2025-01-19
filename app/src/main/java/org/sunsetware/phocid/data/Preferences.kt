@@ -19,6 +19,7 @@ import org.sunsetware.phocid.ui.theme.GRAY
 import org.sunsetware.phocid.ui.theme.Oklch
 import org.sunsetware.phocid.ui.theme.hashColor
 import org.sunsetware.phocid.ui.theme.toOklch
+import org.sunsetware.phocid.ui.views.CollectionViewType
 import org.sunsetware.phocid.ui.views.TabInfo
 import org.sunsetware.phocid.ui.views.TabType
 
@@ -36,6 +37,8 @@ data class Preferences(
     val tabOrderAndVisibility: List<Pair<TabType, Boolean>> = TabType.entries.map { it to true },
     val tabStyle: TabStylePreference = TabStylePreference.TEXT_ONLY,
     val scrollableTabs: Boolean = true,
+    val collectionViewSorting: Map<CollectionViewType, Pair<String, Boolean>> =
+        CollectionViewType.entries.map { it to Pair(it.sortingOptions.keys.first(), true) }.toMap(),
     val playerScreenLayout: PlayerScreenLayoutPreference = PlayerScreenLayoutPreference.DEFAULT,
     val sortingLocaleLanguageTag: String? = null,
     val lyricsDisplay: LyricsDisplayPreference = LyricsDisplayPreference.DEFAULT,
@@ -80,7 +83,16 @@ data class Preferences(
                 TabType.entries.toSet().minus(tabOrderAndVisibility.map { it.first }.toSet()).map {
                     it to false
                 }
-        return copy(tabSettings = newTabSettings, tabOrderAndVisibility = newTabOrderAndVisibility)
+        val newCollectionViewSorting =
+            collectionViewSorting.filterKeys { CollectionViewType.entries.contains(it) } +
+                CollectionViewType.entries.toSet().minus(collectionViewSorting.keys).associateWith {
+                    Pair(it.sortingOptions.keys.first(), true)
+                }
+        return copy(
+            tabSettings = newTabSettings,
+            tabOrderAndVisibility = newTabOrderAndVisibility,
+            collectionViewSorting = newCollectionViewSorting,
+        )
     }
 
     @Transient
