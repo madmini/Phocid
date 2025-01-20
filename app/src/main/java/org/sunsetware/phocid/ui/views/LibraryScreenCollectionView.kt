@@ -420,11 +420,10 @@ data class ArtistCollectionViewInfo(val artist: Artist) : CollectionViewInfo() {
                     Strings.separate(slice.album.year?.toString(), slice.album.displayAlbumArtist),
                     Artwork.Track(slice.album.tracks.firstOrNull() ?: InvalidTrack),
                 ) { library ->
-                    AlbumSliceCollectionViewInfo(
-                        library.artists[artist.name]?.albumSlices?.firstOrNull {
-                            it.album.name == slice.album.name
-                        } ?: AlbumSlice(slice.album)
-                    )
+                    library.artists[artist.name]
+                        ?.albumSlices
+                        ?.firstOrNull { it.album.name == slice.album.name }
+                        ?.let { AlbumSliceCollectionViewInfo(it) }
                 }
             },
             listOf(SortingKey.YEAR, SortingKey.ALBUM_ARTIST, SortingKey.ALBUM),
@@ -471,11 +470,10 @@ data class GenreCollectionViewInfo(val genre: Genre) : CollectionViewInfo() {
                     Strings[R.string.count_track].icuFormat(slice.tracks.size),
                     Artwork.Track(slice.artist.tracks.firstOrNull() ?: InvalidTrack),
                 ) { library ->
-                    ArtistSliceCollectionViewInfo(
-                        library.genres[genre.name]?.artistSlices?.firstOrNull {
-                            it.artist.name == slice.artist.name
-                        } ?: ArtistSlice(slice.artist)
-                    )
+                    library.genres[genre.name]
+                        ?.artistSlices
+                        ?.firstOrNull { it.artist.name == slice.artist.name }
+                        ?.let { ArtistSliceCollectionViewInfo(it) }
                 }
             },
             listOf(SortingKey.ARTIST),
@@ -669,7 +667,7 @@ data class CollectionViewCardInfo(
     val title: String,
     val subtitle: String,
     val artwork: Artwork,
-    val content: (LibraryIndex) -> CollectionViewInfo,
+    val content: (LibraryIndex) -> CollectionViewInfo?,
 ) : Sortable by sortable
 
 @Composable
