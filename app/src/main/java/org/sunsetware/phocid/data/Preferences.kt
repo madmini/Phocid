@@ -119,7 +119,7 @@ data class Preferences(
     val tabs =
         tabOrderAndVisibility
             .filter { it.second }
-            .map { requireNotNull(tabSettings[it.first]) }
+            .mapNotNull { tabSettings[it.first] }
             .takeIf { it.isNotEmpty() } ?: listOf(tabSettings[TabType.TRACKS]!!)
 
     @Transient val sortingLocale = sortingLocaleLanguageTag?.let { Locale.forLanguageTag(it) }
