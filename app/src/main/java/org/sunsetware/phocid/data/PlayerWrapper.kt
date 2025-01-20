@@ -41,6 +41,7 @@ data class PlayerState(
     val unshuffledPlayQueueMapping: List<Int>? = null,
     val actualPlayQueue: List<Long> = emptyList(),
     val currentIndex: Int = 0,
+    val currentPosition: Long = 0,
     val shuffle: Boolean = false,
     val repeat: Int = Player.REPEAT_MODE_OFF,
     val speed: Float = 1f,
@@ -66,6 +67,7 @@ private fun MediaController.capturePlayerState(): PlayerState {
         if (shuffle) getUnshuffledPlayQueueMapping() else null,
         actualPlayQueue,
         currentMediaItemIndex,
+        if (isPlaying) 0 else currentPosition,
         shuffle,
         repeatMode,
         playbackParameters.speed,
@@ -84,7 +86,7 @@ private fun MediaController.restorePlayerState(
             )
         }
     )
-    seekTo(state.currentIndex, 0)
+    seekTo(state.currentIndex, state.currentPosition)
     sendCustomCommand(
         SessionCommand(SET_SHUFFLE_COMMAND, Bundle.EMPTY),
         bundleOf(Pair(SHUFFLE_KEY, state.shuffle)),
