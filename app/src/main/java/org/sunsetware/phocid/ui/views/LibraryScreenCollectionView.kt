@@ -42,6 +42,7 @@ import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
 import org.sunsetware.phocid.UiManager
 import org.sunsetware.phocid.data.Album
+import org.sunsetware.phocid.data.AlbumArtist
 import org.sunsetware.phocid.data.AlbumKey
 import org.sunsetware.phocid.data.AlbumSlice
 import org.sunsetware.phocid.data.Artist
@@ -57,6 +58,7 @@ import org.sunsetware.phocid.data.Sortable
 import org.sunsetware.phocid.data.SortingKey
 import org.sunsetware.phocid.data.SortingOption
 import org.sunsetware.phocid.data.Track
+import org.sunsetware.phocid.data.albumKey
 import org.sunsetware.phocid.data.sorted
 import org.sunsetware.phocid.data.sortedBy
 import org.sunsetware.phocid.ui.components.Artwork
@@ -353,6 +355,12 @@ fun UiManager.openArtistCollectionView(key: String) {
     }
 }
 
+fun UiManager.openAlbumArtistCollectionView(key: String) {
+    openCollectionView { libraryIndex ->
+        libraryIndex.albumArtists[key]?.let { AlbumArtistCollectionViewInfo(it) }
+    }
+}
+
 fun UiManager.openGenreCollectionView(key: String) {
     openCollectionView { libraryIndex ->
         libraryIndex.genres[key]?.let { GenreCollectionViewInfo(it) }
@@ -436,6 +444,53 @@ data class ArtistCollectionViewInfo(val artist: Artist) : CollectionViewInfo() {
     override val items
         get() =
             artist.tracks.map { track ->
+                LibraryScreenCollectionViewItem.LibraryTrack(
+                    track = track,
+                    title = track.displayTitle,
+                    subtitle = Strings.separate(track.album, track.duration.toShortString()),
+                    lead = LibraryScreenCollectionViewItemLead.Artwork(Artwork.Track(track)),
+                )
+            }
+
+    @Stable
+    override fun extraCollectionMenuItems(viewModel: MainViewModel): List<MenuItem> {
+        return emptyList()
+    }
+}
+
+@Immutable
+data class AlbumArtistCollectionViewInfo(val albumArtist: AlbumArtist) : CollectionViewInfo() {
+    override val type
+        get() = CollectionViewType.ALBUM_ARTIST
+
+    override val title
+        get() = albumArtist.name
+
+    override val artwork
+        get() = null
+
+    override val cards =
+        CollectionViewCards(
+            albumArtist.albums.map { album ->
+                CollectionViewCardInfo(
+                    album,
+                    album.name,
+                    Strings.separate(album.year?.toString(), album.displayAlbumArtist),
+                    Artwork.Track(album.tracks.firstOrNull() ?: InvalidTrack),
+                ) { library ->
+                    library.albums[album.albumKey]?.let { AlbumCollectionViewInfo(it) }
+                }
+            },
+            listOf(SortingKey.YEAR, SortingKey.ALBUM),
+            true,
+        )
+
+    override val additionalStatistics
+        get() = emptyList<String>()
+
+    override val items
+        get() =
+            albumArtist.tracks.map { track ->
                 LibraryScreenCollectionViewItem.LibraryTrack(
                     track = track,
                     title = track.displayTitle,
@@ -835,6 +890,7 @@ enum class CollectionViewType(val sortingOptions: Map<String, SortingOption>) {
     INVALID(mapOf("" to SortingOption(null, emptyList()))),
     ALBUM(Album.TrackSortingOptions),
     ARTIST(Artist.TrackSortingOptions),
+    ALBUM_ARTIST(AlbumArtist.TrackSortingOptions),
     GENRE(Genre.TrackSortingOptions),
     FOLDER(Folder.SortingOptions),
     PLAYLIST(RealizedPlaylist.TrackSortingOptions),

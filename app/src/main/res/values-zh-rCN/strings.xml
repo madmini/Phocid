@@ -196,6 +196,7 @@
     <string name="sorting_year">年份</string>
     <string name="symbol_conjunction">" &amp; "</string>
     <string name="symbol_separator">" · "</string>
+    <string name="tab_album_artists">专辑艺术家</string>
     <string name="tab_albums">专辑</string>
     <string name="tab_artists">艺术家</string>
     <string name="tab_folders">文件夹</string>

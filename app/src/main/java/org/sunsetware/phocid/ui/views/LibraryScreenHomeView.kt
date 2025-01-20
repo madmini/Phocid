@@ -18,6 +18,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.QueueMusic
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Album
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Folder
@@ -63,6 +64,7 @@ import org.sunsetware.phocid.MainViewModel
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
 import org.sunsetware.phocid.data.Album
+import org.sunsetware.phocid.data.AlbumArtist
 import org.sunsetware.phocid.data.Artist
 import org.sunsetware.phocid.data.ArtworkColorPreference
 import org.sunsetware.phocid.data.Folder
@@ -148,6 +150,7 @@ class LibraryScreenHomeViewState(
                                 TabType.TRACKS -> ::trackItems
                                 TabType.ALBUMS -> ::albumItems
                                 TabType.ARTISTS -> ::artistItems
+                                TabType.ALBUM_ARTISTS -> ::albumArtistItems
                                 TabType.GENRES -> ::genreItems
                                 TabType.FOLDERS -> ::folderItems
                                 TabType.PLAYLISTS -> throw Error() // Impossible
@@ -287,6 +290,40 @@ class LibraryScreenHomeViewState(
                 },
             ) {
                 it.uiManager.openArtistCollectionView(artist.name)
+            }
+        }
+    }
+
+    private fun albumArtistItems(
+        preferences: Preferences,
+        libraryIndex: LibraryIndex,
+        searchQuery: String,
+    ): List<LibraryScreenHomeViewItem> {
+        val tab = preferences.tabSettings[TabType.ALBUM_ARTISTS]!!
+        val albumArtists =
+            libraryIndex.albumArtists.values
+                .search(searchQuery, preferences.searchCollator)
+                .sorted(preferences.sortCollator, tab.sortingKeys, tab.sortAscending)
+        return albumArtists.map { albumArtist ->
+            LibraryScreenHomeViewItem(
+                key = albumArtist.name,
+                title = albumArtist.name,
+                subtitle = albumArtist.displayStatistics,
+                artwork = Artwork.Track(albumArtist.tracks.firstOrNull() ?: InvalidTrack),
+                tracks = albumArtist.tracks,
+                menuItems = {
+                    collectionMenuItems({ albumArtist.tracks }, it.playerWrapper, it.uiManager)
+                },
+                multiSelectMenuItems = { others, viewModel, continuation ->
+                    collectionMenuItems(
+                        { albumArtist.tracks + others.flatMap { it.tracks } },
+                        viewModel.playerWrapper,
+                        viewModel.uiManager,
+                        continuation,
+                    )
+                },
+            ) {
+                it.uiManager.openAlbumArtistCollectionView(albumArtist.name)
             }
         }
     }
@@ -704,6 +741,11 @@ enum class TabType(
     TRACKS(R.string.tab_tracks, Track.SortingOptions, Icons.Outlined.MusicNote),
     ALBUMS(R.string.tab_albums, Album.CollectionSortingOptions, Icons.Outlined.Album),
     ARTISTS(R.string.tab_artists, Artist.CollectionSortingOptions, Icons.Outlined.PersonOutline),
+    ALBUM_ARTISTS(
+        R.string.tab_album_artists,
+        AlbumArtist.CollectionSortingOptions,
+        Icons.Outlined.AccountCircle,
+    ),
     GENRES(R.string.tab_genres, Genre.CollectionSortingOptions, Icons.Outlined.Category),
     PLAYLISTS(
         R.string.tab_playlists,

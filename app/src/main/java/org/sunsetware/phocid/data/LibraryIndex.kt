@@ -483,6 +483,80 @@ data class Artist(
 }
 
 @Immutable
+data class AlbumArtist(
+    val name: String,
+    val tracks: List<Track> = emptyList(),
+    val albums: List<Album> = emptyList(),
+) : Searchable, Sortable {
+    @Stable
+    val displayStatistics
+        get() =
+            Strings.separate(
+                Strings[R.string.count_album].icuFormat(albums.size),
+                Strings[R.string.count_track].icuFormat(tracks.size),
+            )
+
+    @Transient override val searchableStrings = listOf(name)
+
+    override val sortAlbumArtist
+        get() = name
+
+    companion object {
+        @NonNls
+        val CollectionSortingOptions =
+            mapOf("Name" to SortingOption(R.string.sorting_name, listOf(SortingKey.ALBUM_ARTIST)))
+        @NonNls
+        val TrackSortingOptions =
+            mapOf(
+                "Album" to
+                    SortingOption(
+                        R.string.sorting_album,
+                        listOf(
+                            SortingKey.ALBUM,
+                            SortingKey.TRACK,
+                            SortingKey.TITLE,
+                            SortingKey.ARTIST,
+                            SortingKey.YEAR,
+                        ),
+                    ),
+                "Title" to
+                    SortingOption(
+                        R.string.sorting_title,
+                        listOf(
+                            SortingKey.TITLE,
+                            SortingKey.ARTIST,
+                            SortingKey.YEAR,
+                            SortingKey.ALBUM,
+                            SortingKey.TRACK,
+                        ),
+                    ),
+                "Artist" to
+                    SortingOption(
+                        R.string.sorting_artist,
+                        listOf(
+                            SortingKey.ARTIST,
+                            SortingKey.ALBUM,
+                            SortingKey.TRACK,
+                            SortingKey.TITLE,
+                            SortingKey.YEAR,
+                        ),
+                    ),
+                "Year" to
+                    SortingOption(
+                        R.string.sorting_year,
+                        listOf(
+                            SortingKey.YEAR,
+                            SortingKey.ALBUM,
+                            SortingKey.TRACK,
+                            SortingKey.TITLE,
+                            SortingKey.ARTIST,
+                        ),
+                    ),
+            )
+    }
+}
+
+@Immutable
 data class Genre(
     val name: String,
     val tracks: List<Track> = emptyList(),
@@ -716,6 +790,7 @@ data class LibraryIndex(
     val tracks: Map<Long, Track>,
     val albums: Map<AlbumKey, Album>,
     val artists: CaseInsensitiveMap<Artist>,
+    val albumArtists: CaseInsensitiveMap<AlbumArtist>,
     val genres: CaseInsensitiveMap<Genre>,
     val folders: Map<String, Folder>,
     val rootFolder: String,
@@ -734,6 +809,7 @@ data class LibraryIndex(
                 }
             val albums = getAlbums(tracks.values, collator)
             val artists = getArtists(tracks.values, albums, collator)
+            val albumArtists = getAlbumArtists(albums, collator)
             val genres = getGenres(tracks.values, artists, collator)
             val folders = getFolders(tracks.values, collator)
             val rootFolder = getRootFolder(folders)
@@ -742,6 +818,7 @@ data class LibraryIndex(
                 tracks,
                 albums,
                 artists,
+                albumArtists,
                 genres,
                 folders,
                 rootFolder,
@@ -802,6 +879,28 @@ data class LibraryIndex(
                                 it.album
                             }
                     Artist(name, artistTracks, albumSlices)
+                }
+                .let { CaseInsensitiveMap.noMerge(it) }
+        }
+
+        private fun getAlbumArtists(
+            albums: Map<AlbumKey, Album>,
+            collator: Collator,
+        ): CaseInsensitiveMap<AlbumArtist> {
+            return albums.values
+                .mapNotNull { it.albumArtist }
+                .distinctCaseInsensitive()
+                .associateWith { name ->
+                    val albumArtistAlbums =
+                        albums.values
+                            .filter { it.albumArtist.equals(name, true) }
+                            .sorted(
+                                collator,
+                                Album.CollectionSortingOptions.values.first().keys,
+                                true,
+                            )
+                    val albumArtistTracks = albumArtistAlbums.flatMap { it.tracks }
+                    AlbumArtist(name, albumArtistTracks, albumArtistAlbums)
                 }
                 .let { CaseInsensitiveMap.noMerge(it) }
         }
