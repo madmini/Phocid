@@ -31,9 +31,13 @@ private val lrcRegex =
 
 @Stable
 fun parseLrc(lrc: ByteArray, charsetName: String?): Lyrics {
-    val lines =
-        lrc.decodeWithCharsetName(charsetName)
-            .lines()
+    return parseLrc(lrc.decodeWithCharsetName(charsetName))
+}
+
+@Stable
+fun parseLrc(lrc: String): Lyrics {
+    return Lyrics(
+        lrc.lines()
             .mapNotNull { line ->
                 lrcRegex.matchEntire(line.trimAndNormalize())?.let {
                     @NonNls
@@ -47,5 +51,5 @@ fun parseLrc(lrc: ByteArray, charsetName: String?): Lyrics {
                 }
             }
             .sortedBy { it.first }
-    return Lyrics(lines)
+    )
 }

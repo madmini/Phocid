@@ -199,6 +199,7 @@
     <string name="preferences_theme_color_source_default">Default</string>
     <string name="preferences_theme_color_source_material_you">Material You</string>
     <string name="preferences_third_party_licenses">Third party licenses</string>
+    <string name="preferences_treat_embedded_lyrics_as_lrc">Treat embedded lyrics as LRC</string>
     <string name="preferences_ui_scaling">UI scaling</string>
     <string name="preferences_ui_scaling_number">{0, number, ::.00}×</string>
     <string name="preferences_version">Version</string>

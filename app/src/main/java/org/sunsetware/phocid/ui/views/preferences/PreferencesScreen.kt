@@ -430,6 +430,15 @@ object PreferencesScreen : TopLevelScreen() {
                                 uiManager.openDialog(PreferencesPlaylistIoSettingsDialog())
                             },
                     )
+                    UtilitySwitchListItem(
+                        title = Strings[R.string.preferences_treat_embedded_lyrics_as_lrc],
+                        checked = preferences.treatEmbeddedLyricsAsLrc,
+                        onCheckedChange = { checked ->
+                            viewModel.updatePreferences {
+                                it.copy(treatEmbeddedLyricsAsLrc = checked)
+                            }
+                        },
+                    )
                     UtilityListHeader(Strings[R.string.preferences_about])
                     UtilityListItem(
                         title = Strings[R.string.preferences_version],

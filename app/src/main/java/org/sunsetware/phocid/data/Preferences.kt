@@ -71,6 +71,7 @@ data class Preferences(
     // Data
     val charsetName: String? = null,
     val playlistIoSettings: PlaylistIoSettings = PlaylistIoSettings(),
+    val treatEmbeddedLyricsAsLrc: Boolean = false,
 ) {
     fun upgrade(): Preferences {
         val newTabSettings =

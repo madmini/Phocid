@@ -115,6 +115,9 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                 val lyrics = loadLyrics(currentTrack, preferences.charsetName)
                 if (lyrics != null) viewModel.lyricsCache.set(Pair(currentTrack.id, lyrics))
                 lyrics
+                    ?: if (preferences.treatEmbeddedLyricsAsLrc) {
+                        currentTrack.unsyncedLyrics?.let { parseLrc(it) }
+                    } else null
             }
         }
     val isPlaying by
