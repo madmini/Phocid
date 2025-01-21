@@ -52,9 +52,11 @@ import androidx.media3.common.MimeTypes
 import java.util.UUID
 import kotlin.collections.forEach
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import org.apache.commons.io.FilenameUtils
 import org.sunsetware.phocid.MainViewModel
 import org.sunsetware.phocid.R
@@ -107,13 +109,16 @@ private constructor(isImportTab: Boolean, initialExportSelection: Set<UUID>) : T
             }
 
         LaunchedEffect(playlistIoDirectory) {
-            while (isActive) {
-                m3uFiles =
-                    playlistIoDirectory.value?.listFiles()?.filter {
-                        if (it.name == null) false
-                        else it.name!!.endsWith(".m3u", true) || it.name!!.endsWith(".m3u8", true)
-                    } ?: emptyList()
-                delay(1.seconds)
+            withContext(Dispatchers.IO) {
+                while (isActive) {
+                    m3uFiles =
+                        playlistIoDirectory.value?.listFiles()?.filter {
+                            val name = it.name
+                            name != null &&
+                                (name.endsWith(".m3u", true) || name.endsWith(".m3u8", true))
+                        } ?: emptyList()
+                    delay(1.seconds)
+                }
             }
         }
 
