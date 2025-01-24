@@ -4,6 +4,8 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.Stable
 import java.lang.ref.WeakReference
+import kotlin.time.Duration
+import org.sunsetware.phocid.utils.icuFormat
 
 /**
  * I would argue littering [Context] randomly everywhere is a bigger code smell than a static
@@ -38,6 +40,24 @@ object Strings {
     @Stable
     fun separate(vararg strings: String?): String {
         return separate(strings.asIterable())
+    }
+}
+
+fun Duration.format(): String {
+    return absoluteValue.toComponents { hours, minutes, seconds, _ ->
+        if (isNegative()) {
+            if (hours > 0)
+                Strings[R.string.duration_negative_hours_minutes_seconds].icuFormat(
+                    hours,
+                    minutes,
+                    seconds,
+                )
+            else Strings[R.string.duration_negative_minutes_seconds].icuFormat(minutes, seconds)
+        } else {
+            if (hours > 0)
+                Strings[R.string.duration_hours_minutes_seconds].icuFormat(hours, minutes, seconds)
+            else Strings[R.string.duration_minutes_seconds].icuFormat(minutes, seconds)
+        }
     }
 }
 

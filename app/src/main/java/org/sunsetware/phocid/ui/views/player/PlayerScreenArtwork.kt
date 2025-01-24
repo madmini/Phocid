@@ -15,9 +15,9 @@ import org.sunsetware.phocid.data.PlayerState
 import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.ui.components.Artwork
 import org.sunsetware.phocid.ui.components.ArtworkImage
+import org.sunsetware.phocid.ui.components.BinaryDragState
+import org.sunsetware.phocid.ui.components.DragLock
 import org.sunsetware.phocid.ui.components.TrackCarousel
-import org.sunsetware.phocid.utils.BinaryDragState
-import org.sunsetware.phocid.utils.DragLock
 
 @Immutable
 sealed class PlayerScreenArtwork {

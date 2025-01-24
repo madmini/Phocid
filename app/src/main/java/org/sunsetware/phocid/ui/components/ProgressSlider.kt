@@ -34,7 +34,6 @@ import androidx.compose.ui.util.lerp
 import kotlin.math.abs
 import kotlin.math.cos
 import org.sunsetware.phocid.ui.theme.INACTIVE_ALPHA
-import org.sunsetware.phocid.utils.negativePadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

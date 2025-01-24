@@ -61,6 +61,7 @@ import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.data.albumKey
 import org.sunsetware.phocid.data.sorted
 import org.sunsetware.phocid.data.sortedBy
+import org.sunsetware.phocid.format
 import org.sunsetware.phocid.ui.components.Artwork
 import org.sunsetware.phocid.ui.components.ArtworkImage
 import org.sunsetware.phocid.ui.components.EmptyListIndicator
@@ -68,20 +69,18 @@ import org.sunsetware.phocid.ui.components.LibraryListHeader
 import org.sunsetware.phocid.ui.components.LibraryListItemCompactCard
 import org.sunsetware.phocid.ui.components.LibraryListItemHorizontal
 import org.sunsetware.phocid.ui.components.MenuItem
+import org.sunsetware.phocid.ui.components.MultiSelectState
 import org.sunsetware.phocid.ui.components.OverflowMenu
 import org.sunsetware.phocid.ui.components.Scrollbar
 import org.sunsetware.phocid.ui.components.collectionMenuItems
+import org.sunsetware.phocid.ui.components.multiSelectClickable
 import org.sunsetware.phocid.ui.components.playlistCollectionMenuItems
 import org.sunsetware.phocid.ui.components.playlistTrackMenuItems
 import org.sunsetware.phocid.ui.components.trackMenuItems
 import org.sunsetware.phocid.ui.theme.hashColor
-import org.sunsetware.phocid.utils.MultiSelectState
 import org.sunsetware.phocid.utils.combine
 import org.sunsetware.phocid.utils.icuFormat
-import org.sunsetware.phocid.utils.multiSelectClickable
 import org.sunsetware.phocid.utils.sumOf
-import org.sunsetware.phocid.utils.takeIfNot
-import org.sunsetware.phocid.utils.toShortString
 
 @Immutable
 sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCollectionViewItem> {
@@ -396,8 +395,7 @@ data class AlbumCollectionViewInfo(val album: Album) : CollectionViewInfo() {
                 LibraryScreenCollectionViewItem.LibraryTrack(
                     track = track,
                     title = track.displayTitle,
-                    subtitle =
-                        Strings.separate(track.displayArtist, track.duration.toShortString()),
+                    subtitle = Strings.separate(track.displayArtist, track.duration.format()),
                     lead = LibraryScreenCollectionViewItemLead.Text(track.displayNumber),
                 )
             }
@@ -447,7 +445,7 @@ data class ArtistCollectionViewInfo(val artist: Artist) : CollectionViewInfo() {
                 LibraryScreenCollectionViewItem.LibraryTrack(
                     track = track,
                     title = track.displayTitle,
-                    subtitle = Strings.separate(track.album, track.duration.toShortString()),
+                    subtitle = Strings.separate(track.album, track.duration.format()),
                     lead = LibraryScreenCollectionViewItemLead.Artwork(Artwork.Track(track)),
                 )
             }
@@ -494,7 +492,7 @@ data class AlbumArtistCollectionViewInfo(val albumArtist: AlbumArtist) : Collect
                 LibraryScreenCollectionViewItem.LibraryTrack(
                     track = track,
                     title = track.displayTitle,
-                    subtitle = Strings.separate(track.album, track.duration.toShortString()),
+                    subtitle = Strings.separate(track.album, track.duration.format()),
                     lead = LibraryScreenCollectionViewItemLead.Artwork(Artwork.Track(track)),
                 )
             }
@@ -544,8 +542,7 @@ data class GenreCollectionViewInfo(val genre: Genre) : CollectionViewInfo() {
                 LibraryScreenCollectionViewItem.LibraryTrack(
                     track = track,
                     title = track.displayTitle,
-                    subtitle =
-                        Strings.separate(track.displayArtist, track.duration.toShortString()),
+                    subtitle = Strings.separate(track.displayArtist, track.duration.format()),
                     lead = LibraryScreenCollectionViewItemLead.Artwork(Artwork.Track(track)),
                 )
             }
@@ -574,9 +571,9 @@ data class FolderCollectionViewInfo(val folder: Folder, val folderIndex: Map<Str
     override val additionalStatistics
         get() =
             listOfNotNull(
-                folder.childFolders.size.takeIfNot(0)?.let {
-                    Strings[R.string.count_folder].icuFormat(it)
-                }
+                folder.childFolders.size
+                    .takeIf { it != 0 }
+                    ?.let { Strings[R.string.count_folder].icuFormat(it) }
             )
 
     override val items
@@ -597,7 +594,7 @@ data class FolderCollectionViewInfo(val folder: Folder, val folderIndex: Map<Str
                     LibraryScreenCollectionViewItem.LibraryTrack(
                         track = track,
                         title = track.fileName,
-                        subtitle = track.duration.toShortString(),
+                        subtitle = track.duration.format(),
                         lead = LibraryScreenCollectionViewItemLead.Artwork(Artwork.Track(track)),
                     )
                 }
@@ -636,8 +633,7 @@ data class PlaylistCollectionViewInfo(val key: UUID, val playlist: RealizedPlayl
                         playlistKey = key,
                         playlistEntry = entry,
                         title = track.displayTitle,
-                        subtitle =
-                            Strings.separate(track.displayArtist, track.duration.toShortString()),
+                        subtitle = Strings.separate(track.displayArtist, track.duration.format()),
                         lead = LibraryScreenCollectionViewItemLead.Artwork(Artwork.Track(track)),
                     )
                 }
@@ -671,7 +667,7 @@ data class AlbumSliceCollectionViewInfo(val albumSlice: AlbumSlice) : Collection
                 LibraryScreenCollectionViewItem.LibraryTrack(
                     track = track,
                     title = track.displayTitle,
-                    subtitle = track.duration.toShortString(),
+                    subtitle = track.duration.format(),
                     lead = LibraryScreenCollectionViewItemLead.Text(track.displayNumber),
                 )
             }
@@ -705,7 +701,7 @@ data class ArtistSliceCollectionViewInfo(val artistSlice: ArtistSlice) : Collect
                 LibraryScreenCollectionViewItem.LibraryTrack(
                     track = track,
                     title = track.displayTitle,
-                    subtitle = track.duration.toShortString(),
+                    subtitle = track.duration.format(),
                     lead = LibraryScreenCollectionViewItemLead.Artwork(Artwork.Track(track)),
                 )
             }
@@ -808,9 +804,7 @@ fun LibraryScreenCollectionView(
                     }
                     item {
                         val totalDuration =
-                            items
-                                .sumOf { it.value.playTrack?.duration ?: Duration.ZERO }
-                                .toShortString()
+                            items.sumOf { it.value.playTrack?.duration ?: Duration.ZERO }.format()
                         LibraryListHeader(
                             Strings.separate(
                                 info.additionalStatistics +

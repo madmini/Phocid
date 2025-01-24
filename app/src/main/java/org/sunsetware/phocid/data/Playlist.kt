@@ -166,9 +166,9 @@ data class RealizedPlaylist(
         get() =
             Strings.separate(
                 Strings[R.string.count_track].icuFormat(validTracks.size),
-                invalidCount.takeIfNot(0)?.let {
-                    Strings[R.string.count_invalid_track].icuFormat(it)
-                },
+                invalidCount
+                    .takeIf { it != 0 }
+                    ?.let { Strings[R.string.count_invalid_track].icuFormat(it) },
             )
 
     override val searchableStrings = listOf(displayName)

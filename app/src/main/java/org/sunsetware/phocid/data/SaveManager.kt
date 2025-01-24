@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 
-package org.sunsetware.phocid.utils
+package org.sunsetware.phocid.data
 
 import android.content.Context
 import android.util.Log

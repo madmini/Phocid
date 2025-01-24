@@ -39,6 +39,7 @@ import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.KeyNotFoundException
 import org.jaudiotagger.tag.TagTextField
 import org.sunsetware.phocid.R
+import org.sunsetware.phocid.READ_PERMISSION
 import org.sunsetware.phocid.Strings
 import org.sunsetware.phocid.UNKNOWN
 import org.sunsetware.phocid.utils.*
@@ -424,7 +425,9 @@ data class Artist(
     val displayStatistics
         get() =
             Strings.separate(
-                albumSlices.size.takeIfNot(0)?.let { Strings[R.string.count_album].icuFormat(it) },
+                albumSlices.size
+                    .takeIf { it != 0 }
+                    ?.let { Strings[R.string.count_album].icuFormat(it) },
                 Strings[R.string.count_track].icuFormat(tracks.size),
             )
 
@@ -629,9 +632,9 @@ data class Folder(
     val displayStatistics
         get() =
             Strings.separate(
-                childFolders.size.takeIfNot(0)?.let {
-                    Strings[R.string.count_folder].icuFormat(it)
-                },
+                childFolders.size
+                    .takeIf { it != 0 }
+                    ?.let { Strings[R.string.count_folder].icuFormat(it) },
                 Strings[R.string.count_track].icuFormat(childTracks.size),
             )
 
@@ -999,7 +1002,7 @@ fun scanTracks(
     onProgressReport: (Int, Int) -> Unit,
 ): UnfilteredTrackIndex? {
     if (
-        ContextCompat.checkSelfPermission(context, ReadPermission) ==
+        ContextCompat.checkSelfPermission(context, READ_PERMISSION) ==
             PackageManager.PERMISSION_DENIED
     )
         return null

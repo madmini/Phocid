@@ -1,4 +1,4 @@
-package org.sunsetware.phocid.utils
+package org.sunsetware.phocid.ui.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec

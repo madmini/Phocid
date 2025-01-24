@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
-import org.sunsetware.phocid.utils.BinaryDragState
+import org.sunsetware.phocid.ui.components.BinaryDragState
 
 private val queueHeaderHeight = 56.dp
 

@@ -6,7 +6,7 @@ import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import kotlin.math.roundToInt
-import org.sunsetware.phocid.utils.BinaryDragState
+import org.sunsetware.phocid.ui.components.BinaryDragState
 
 @Immutable
 object PlayerScreenLayoutDefault : PlayerScreenLayout() {

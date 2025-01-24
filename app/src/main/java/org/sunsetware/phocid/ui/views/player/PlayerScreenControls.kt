@@ -30,13 +30,13 @@ import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
 import org.sunsetware.phocid.TNUM
 import org.sunsetware.phocid.data.*
+import org.sunsetware.phocid.format
 import org.sunsetware.phocid.ui.components.*
 import org.sunsetware.phocid.ui.theme.INACTIVE_ALPHA
 import org.sunsetware.phocid.ui.theme.Typography
 import org.sunsetware.phocid.ui.theme.contentColor
 import org.sunsetware.phocid.ui.theme.contentColorVariant
 import org.sunsetware.phocid.ui.theme.darken
-import org.sunsetware.phocid.utils.*
 
 @Immutable
 sealed class PlayerScreenControls {
@@ -261,7 +261,7 @@ class PlayerScreenControlsDefaultBase(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             SingleLineText(
-                                progressSeconds.seconds.toShortString(),
+                                progressSeconds.seconds.format(),
                                 style = Typography.labelMedium.copy(fontFeatureSettings = TNUM),
                                 textAlign = TextAlign.Center,
                                 modifier =
@@ -283,7 +283,7 @@ class PlayerScreenControlsDefaultBase(
                                 modifier = Modifier.padding(horizontal = 16.dp).weight(1f),
                             )
                             SingleLineText(
-                                currentTrack.duration.toShortString(),
+                                currentTrack.duration.format(),
                                 style = Typography.labelMedium.copy(fontFeatureSettings = TNUM),
                                 textAlign = TextAlign.Center,
                                 modifier =

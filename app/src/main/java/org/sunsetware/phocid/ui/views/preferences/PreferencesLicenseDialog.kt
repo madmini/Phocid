@@ -18,7 +18,6 @@ import org.sunsetware.phocid.MainViewModel
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
 import org.sunsetware.phocid.ui.components.DialogBase
-import org.sunsetware.phocid.utils.readAllBytesCompat
 
 @Stable
 class PreferencesLicenseDialog() : Dialog() {
@@ -32,7 +31,7 @@ class PreferencesLicenseDialog() : Dialog() {
             val text = remember {
                 context.getString(R.string.app_copyright) +
                     "\n\n---\n" +
-                    context.assets.open("GPL-3.0.txt").readAllBytesCompat().decodeToString()
+                    context.assets.open("GPL-3.0.txt").readBytes().decodeToString()
             }
             Text(
                 text,

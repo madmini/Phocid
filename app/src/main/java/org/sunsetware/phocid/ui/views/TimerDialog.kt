@@ -31,11 +31,11 @@ import org.sunsetware.phocid.MainViewModel
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
 import org.sunsetware.phocid.data.PlayerTimerSettings
+import org.sunsetware.phocid.format
 import org.sunsetware.phocid.ui.components.DialogBase
 import org.sunsetware.phocid.ui.components.SteppedSliderWithNumber
 import org.sunsetware.phocid.ui.components.UtilityCheckBoxListItem
 import org.sunsetware.phocid.utils.icuFormat
-import org.sunsetware.phocid.utils.toShortString
 
 @Stable
 class TimerDialog : Dialog() {
@@ -93,8 +93,8 @@ class TimerDialog : Dialog() {
             Column {
                 SteppedSliderWithNumber(
                     number =
-                        if (isTimerActive) activeTimerRemainingSeconds.seconds.toShortString()
-                        else durationMinutes.minutes.toShortString(),
+                        if (isTimerActive) activeTimerRemainingSeconds.seconds.format()
+                        else durationMinutes.minutes.format(),
                     value =
                         if (isTimerActive)
                             activeTimerRemainingSeconds.toFloat() / 60 / maxDurationMinutes

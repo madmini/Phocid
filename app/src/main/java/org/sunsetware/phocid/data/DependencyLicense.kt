@@ -9,7 +9,6 @@ import kotlinx.serialization.json.Json
 import org.sunsetware.phocid.DEPENDENCY_INFOS_FILE_NAME
 import org.sunsetware.phocid.LICENSE_MAPPINGS_FILE_NAME
 import org.sunsetware.phocid.utils.CaseInsensitiveMap
-import org.sunsetware.phocid.utils.readAllBytesCompat
 
 @Immutable
 @Serializable
@@ -74,5 +73,5 @@ inline fun listDependencies(
 
 @Stable
 fun listDependencies(context: Context): List<Pair<DependencyInfo, List<String>>> {
-    return listDependencies { context.assets.open(it).readAllBytesCompat().decodeToString() }
+    return listDependencies { context.assets.open(it).readBytes().decodeToString() }
 }

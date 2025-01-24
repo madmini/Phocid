@@ -10,7 +10,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
-import org.sunsetware.phocid.utils.negativePadding
 
 // Don't mark these functions as inline unless you want a "Compose internal error"
 

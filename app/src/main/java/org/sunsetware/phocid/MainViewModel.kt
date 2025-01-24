@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import java.io.File
-import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.milliseconds
@@ -89,8 +88,6 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
             libraryIndex,
             playlistManager,
         )
-
-    var intentLauncher = WeakReference<IntentLauncher>(null)
 
     val playlistIoDirectory = MutableStateFlow(null as Uri?)
 

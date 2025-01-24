@@ -39,12 +39,11 @@ import kotlin.math.roundToInt
 import org.sunsetware.phocid.data.getArtworkColor
 import org.sunsetware.phocid.data.preferencesSystemLocale
 import org.sunsetware.phocid.ui.components.AnimatedForwardBackwardTransition
+import org.sunsetware.phocid.ui.components.DragLock
 import org.sunsetware.phocid.ui.theme.PhocidTheme
 import org.sunsetware.phocid.ui.views.LibraryScreen
 import org.sunsetware.phocid.ui.views.PermissionRequestDialog
 import org.sunsetware.phocid.ui.views.player.PlayerScreen
-import org.sunsetware.phocid.utils.DragLock
-import org.sunsetware.phocid.utils.ReadPermission
 import org.sunsetware.phocid.utils.combine
 
 class MainActivity : ComponentActivity(), IntentLauncher {
@@ -78,7 +77,7 @@ class MainActivity : ComponentActivity(), IntentLauncher {
             var permissionGranted by remember { mutableStateOf(false) }
             val permissions =
                 rememberMultiplePermissionsState(
-                    listOfNotNull(ReadPermission),
+                    listOfNotNull(READ_PERMISSION),
                     onPermissionsResult = { result -> permissionGranted = result.all { it.value } },
                 )
             permissionGranted = permissions.permissions.all { it.status.isGranted }
@@ -95,7 +94,7 @@ class MainActivity : ComponentActivity(), IntentLauncher {
             val overrideStatusBarLightColor by
                 uiManager.overrideStatusBarLightColor.collectAsStateWithLifecycle()
 
-            viewModel.intentLauncher = WeakReference(this)
+            viewModel.uiManager.intentLauncher = WeakReference(this)
 
             val preferences by viewModel.preferences.collectAsStateWithLifecycle()
 

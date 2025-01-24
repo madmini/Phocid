@@ -5,7 +5,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.unit.Density
-import org.sunsetware.phocid.utils.BinaryDragState
+import org.sunsetware.phocid.ui.components.BinaryDragState
 
 @Immutable
 sealed class PlayerScreenLayout {

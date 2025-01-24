@@ -81,6 +81,7 @@ import org.sunsetware.phocid.data.albumKey
 import org.sunsetware.phocid.data.search
 import org.sunsetware.phocid.data.sorted
 import org.sunsetware.phocid.data.sortedBy
+import org.sunsetware.phocid.format
 import org.sunsetware.phocid.ui.components.Artwork
 import org.sunsetware.phocid.ui.components.ArtworkImage
 import org.sunsetware.phocid.ui.components.DefaultPagerState
@@ -88,21 +89,20 @@ import org.sunsetware.phocid.ui.components.EmptyListIndicator
 import org.sunsetware.phocid.ui.components.LibraryListItemCard
 import org.sunsetware.phocid.ui.components.LibraryListItemHorizontal
 import org.sunsetware.phocid.ui.components.MenuItem
+import org.sunsetware.phocid.ui.components.MultiSelectManager
+import org.sunsetware.phocid.ui.components.MultiSelectState
 import org.sunsetware.phocid.ui.components.OverflowMenu
 import org.sunsetware.phocid.ui.components.Scrollbar
+import org.sunsetware.phocid.ui.components.SelectableList
 import org.sunsetware.phocid.ui.components.SingleLineText
 import org.sunsetware.phocid.ui.components.TabIndicator
 import org.sunsetware.phocid.ui.components.collectionMenuItems
+import org.sunsetware.phocid.ui.components.multiSelectClickable
 import org.sunsetware.phocid.ui.components.playlistCollectionMenuItems
 import org.sunsetware.phocid.ui.components.playlistCollectionMultiSelectMenuItems
 import org.sunsetware.phocid.ui.components.trackMenuItems
 import org.sunsetware.phocid.ui.theme.hashColor
-import org.sunsetware.phocid.utils.MultiSelectManager
-import org.sunsetware.phocid.utils.MultiSelectState
-import org.sunsetware.phocid.utils.SelectableList
 import org.sunsetware.phocid.utils.combine
-import org.sunsetware.phocid.utils.multiSelectClickable
-import org.sunsetware.phocid.utils.toShortString
 
 @Immutable
 data class LibraryScreenHomeViewItem(
@@ -413,7 +413,7 @@ class LibraryScreenHomeViewState(
                     LibraryScreenHomeViewItem(
                         key = track.id,
                         title = track.fileName,
-                        subtitle = track.duration.toShortString(),
+                        subtitle = track.duration.format(),
                         artwork = Artwork.Track(track),
                         tracks = listOf(track),
                         menuItems = { trackMenuItems(track, it.playerManager, it.uiManager) },

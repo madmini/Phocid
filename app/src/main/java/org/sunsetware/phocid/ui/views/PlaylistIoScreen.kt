@@ -70,9 +70,7 @@ import org.sunsetware.phocid.ui.components.SingleLineText
 import org.sunsetware.phocid.ui.components.UtilityCheckBoxListItem
 import org.sunsetware.phocid.ui.theme.Typography
 import org.sunsetware.phocid.ui.views.preferences.PreferencesPlaylistIoSettingsDialog
-import org.sunsetware.phocid.utils.StableBox
 import org.sunsetware.phocid.utils.icuFormat
-import org.sunsetware.phocid.utils.readAllBytesCompat
 
 @Stable
 class PlaylistIoScreen
@@ -105,14 +103,14 @@ private constructor(isImportTab: Boolean, initialExportSelection: Set<UUID>) : T
         val playlistIoDirectoryUri by viewModel.playlistIoDirectory.collectAsStateWithLifecycle()
         val playlistIoDirectory =
             remember(playlistIoDirectoryUri) {
-                StableBox(playlistIoDirectoryUri?.let { DocumentFile.fromTreeUri(context, it) })
+                playlistIoDirectoryUri?.let { DocumentFile.fromTreeUri(context, it) }
             }
 
         LaunchedEffect(playlistIoDirectory) {
             withContext(Dispatchers.IO) {
                 while (isActive) {
                     m3uFiles =
-                        playlistIoDirectory.value?.listFiles()?.filter {
+                        playlistIoDirectory?.listFiles()?.filter {
                             val name = it.name
                             name != null &&
                                 (name.endsWith(".m3u", true) || name.endsWith(".m3u8", true))
@@ -176,17 +174,16 @@ private constructor(isImportTab: Boolean, initialExportSelection: Set<UUID>) : T
             ) {
                 Column {
                     DirectoryPicker(
-                        playlistIoDirectory = playlistIoDirectory,
+                        playlistIoDirectoryName = playlistIoDirectory?.name,
                         onLaunchOpenDocumentTreeIntent = {
-                            viewModel.intentLauncher.get()?.openDocumentTree { uri ->
+                            viewModel.uiManager.intentLauncher.get()?.openDocumentTree { uri ->
                                 if (uri != null) viewModel.playlistIoDirectory.update { uri }
                             }
                         },
                     )
                     if (isImportTab)
                         ImportTab(
-                            enabled =
-                                playlistIoDirectory.value != null && importSelection.isNotEmpty(),
+                            enabled = playlistIoDirectory != null && importSelection.isNotEmpty(),
                             onImport = { files ->
                                 files.forEach { file ->
                                     context.contentResolver.openInputStream(file.uri)?.use {
@@ -194,7 +191,7 @@ private constructor(isImportTab: Boolean, initialExportSelection: Set<UUID>) : T
                                         playlistManager.addPlaylist(
                                             parseM3u(
                                                 FilenameUtils.getBaseName(file.name),
-                                                inputStream.readAllBytesCompat(),
+                                                inputStream.readBytes(),
                                                 viewModel.libraryIndex.value.tracks.values
                                                     .map { it.path }
                                                     .toSet(),
@@ -218,16 +215,14 @@ private constructor(isImportTab: Boolean, initialExportSelection: Set<UUID>) : T
                         )
                     else
                         ExportTab(
-                            enabled =
-                                playlistIoDirectory.value != null && exportSelection.isNotEmpty(),
+                            enabled = playlistIoDirectory != null && exportSelection.isNotEmpty(),
                             playlists = playlists,
                             onExport = { playlists ->
                                 var failureCount = 0
                                 playlists.forEach { playlist ->
-                                    val directory = playlistIoDirectory.value
-                                    if (directory != null) {
+                                    if (playlistIoDirectory != null) {
                                         val file =
-                                            directory.createFile(
+                                            playlistIoDirectory.createFile(
                                                 MimeTypes.APPLICATION_M3U8,
                                                 playlist.displayName,
                                             )
@@ -350,7 +345,7 @@ private constructor(isImportTab: Boolean, initialExportSelection: Set<UUID>) : T
 
     @Composable
     private fun DirectoryPicker(
-        playlistIoDirectory: StableBox<DocumentFile?>,
+        playlistIoDirectoryName: String?,
         onLaunchOpenDocumentTreeIntent: () -> Unit,
     ) {
         Surface(
@@ -370,7 +365,7 @@ private constructor(isImportTab: Boolean, initialExportSelection: Set<UUID>) : T
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 SingleLineText(
-                    playlistIoDirectory.value?.name?.let {
+                    playlistIoDirectoryName?.let {
                         Strings[R.string.playlist_io_location].icuFormat(it)
                     } ?: Strings[R.string.playlist_io_location_not_set],
                     style = Typography.labelLarge,

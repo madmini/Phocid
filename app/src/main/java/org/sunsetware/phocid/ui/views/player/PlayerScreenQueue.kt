@@ -20,6 +20,7 @@ import androidx.core.view.ViewCompat
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
 import org.sunsetware.phocid.data.*
+import org.sunsetware.phocid.format
 import org.sunsetware.phocid.ui.components.*
 import org.sunsetware.phocid.ui.theme.contentColor
 import org.sunsetware.phocid.ui.theme.darken
@@ -80,7 +81,7 @@ class PlayerScreenQueueDefaultBase(
         val upNextCount = playQueue.size - currentTrackIndex - 1
         val upNextDuration =
             remember(playQueue, currentTrackIndex) {
-                playQueue.drop(currentTrackIndex + 1).sumOf { it.second.duration }.toShortString()
+                playQueue.drop(currentTrackIndex + 1).sumOf { it.second.duration }.format()
             }
 
         var reorderableQueue by remember { mutableStateOf(null as List<Pair<Any, Track>>?) }

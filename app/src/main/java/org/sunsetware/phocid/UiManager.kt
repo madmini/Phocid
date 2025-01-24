@@ -3,9 +3,11 @@
 package org.sunsetware.phocid
 
 import android.content.Context
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import java.lang.ref.WeakReference
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.seconds
@@ -22,6 +24,10 @@ import org.sunsetware.phocid.data.PersistentUiState
 import org.sunsetware.phocid.data.PlayerTimerSettings
 import org.sunsetware.phocid.data.PlaylistManager
 import org.sunsetware.phocid.data.Preferences
+import org.sunsetware.phocid.data.SaveManager
+import org.sunsetware.phocid.data.loadCbor
+import org.sunsetware.phocid.ui.components.BinaryDragState
+import org.sunsetware.phocid.ui.components.SelectableList
 import org.sunsetware.phocid.ui.views.CollectionViewInfo
 import org.sunsetware.phocid.ui.views.LibraryScreenCollectionViewState
 import org.sunsetware.phocid.ui.views.LibraryScreenHomeViewItem
@@ -39,6 +45,10 @@ abstract class TopLevelScreen {
     @Composable abstract fun Compose(viewModel: MainViewModel)
 }
 
+interface IntentLauncher {
+    fun openDocumentTree(continuation: (Uri?) -> Unit)
+}
+
 @Stable
 class UiManager(
     private val context: Context,
@@ -46,6 +56,7 @@ class UiManager(
     private val preferences: StateFlow<Preferences>,
     private val libraryIndex: StateFlow<LibraryIndex>,
     private val playlistManager: PlaylistManager,
+    var intentLauncher: WeakReference<IntentLauncher> = WeakReference<IntentLauncher>(null),
 ) : AutoCloseable {
     private val _topLevelScreenStack = MutableStateFlow(emptyList<TopLevelScreen>())
     val topLevelScreenStack = _topLevelScreenStack.asStateFlow()

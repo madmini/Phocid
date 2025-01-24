@@ -1,5 +1,7 @@
 package org.sunsetware.phocid.utils
 
+import kotlin.time.Duration
+
 fun <T> Iterable<T>.replace(index: Int, value: T): List<T> {
     return mapIndexed { i, old -> if (index == i) value else old }
 }
@@ -24,13 +26,6 @@ fun <T> List<T>.swap(indexA: Int, indexB: Int): List<T> {
     }
 }
 
-inline fun <T, K> Iterable<T>.associateByWithMerge(
-    keySelector: (T) -> K,
-    merge: (List<T>) -> T,
-): Map<K, T> {
-    return groupBy { keySelector(it) }.map { it.key to merge(it.value) }.toMap()
-}
-
 inline fun <T, R> Iterable<T>.mode(selector: (T) -> R): R {
     return groupBy { selector(it) }.maxBy { it.value.size }.key
 }
@@ -49,4 +44,8 @@ fun <T> Iterable<T>.modeOrNull(): T? {
 
 inline fun <T, R> Iterable<T>.modeOfNotNullOrNull(selector: (T) -> R): R? {
     return groupBy { selector(it) }.filter { it.key != null }.maxByOrNull { it.value.size }?.key
+}
+
+inline fun <T> Iterable<T>.sumOf(transform: (T) -> Duration): Duration {
+    return map(transform).fold(Duration.ZERO, Duration::plus)
 }
