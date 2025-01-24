@@ -22,7 +22,7 @@ import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import org.sunsetware.phocid.data.*
-import org.sunsetware.phocid.ui.views.TabInfo
+import org.sunsetware.phocid.ui.views.library.LibraryScreenTabInfo
 import org.sunsetware.phocid.utils.*
 
 class MainViewModel(private val application: Application) : AndroidViewModel(application) {
@@ -208,7 +208,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
         _preferences.update(transform)
     }
 
-    fun updateTabInfo(index: Int, transform: (TabInfo) -> TabInfo) {
+    fun updateTabInfo(index: Int, transform: (LibraryScreenTabInfo) -> LibraryScreenTabInfo) {
         _preferences.update { preferences ->
             val type = preferences.tabs[index].type
             preferences.copy(

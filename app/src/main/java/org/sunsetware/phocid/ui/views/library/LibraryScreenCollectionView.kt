@@ -1,4 +1,4 @@
-package org.sunsetware.phocid.ui.views
+package org.sunsetware.phocid.ui.views.library
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
@@ -300,7 +300,7 @@ class LibraryScreenCollectionViewState(
 
 @Immutable
 abstract class CollectionViewInfo {
-    abstract val type: CollectionViewType
+    abstract val type: LibraryScreenCollectionType
     abstract val title: String
     abstract val artwork: Artwork?
     abstract val cards: CollectionViewCards?
@@ -313,7 +313,7 @@ abstract class CollectionViewInfo {
 val InvalidCollectionViewInfo =
     object : CollectionViewInfo() {
         override val type
-            get() = CollectionViewType.INVALID
+            get() = LibraryScreenCollectionType.INVALID
 
         override val title
             get() = ""
@@ -375,7 +375,7 @@ fun UiManager.openFolderCollectionView(path: String) {
 @Immutable
 data class AlbumCollectionViewInfo(val album: Album) : CollectionViewInfo() {
     override val type
-        get() = CollectionViewType.ALBUM
+        get() = LibraryScreenCollectionType.ALBUM
 
     override val title
         get() = album.name
@@ -409,7 +409,7 @@ data class AlbumCollectionViewInfo(val album: Album) : CollectionViewInfo() {
 @Immutable
 data class ArtistCollectionViewInfo(val artist: Artist) : CollectionViewInfo() {
     override val type
-        get() = CollectionViewType.ARTIST
+        get() = LibraryScreenCollectionType.ARTIST
 
     override val title
         get() = artist.name
@@ -459,7 +459,7 @@ data class ArtistCollectionViewInfo(val artist: Artist) : CollectionViewInfo() {
 @Immutable
 data class AlbumArtistCollectionViewInfo(val albumArtist: AlbumArtist) : CollectionViewInfo() {
     override val type
-        get() = CollectionViewType.ALBUM_ARTIST
+        get() = LibraryScreenCollectionType.ALBUM_ARTIST
 
     override val title
         get() = albumArtist.name
@@ -506,7 +506,7 @@ data class AlbumArtistCollectionViewInfo(val albumArtist: AlbumArtist) : Collect
 @Immutable
 data class GenreCollectionViewInfo(val genre: Genre) : CollectionViewInfo() {
     override val type
-        get() = CollectionViewType.GENRE
+        get() = LibraryScreenCollectionType.GENRE
 
     override val title
         get() = genre.name
@@ -557,7 +557,7 @@ data class GenreCollectionViewInfo(val genre: Genre) : CollectionViewInfo() {
 data class FolderCollectionViewInfo(val folder: Folder, val folderIndex: Map<String, Folder>) :
     CollectionViewInfo() {
     override val type
-        get() = CollectionViewType.FOLDER
+        get() = LibraryScreenCollectionType.FOLDER
 
     override val title
         get() = folder.fileName
@@ -609,7 +609,7 @@ data class FolderCollectionViewInfo(val folder: Folder, val folderIndex: Map<Str
 data class PlaylistCollectionViewInfo(val key: UUID, val playlist: RealizedPlaylist) :
     CollectionViewInfo() {
     override val type
-        get() = CollectionViewType.PLAYLIST
+        get() = LibraryScreenCollectionType.PLAYLIST
 
     override val title
         get() = playlist.displayName
@@ -647,7 +647,7 @@ data class PlaylistCollectionViewInfo(val key: UUID, val playlist: RealizedPlayl
 @Immutable
 data class AlbumSliceCollectionViewInfo(val albumSlice: AlbumSlice) : CollectionViewInfo() {
     override val type
-        get() = CollectionViewType.ALBUM_SLICE
+        get() = LibraryScreenCollectionType.ALBUM_SLICE
 
     override val title
         get() = albumSlice.album.name
@@ -681,7 +681,7 @@ data class AlbumSliceCollectionViewInfo(val albumSlice: AlbumSlice) : Collection
 @Immutable
 data class ArtistSliceCollectionViewInfo(val artistSlice: ArtistSlice) : CollectionViewInfo() {
     override val type
-        get() = CollectionViewType.ARTIST_SLICE
+        get() = LibraryScreenCollectionType.ARTIST_SLICE
 
     override val title
         get() = artistSlice.artist.name
@@ -880,7 +880,7 @@ fun LibraryScreenCollectionView(
 
 @Immutable
 @Serializable
-enum class CollectionViewType(val sortingOptions: Map<String, SortingOption>) {
+enum class LibraryScreenCollectionType(val sortingOptions: Map<String, SortingOption>) {
     INVALID(mapOf("" to SortingOption(null, emptyList()))),
     ALBUM(Album.TrackSortingOptions),
     ARTIST(Artist.TrackSortingOptions),

@@ -31,8 +31,8 @@ import org.sunsetware.phocid.ui.views.PlaylistIoScreen
 import org.sunsetware.phocid.ui.views.RemoveFromPlaylistDialog
 import org.sunsetware.phocid.ui.views.RenamePlaylistDialog
 import org.sunsetware.phocid.ui.views.TrackDetailsDialog
-import org.sunsetware.phocid.ui.views.openAlbumCollectionView
-import org.sunsetware.phocid.ui.views.openArtistCollectionView
+import org.sunsetware.phocid.ui.views.library.openAlbumCollectionView
+import org.sunsetware.phocid.ui.views.library.openArtistCollectionView
 import org.sunsetware.phocid.utils.icuFormat
 
 @Immutable

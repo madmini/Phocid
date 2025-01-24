@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package org.sunsetware.phocid.ui.views
+package org.sunsetware.phocid.ui.views.library
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -50,6 +50,8 @@ import org.sunsetware.phocid.ui.theme.Typography
 import org.sunsetware.phocid.ui.theme.contentColor
 import org.sunsetware.phocid.ui.theme.emphasizedEnter
 import org.sunsetware.phocid.ui.theme.emphasizedExit
+import org.sunsetware.phocid.ui.views.NewPlaylistDialog
+import org.sunsetware.phocid.ui.views.PlaylistIoScreen
 import org.sunsetware.phocid.ui.views.preferences.PreferencesScreen
 import org.sunsetware.phocid.utils.*
 
@@ -128,7 +130,7 @@ fun LibraryScreen(
                             ?: emptyList<MenuItem>()) +
                         MenuItem.Divider
                 }
-                currentHomeTab.type == TabType.PLAYLISTS ->
+                currentHomeTab.type == LibraryScreenTabType.PLAYLISTS ->
                     listOf(
                         MenuItem.Button(Strings[R.string.playlist_new], Icons.Filled.AddBox) {
                             uiManager.openDialog(NewPlaylistDialog())
@@ -203,7 +205,8 @@ fun LibraryScreen(
                             it.value.playTrack
                         }
                             ?: libraryIndex.tracks.values.let { tracks ->
-                                val tracksTab = preferences.tabSettings[TabType.TRACKS]!!
+                                val tracksTab =
+                                    preferences.tabSettings[LibraryScreenTabType.TRACKS]!!
                                 tracks.sorted(
                                     preferences.sortCollator,
                                     tracksTab.sortingKeys,

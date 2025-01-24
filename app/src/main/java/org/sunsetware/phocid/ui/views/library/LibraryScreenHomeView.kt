@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package org.sunsetware.phocid.ui.views
+package org.sunsetware.phocid.ui.views.library
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
@@ -138,22 +138,22 @@ class LibraryScreenHomeViewState(
 ) : AutoCloseable {
     val pagerState = DefaultPagerState { preferences.value.tabs.size }
     val tabStates =
-        TabType.entries.associateWith { tabType ->
+        LibraryScreenTabType.entries.associateWith { tabType ->
             val items =
-                if (tabType != TabType.PLAYLISTS) {
+                if (tabType != LibraryScreenTabType.PLAYLISTS) {
                     preferences.combine(
                         coroutineScope,
                         libraryIndex,
                         searchQuery,
                         transform =
                             when (tabType) {
-                                TabType.TRACKS -> ::trackItems
-                                TabType.ALBUMS -> ::albumItems
-                                TabType.ARTISTS -> ::artistItems
-                                TabType.ALBUM_ARTISTS -> ::albumArtistItems
-                                TabType.GENRES -> ::genreItems
-                                TabType.FOLDERS -> ::folderItems
-                                TabType.PLAYLISTS -> throw Error() // Impossible
+                                LibraryScreenTabType.TRACKS -> ::trackItems
+                                LibraryScreenTabType.ALBUMS -> ::albumItems
+                                LibraryScreenTabType.ARTISTS -> ::artistItems
+                                LibraryScreenTabType.ALBUM_ARTISTS -> ::albumArtistItems
+                                LibraryScreenTabType.GENRES -> ::genreItems
+                                LibraryScreenTabType.FOLDERS -> ::folderItems
+                                LibraryScreenTabType.PLAYLISTS -> throw Error() // Impossible
                             },
                     )
                 } else {
@@ -198,7 +198,7 @@ class LibraryScreenHomeViewState(
         libraryIndex: LibraryIndex,
         searchQuery: String,
     ): List<LibraryScreenHomeViewItem> {
-        val tab = preferences.tabSettings[TabType.TRACKS]!!
+        val tab = preferences.tabSettings[LibraryScreenTabType.TRACKS]!!
         val tracks =
             libraryIndex.tracks.values
                 .search(searchQuery, preferences.searchCollator)
@@ -230,7 +230,7 @@ class LibraryScreenHomeViewState(
         libraryIndex: LibraryIndex,
         searchQuery: String,
     ): List<LibraryScreenHomeViewItem> {
-        val tab = preferences.tabSettings[TabType.ALBUMS]!!
+        val tab = preferences.tabSettings[LibraryScreenTabType.ALBUMS]!!
         val albums =
             libraryIndex.albums
                 .asIterable()
@@ -265,7 +265,7 @@ class LibraryScreenHomeViewState(
         libraryIndex: LibraryIndex,
         searchQuery: String,
     ): List<LibraryScreenHomeViewItem> {
-        val tab = preferences.tabSettings[TabType.ARTISTS]!!
+        val tab = preferences.tabSettings[LibraryScreenTabType.ARTISTS]!!
         val artists =
             libraryIndex.artists.values
                 .search(searchQuery, preferences.searchCollator)
@@ -299,7 +299,7 @@ class LibraryScreenHomeViewState(
         libraryIndex: LibraryIndex,
         searchQuery: String,
     ): List<LibraryScreenHomeViewItem> {
-        val tab = preferences.tabSettings[TabType.ALBUM_ARTISTS]!!
+        val tab = preferences.tabSettings[LibraryScreenTabType.ALBUM_ARTISTS]!!
         val albumArtists =
             libraryIndex.albumArtists.values
                 .search(searchQuery, preferences.searchCollator)
@@ -333,7 +333,7 @@ class LibraryScreenHomeViewState(
         libraryIndex: LibraryIndex,
         searchQuery: String,
     ): List<LibraryScreenHomeViewItem> {
-        val tab = preferences.tabSettings[TabType.GENRES]!!
+        val tab = preferences.tabSettings[LibraryScreenTabType.GENRES]!!
         val genres =
             libraryIndex.genres.values
                 .search(searchQuery, preferences.searchCollator)
@@ -367,7 +367,7 @@ class LibraryScreenHomeViewState(
         libraryIndex: LibraryIndex,
         searchQuery: String,
     ): List<LibraryScreenHomeViewItem> {
-        val tab = preferences.tabSettings[TabType.FOLDERS]!!
+        val tab = preferences.tabSettings[LibraryScreenTabType.FOLDERS]!!
         val rootFolder = libraryIndex.folders[libraryIndex.rootFolder]!!
         val filteredChildFolders =
             rootFolder.childFolders
@@ -439,7 +439,7 @@ class LibraryScreenHomeViewState(
         playlists: Map<UUID, RealizedPlaylist>,
         searchQuery: String,
     ): List<LibraryScreenHomeViewItem> {
-        val tab = preferences.tabSettings[TabType.PLAYLISTS]!!
+        val tab = preferences.tabSettings[LibraryScreenTabType.PLAYLISTS]!!
         val filteredSortedPlaylists =
             playlists
                 .asIterable()
@@ -721,8 +721,8 @@ private fun LibraryList(
 
 @Immutable
 @Serializable
-data class TabInfo(
-    val type: TabType,
+data class LibraryScreenTabInfo(
+    val type: LibraryScreenTabType,
     val gridSize: Int = 0,
     val sortingOptionId: String = type.sortingOptions.keys.first(),
     val sortAscending: Boolean = true,
@@ -733,7 +733,7 @@ data class TabInfo(
 
 @Immutable
 @Serializable
-enum class TabType(
+enum class LibraryScreenTabType(
     val stringId: Int,
     val sortingOptions: Map<String, SortingOption>,
     val icon: ImageVector,

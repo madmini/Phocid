@@ -18,9 +18,9 @@ import org.sunsetware.phocid.ui.theme.GRAY
 import org.sunsetware.phocid.ui.theme.Oklch
 import org.sunsetware.phocid.ui.theme.hashColor
 import org.sunsetware.phocid.ui.theme.toOklch
-import org.sunsetware.phocid.ui.views.CollectionViewType
-import org.sunsetware.phocid.ui.views.TabInfo
-import org.sunsetware.phocid.ui.views.TabType
+import org.sunsetware.phocid.ui.views.library.LibraryScreenCollectionType
+import org.sunsetware.phocid.ui.views.library.LibraryScreenTabInfo
+import org.sunsetware.phocid.ui.views.library.LibraryScreenTabType
 import org.sunsetware.phocid.ui.views.player.PlayerScreenLayoutType
 
 @Volatile var preferencesSystemLocale = Locale.getDefault()
@@ -33,12 +33,16 @@ import org.sunsetware.phocid.ui.views.player.PlayerScreenLayoutType
 @Serializable
 data class Preferences(
     // Interface
-    val tabSettings: Map<TabType, TabInfo> = TabType.entries.associateWith { TabInfo(it) },
-    val tabOrderAndVisibility: List<Pair<TabType, Boolean>> = TabType.entries.map { it to true },
+    val tabSettings: Map<LibraryScreenTabType, LibraryScreenTabInfo> =
+        LibraryScreenTabType.entries.associateWith { LibraryScreenTabInfo(it) },
+    val tabOrderAndVisibility: List<Pair<LibraryScreenTabType, Boolean>> =
+        LibraryScreenTabType.entries.map { it to true },
     val tabStyle: TabStylePreference = TabStylePreference.TEXT_ONLY,
     val scrollableTabs: Boolean = true,
-    val collectionViewSorting: Map<CollectionViewType, Pair<String, Boolean>> =
-        CollectionViewType.entries.map { it to Pair(it.sortingOptions.keys.first(), true) }.toMap(),
+    val collectionViewSorting: Map<LibraryScreenCollectionType, Pair<String, Boolean>> =
+        LibraryScreenCollectionType.entries
+            .map { it to Pair(it.sortingOptions.keys.first(), true) }
+            .toMap(),
     val playerScreenLayout: PlayerScreenLayoutType = PlayerScreenLayoutType.DEFAULT,
     val sortingLocaleLanguageTag: String? = null,
     val lyricsDisplay: LyricsDisplayPreference = LyricsDisplayPreference.DEFAULT,
@@ -73,20 +77,24 @@ data class Preferences(
 ) {
     fun upgrade(): Preferences {
         val newTabSettings =
-            tabSettings.filterKeys { TabType.entries.contains(it) } +
-                TabType.entries.toSet().minus(tabSettings.keys).associateWith { TabInfo(it) }
+            tabSettings.filterKeys { LibraryScreenTabType.entries.contains(it) } +
+                LibraryScreenTabType.entries.toSet().minus(tabSettings.keys).associateWith {
+                    LibraryScreenTabInfo(it)
+                }
         val newTabOrderAndVisibility =
             tabOrderAndVisibility
-                .filter { TabType.entries.contains(it.first) }
+                .filter { LibraryScreenTabType.entries.contains(it.first) }
                 .distinctBy { it.first } +
-                TabType.entries.toSet().minus(tabOrderAndVisibility.map { it.first }.toSet()).map {
-                    it to false
-                }
+                LibraryScreenTabType.entries
+                    .toSet()
+                    .minus(tabOrderAndVisibility.map { it.first }.toSet())
+                    .map { it to false }
         val newCollectionViewSorting =
-            collectionViewSorting.filterKeys { CollectionViewType.entries.contains(it) } +
-                CollectionViewType.entries.toSet().minus(collectionViewSorting.keys).associateWith {
-                    Pair(it.sortingOptions.keys.first(), true)
-                }
+            collectionViewSorting.filterKeys { LibraryScreenCollectionType.entries.contains(it) } +
+                LibraryScreenCollectionType.entries
+                    .toSet()
+                    .minus(collectionViewSorting.keys)
+                    .associateWith { Pair(it.sortingOptions.keys.first(), true) }
         return copy(
             tabSettings = newTabSettings,
             tabOrderAndVisibility = newTabOrderAndVisibility,
@@ -119,7 +127,7 @@ data class Preferences(
         tabOrderAndVisibility
             .filter { it.second }
             .mapNotNull { tabSettings[it.first] }
-            .takeIf { it.isNotEmpty() } ?: listOf(tabSettings[TabType.TRACKS]!!)
+            .takeIf { it.isNotEmpty() } ?: listOf(tabSettings[LibraryScreenTabType.TRACKS]!!)
 
     @Transient val sortingLocale = sortingLocaleLanguageTag?.let { Locale.forLanguageTag(it) }
 

@@ -28,11 +28,11 @@ import org.sunsetware.phocid.data.SaveManager
 import org.sunsetware.phocid.data.loadCbor
 import org.sunsetware.phocid.ui.components.BinaryDragState
 import org.sunsetware.phocid.ui.components.SelectableList
-import org.sunsetware.phocid.ui.views.CollectionViewInfo
-import org.sunsetware.phocid.ui.views.LibraryScreenCollectionViewState
-import org.sunsetware.phocid.ui.views.LibraryScreenHomeViewItem
-import org.sunsetware.phocid.ui.views.LibraryScreenHomeViewState
-import org.sunsetware.phocid.ui.views.PlaylistCollectionViewInfo
+import org.sunsetware.phocid.ui.views.library.CollectionViewInfo
+import org.sunsetware.phocid.ui.views.library.LibraryScreenCollectionViewState
+import org.sunsetware.phocid.ui.views.library.LibraryScreenHomeViewItem
+import org.sunsetware.phocid.ui.views.library.LibraryScreenHomeViewState
+import org.sunsetware.phocid.ui.views.library.PlaylistCollectionViewInfo
 import org.sunsetware.phocid.utils.*
 
 @Stable
