@@ -129,6 +129,7 @@ class PlaybackService : MediaSessionService() {
                             timerTarget = -1
                             mediaSession?.updateSessionExtras { putLong(TIMER_TARGET_KEY, -1) }
                         } else if (!player.isPlaying) {
+                            player.pause()
                             timerTarget = -1
                             mediaSession?.updateSessionExtras { putLong(TIMER_TARGET_KEY, -1) }
                         }
