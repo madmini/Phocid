@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import org.sunsetware.phocid.MainViewModel
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
@@ -275,29 +276,8 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
         if (playQueueDragState.position <= 0) scrollPlayQueueToNextTrack()
     }
 
-    val (playerLayout, components) =
-        when (preferences.playerScreenLayout) {
-            PlayerScreenLayoutPreference.DEFAULT ->
-                PlayerScreenLayoutDefault to
-                    Components(
-                        PlayerScreenTopBarDefaultStandalone,
-                        PlayerScreenTopBarDefaultOverlay,
-                        PlayerScreenArtworkDefault,
-                        PlayerScreenLyricsOverlay,
-                        PlayerScreenControlsDefault,
-                        PlayerScreenQueueDefault,
-                    )
-            PlayerScreenLayoutPreference.NO_QUEUE ->
-                PlayerScreenLayoutNoQueue to
-                    Components(
-                        PlayerScreenTopBarDefaultStandalone,
-                        PlayerScreenTopBarDefaultOverlay,
-                        PlayerScreenArtworkDefault,
-                        PlayerScreenLyricsOverlay,
-                        PlayerScreenControlsNoQueue,
-                        PlayerScreenQueueColored,
-                    )
-        }
+    val playerLayout = preferences.playerScreenLayout.layout
+    val components = preferences.playerScreenLayout.components
 
     MaterialTheme(
         colorScheme =
@@ -487,16 +467,6 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
     }
 }
 
-@Immutable
-private data class Components(
-    val topBarStandalone: PlayerScreenTopBar,
-    val topBarOverlay: PlayerScreenTopBar,
-    val artwork: PlayerScreenArtwork,
-    val lyricsOverlay: PlayerScreenLyrics,
-    val controls: PlayerScreenControls,
-    val queue: PlayerScreenQueue,
-)
-
 private fun playerMenuItems(
     playerManager: PlayerManager,
     uiManager: UiManager,
@@ -541,4 +511,46 @@ private fun queueMenuItems(
             playerManager.removeTrack(index)
         }
     ) + trackMenuItems(track, playerManager, uiManager)
+}
+
+@Immutable
+data class PlayerScreenComponents(
+    val topBarStandalone: PlayerScreenTopBar,
+    val topBarOverlay: PlayerScreenTopBar,
+    val artwork: PlayerScreenArtwork,
+    val lyricsOverlay: PlayerScreenLyrics,
+    val controls: PlayerScreenControls,
+    val queue: PlayerScreenQueue,
+)
+
+@Serializable
+enum class PlayerScreenLayoutType(
+    val stringId: Int,
+    val layout: PlayerScreenLayout,
+    val components: PlayerScreenComponents,
+) {
+    DEFAULT(
+        R.string.preferences_player_screen_layout_default,
+        PlayerScreenLayoutDefault,
+        PlayerScreenComponents(
+            PlayerScreenTopBarDefaultStandalone,
+            PlayerScreenTopBarDefaultOverlay,
+            PlayerScreenArtworkDefault,
+            PlayerScreenLyricsOverlay,
+            PlayerScreenControlsDefault,
+            PlayerScreenQueueDefault,
+        ),
+    ),
+    NO_QUEUE(
+        R.string.preferences_player_screen_layout_no_queue,
+        PlayerScreenLayoutNoQueue,
+        PlayerScreenComponents(
+            PlayerScreenTopBarDefaultStandalone,
+            PlayerScreenTopBarDefaultOverlay,
+            PlayerScreenArtworkDefault,
+            PlayerScreenLyricsOverlay,
+            PlayerScreenControlsNoQueue,
+            PlayerScreenQueueColored,
+        ),
+    ),
 }

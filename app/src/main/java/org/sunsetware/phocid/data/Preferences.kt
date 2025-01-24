@@ -21,6 +21,7 @@ import org.sunsetware.phocid.ui.theme.toOklch
 import org.sunsetware.phocid.ui.views.CollectionViewType
 import org.sunsetware.phocid.ui.views.TabInfo
 import org.sunsetware.phocid.ui.views.TabType
+import org.sunsetware.phocid.ui.views.player.PlayerScreenLayoutType
 
 @Volatile var preferencesSystemLocale = Locale.getDefault()
 
@@ -38,7 +39,7 @@ data class Preferences(
     val scrollableTabs: Boolean = true,
     val collectionViewSorting: Map<CollectionViewType, Pair<String, Boolean>> =
         CollectionViewType.entries.map { it to Pair(it.sortingOptions.keys.first(), true) }.toMap(),
-    val playerScreenLayout: PlayerScreenLayoutPreference = PlayerScreenLayoutPreference.DEFAULT,
+    val playerScreenLayout: PlayerScreenLayoutType = PlayerScreenLayoutType.DEFAULT,
     val sortingLocaleLanguageTag: String? = null,
     val lyricsDisplay: LyricsDisplayPreference = LyricsDisplayPreference.DEFAULT,
     val densityMultiplier: Float = 1f,
@@ -145,12 +146,6 @@ enum class TabStylePreference(val stringId: Int) {
     TEXT_AND_ICON(R.string.preferences_tab_style_text_and_icon),
     TEXT_ONLY(R.string.preferences_tab_style_text_only),
     ICON_ONLY(R.string.preferences_tab_style_icon_only),
-}
-
-@Serializable
-enum class PlayerScreenLayoutPreference(val stringId: Int) {
-    DEFAULT(R.string.preferences_player_screen_layout_default),
-    NO_QUEUE(R.string.preferences_player_screen_layout_no_queue),
 }
 
 @Serializable

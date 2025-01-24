@@ -30,12 +30,12 @@ import org.sunsetware.phocid.TopLevelScreen
 import org.sunsetware.phocid.data.ArtworkColorPreference
 import org.sunsetware.phocid.data.DarkThemePreference
 import org.sunsetware.phocid.data.LyricsDisplayPreference
-import org.sunsetware.phocid.data.PlayerScreenLayoutPreference
 import org.sunsetware.phocid.data.ShapePreference
 import org.sunsetware.phocid.data.TabStylePreference
 import org.sunsetware.phocid.ui.components.UtilityListHeader
 import org.sunsetware.phocid.ui.components.UtilityListItem
 import org.sunsetware.phocid.ui.components.UtilitySwitchListItem
+import org.sunsetware.phocid.ui.views.player.PlayerScreenLayoutType
 import org.sunsetware.phocid.utils.combine
 import org.sunsetware.phocid.utils.icuFormat
 
@@ -122,10 +122,10 @@ object PreferencesScreen : TopLevelScreen() {
                         modifier =
                             Modifier.clickable {
                                 uiManager.openDialog(
-                                    PreferencesSingleChoiceDialog<PlayerScreenLayoutPreference>(
+                                    PreferencesSingleChoiceDialog<PlayerScreenLayoutType>(
                                         title = Strings[R.string.preferences_player_screen_layout],
                                         options =
-                                            PlayerScreenLayoutPreference.entries.map {
+                                            PlayerScreenLayoutType.entries.map {
                                                 it to Strings[it.stringId]
                                             },
                                         activeOption = { it.playerScreenLayout },
