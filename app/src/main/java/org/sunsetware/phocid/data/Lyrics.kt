@@ -19,6 +19,12 @@ data class Lyrics(val lines: List<Pair<Duration, String>>) {
             search >= 0 -> search
             search < -1 -> -search - 2
             else -> null
+        }?.let {
+            var result = it
+            while (result > 0 && lines[result - 1].first == lines[result].first) {
+                result--
+            }
+            result
         }
     }
 }
