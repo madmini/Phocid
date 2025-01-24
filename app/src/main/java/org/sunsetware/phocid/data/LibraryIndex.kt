@@ -38,7 +38,6 @@ import org.jaudiotagger.audio.exceptions.CannotReadException
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.KeyNotFoundException
 import org.jaudiotagger.tag.TagTextField
-import org.jetbrains.annotations.NonNls
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
 import org.sunsetware.phocid.UNKNOWN
@@ -155,7 +154,6 @@ data class Track(
         get() = version
 
     companion object {
-        @NonNls
         val SortingOptions =
             mapOf(
                 "Title" to
@@ -290,7 +288,7 @@ fun loadLyrics(track: Track, charsetName: String?): Lyrics? {
         val trackFileName = FilenameUtils.getName(track.path)
         val files = File(FilenameUtils.getPath(track.path)).listFiles()
         return files
-            ?.filter { it.extension.equals(/* NON-NLS */ "lrc", true) }
+            ?.filter { it.extension.equals("lrc", true) }
             ?.firstOrNull {
                 it.nameWithoutExtension.equals(trackFileNameWithoutExtension, true) ||
                     it.nameWithoutExtension.equals(trackFileName, true)
@@ -303,7 +301,6 @@ fun loadLyrics(track: Track, charsetName: String?): Lyrics? {
     }
 }
 
-@NonNls
 val InvalidTrack =
     Track(
         -1,
@@ -354,7 +351,6 @@ data class Album(
         get() = year ?: 0
 
     companion object {
-        @NonNls
         val CollectionSortingOptions =
             mapOf(
                 "Name" to
@@ -374,7 +370,6 @@ data class Album(
                     ),
             )
 
-        @NonNls
         val TrackSortingOptions =
             mapOf(
                 "Number" to
@@ -439,10 +434,8 @@ data class Artist(
         get() = name
 
     companion object {
-        @NonNls
         val CollectionSortingOptions =
             mapOf("Name" to SortingOption(R.string.sorting_name, listOf(SortingKey.ARTIST)))
-        @NonNls
         val TrackSortingOptions =
             mapOf(
                 "Album" to
@@ -502,10 +495,8 @@ data class AlbumArtist(
         get() = name
 
     companion object {
-        @NonNls
         val CollectionSortingOptions =
             mapOf("Name" to SortingOption(R.string.sorting_name, listOf(SortingKey.ALBUM_ARTIST)))
-        @NonNls
         val TrackSortingOptions =
             mapOf(
                 "Album" to
@@ -572,10 +563,8 @@ data class Genre(
         get() = name
 
     companion object {
-        @NonNls
         val CollectionSortingOptions =
             mapOf("Name" to SortingOption(R.string.sorting_name, listOf(SortingKey.GENRE)))
-        @NonNls
         val TrackSortingOptions =
             mapOf(
                 "Title" to
@@ -688,7 +677,6 @@ data class Folder(
         get() = 0L
 
     companion object {
-        @NonNls
         val SortingOptions =
             mapOf(
                 "File name" to
@@ -718,7 +706,6 @@ private data class MutableFolder(
 @Immutable
 data class AlbumSlice(val album: Album, val tracks: List<Track> = emptyList()) {
     companion object {
-        @NonNls
         val TrackSortingOptions =
             mapOf(
                 "Number" to
@@ -738,7 +725,6 @@ data class AlbumSlice(val album: Album, val tracks: List<Track> = emptyList()) {
 @Immutable
 data class ArtistSlice(val artist: Artist, val tracks: List<Track> = emptyList()) {
     companion object {
-        @NonNls
         val TrackSortingOptions =
             mapOf(
                 "Title" to
@@ -1001,7 +987,6 @@ private val contentResolverColumns =
         Media.BITRATE,
     )
 
-@NonNls
 fun scanTracks(
     context: Context,
     advancedMetadataExtraction: Boolean,
@@ -1024,9 +1009,9 @@ fun scanTracks(
         context.contentResolver.query(
             Media.EXTERNAL_CONTENT_URI,
             contentResolverColumns,
-            /* NON-NLS */ "${Media.IS_MUSIC} AND NOT ${Media.IS_DRM} AND NOT ${Media.IS_TRASHED}",
+            "${Media.IS_MUSIC} AND NOT ${Media.IS_DRM} AND NOT ${Media.IS_TRASHED}",
             null,
-            /* NON-NLS */ "${Media._ID} ASC",
+            "${Media._ID} ASC",
         )
     val tracks = mutableListOf<Track>()
 
@@ -1085,22 +1070,18 @@ fun scanTracks(
                                     AudioFileIO.read(File(path))
                                 } catch (ex: CannotReadException) {
                                     when (extension) {
-                                        /* NON-NLS */ "oga" ->
+                                        "oga" ->
                                             try {
-                                                AudioFileIO.readAs(File(path), /* NON-NLS */ "ogg")
+                                                AudioFileIO.readAs(File(path), "ogg")
                                             } catch (_: CannotReadException) {
                                                 try {
-                                                    AudioFileIO.readAs(
-                                                        File(path), /* NON-NLS */
-                                                        "opus",
-                                                    )
+                                                    AudioFileIO.readAs(File(path), "opus")
                                                 } catch (_: Exception) {
                                                     throw ex
                                                 }
                                             }
 
-                                        /* NON-NLS */ "ogg" ->
-                                            AudioFileIO.readAs(File(path), /* NON-NLS */ "opus")
+                                        "ogg" -> AudioFileIO.readAs(File(path), "opus")
                                         else -> throw ex
                                     }
                                 }
@@ -1208,7 +1189,6 @@ fun scanTracks(
     return UnfilteredTrackIndex(libraryVersion, tracks.associateBy { it.id })
 }
 
-@NonNls
 private val featuringArtistInTitleRegex =
     Regex("""[( ](feat|ft)\. *(?<artist>.+?)(\(|\)|$)""", RegexOption.IGNORE_CASE)
 
@@ -1248,7 +1228,7 @@ private fun splitArtists(
             featuringArtistInTitleRegex
                 .find(it.replaceExceptions())
                 ?.groups
-                ?.get(/* NON-NLS */ "artist")
+                ?.get("artist")
                 ?.value
                 ?.restoreExceptions()
         }

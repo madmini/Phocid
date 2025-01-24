@@ -201,7 +201,7 @@ private constructor(isImportTab: Boolean, initialExportSelection: Set<UUID>) : T
                                                 viewModel.preferences.value.playlistIoSettings,
                                                 if (
                                                     FilenameUtils.getExtension(file.name)
-                                                        .equals("m3u8" /* NON-NLS */, true)
+                                                        .equals("m3u8", true)
                                                 )
                                                     Charsets.UTF_8.name()
                                                 else viewModel.preferences.value.charsetName,

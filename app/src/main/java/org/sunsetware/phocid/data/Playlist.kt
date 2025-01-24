@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.serialization.Required
 import kotlinx.serialization.Serializable
 import org.apache.commons.io.FilenameUtils
-import org.jetbrains.annotations.NonNls
 import org.sunsetware.phocid.PLAYLISTS_FILE_NAME
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
@@ -177,10 +176,8 @@ data class RealizedPlaylist(
         get() = Pair(specialType, customName)
 
     companion object {
-        @NonNls
         val CollectionSortingOptions =
             mapOf("Name" to SortingOption(R.string.sorting_name, listOf(SortingKey.PLAYLIST)))
-        @NonNls
         val TrackSortingOptions =
             mapOf("Custom" to SortingOption(R.string.sorting_custom, emptyList())) +
                 Track.SortingOptions

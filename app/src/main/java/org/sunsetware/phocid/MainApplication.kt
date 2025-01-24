@@ -36,7 +36,7 @@ class MainApplication : Application() {
                         }
                     }
                 } catch (ex: Exception) {
-                    writer.write(/* NON-NLS */ "An exception occurred reading logcat:\n")
+                    writer.write("An exception occurred reading logcat:\n")
                     writer.write(ex.stackTraceToString())
                 }
             }

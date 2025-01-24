@@ -13,7 +13,6 @@ import java.util.Locale
 import kotlin.math.PI
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import org.jetbrains.annotations.NonNls
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.ui.theme.GRAY
 import org.sunsetware.phocid.ui.theme.Oklch
@@ -59,11 +58,9 @@ data class Preferences(
     // Indexing
     val advancedMetadataExtraction: Boolean = false,
     val disableArtworkColorExtraction: Boolean = false,
-    @NonNls
     val artistMetadataSeparators: List<String> = listOf("&", ";", ",", "+", "/", " feat.", " ft."),
     val artistMetadataSeparatorExceptions: List<String> = emptyList(),
     val genreMetadataSeparators: List<String> = listOf("&", ";", ",", "+", "/"),
-    @NonNls
     val genreMetadataSeparatorExceptions: List<String> =
         listOf("R&B", "Rhythm & Blues", "D&B", "Drum & Bass"),
     val blacklist: List<String> = emptyList(),

@@ -32,10 +32,7 @@ class PreferencesLicenseDialog() : Dialog() {
             val text = remember {
                 context.getString(R.string.app_copyright) +
                     "\n\n---\n" +
-                    context.assets
-                        .open("GPL-3.0.txt" /* NON-NLS */)
-                        .readAllBytesCompat()
-                        .decodeToString()
+                    context.assets.open("GPL-3.0.txt").readAllBytesCompat().decodeToString()
             }
             Text(
                 text,

@@ -24,10 +24,7 @@ data class DependencyInfo(
 
 @Immutable
 @Serializable
-data class License(
-    val license: String,
-    @SerialName(/* NON-NLS */ "license_url") val licenseUrl: String,
-)
+data class License(val license: String, @SerialName("license_url") val licenseUrl: String)
 
 @Serializable
 data class LicenseMappings(
@@ -57,22 +54,20 @@ inline fun listDependencies(
             licenseMappings.projectMappings[dependency.project]
                 ?: dependency.licenses!!.map {
                     requireNotNull(licenseMappings.urlMappings[it.licenseUrl]) {
-                        "No license name found for ${dependency.project}" /* NON-NLS */
+                        "No license name found for ${dependency.project}"
                     }
                 }
         Pair(
             dependency,
             licenseNames.map {
-                requireNotNull(licenseTexts[it]) { "No license text found for $it" /* NON-NLS */ }
+                requireNotNull(licenseTexts[it]) { "No license text found for $it" }
             },
         )
     } +
         licenseMappings.otherMappings.map { (dependency, licenses) ->
             dependency to
                 licenses.map {
-                    requireNotNull(licenseTexts[it]) {
-                        "No license text found for $it" /* NON-NLS */
-                    }
+                    requireNotNull(licenseTexts[it]) { "No license text found for $it" }
                 }
         }
 }

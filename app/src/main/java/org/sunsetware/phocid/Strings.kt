@@ -16,7 +16,7 @@ object Strings {
         return stringSource.get()?.getString(id)
             ?: run {
                 Log.e("Phocid", "Accessing string resource $id after context disposal")
-                /* NON-NLS */ "<error>"
+                "<error>"
             }
     }
 
