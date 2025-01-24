@@ -32,7 +32,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     private val initializationMutex = Mutex()
     private val scanMutex = Mutex()
 
-    val playerWrapper: PlayerWrapper = PlayerWrapper()
+    val playerManager: PlayerManager = PlayerManager()
 
     val lyricsCache = AtomicReference(null as Pair<Long, Lyrics>?)
 
@@ -95,7 +95,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     val playlistIoDirectory = MutableStateFlow(null as Uri?)
 
     override fun onCleared() {
-        playerWrapper.close()
+        playerManager.close()
         uiManager.close()
         preferencesSaveManager.close()
         playlistManager.close()
@@ -139,7 +139,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
 
                                 playlistManager.initialize(application.applicationContext)
 
-                                playerWrapper.initialize(
+                                playerManager.initialize(
                                     application.applicationContext,
                                     unfilteredTrackIndex,
                                     viewModelScope,

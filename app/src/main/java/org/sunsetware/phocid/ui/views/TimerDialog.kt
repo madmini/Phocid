@@ -41,7 +41,7 @@ import org.sunsetware.phocid.utils.toShortString
 class TimerDialog : Dialog() {
     @Composable
     override fun Compose(viewModel: MainViewModel) {
-        val playerWrapper = viewModel.playerWrapper
+        val playerManager = viewModel.playerManager
         val uiManager = viewModel.uiManager
         var durationMinutes by remember {
             mutableLongStateOf(uiManager.playerTimerSettings.get().duration.inWholeMinutes)
@@ -49,14 +49,14 @@ class TimerDialog : Dialog() {
         var finishLastTrack by remember {
             mutableStateOf(uiManager.playerTimerSettings.get().finishLastTrack)
         }
-        var isTimerActive by remember { mutableStateOf(playerWrapper.getTimerState() != null) }
+        var isTimerActive by remember { mutableStateOf(playerManager.getTimerState() != null) }
         var activeTimerRemainingSeconds by remember { mutableLongStateOf(0) }
         var activeTimerFinishLastTrack by remember { mutableStateOf(true) }
         val maxDurationMinutes = 60
 
         LaunchedEffect(Unit) {
             while (isActive) {
-                val state = playerWrapper.getTimerState()
+                val state = playerManager.getTimerState()
                 isTimerActive = state != null
                 activeTimerRemainingSeconds =
                     state?.first?.let {
@@ -71,10 +71,10 @@ class TimerDialog : Dialog() {
             title = Strings[R.string.player_timer],
             onConfirm = {
                 if (isTimerActive) {
-                    playerWrapper.cancelTimer()
+                    playerManager.cancelTimer()
                     uiManager.toast(Strings[R.string.toast_timer_canceled])
                 } else {
-                    playerWrapper.setTimer(
+                    playerManager.setTimer(
                         PlayerTimerSettings(durationMinutes.minutes, finishLastTrack)
                     )
                     uiManager.playerTimerSettings.set(

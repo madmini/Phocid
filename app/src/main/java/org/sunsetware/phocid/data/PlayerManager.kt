@@ -100,7 +100,7 @@ private fun MediaController.captureTransientState(version: Long): PlayerTransien
 }
 
 @Stable
-class PlayerWrapper : AutoCloseable {
+class PlayerManager : AutoCloseable {
     private val _state = MutableStateFlow(PlayerState())
     val state = _state.asStateFlow()
 

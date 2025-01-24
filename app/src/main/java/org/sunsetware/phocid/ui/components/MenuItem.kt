@@ -20,7 +20,7 @@ import java.util.UUID
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
 import org.sunsetware.phocid.UiManager
-import org.sunsetware.phocid.data.PlayerWrapper
+import org.sunsetware.phocid.data.PlayerManager
 import org.sunsetware.phocid.data.SpecialPlaylistLookup
 import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.data.albumKey
@@ -51,17 +51,17 @@ sealed class MenuItem {
 @Stable
 fun trackMenuItems(
     track: Track,
-    playerWrapper: PlayerWrapper,
+    playerManager: PlayerManager,
     uiManager: UiManager,
 ): List<MenuItem> {
     val queue =
         listOf(
             MenuItem.Button(Strings[R.string.track_play_next], Icons.Filled.ChevronRight) {
-                playerWrapper.playNext(listOf(track))
+                playerManager.playNext(listOf(track))
                 uiManager.toast(Strings[R.string.toast_track_queued].icuFormat(1))
             },
             MenuItem.Button(Strings[R.string.track_add_to_queue], Icons.Filled.Add) {
-                playerWrapper.addTracks(listOf(track))
+                playerManager.addTracks(listOf(track))
                 uiManager.toast(Strings[R.string.toast_track_queued].icuFormat(1))
             },
         )
@@ -100,19 +100,19 @@ fun trackMenuItems(
 @Stable
 inline fun collectionMenuItemsWithoutPlay(
     crossinline tracks: () -> List<Track>,
-    playerWrapper: PlayerWrapper,
+    playerManager: PlayerManager,
     uiManager: UiManager,
     crossinline continuation: () -> Unit = {},
 ): List<MenuItem.Button> {
     return listOf(
         MenuItem.Button(Strings[R.string.track_play_next], Icons.Filled.ChevronRight) {
             val tracks = tracks()
-            playerWrapper.playNext(tracks)
+            playerManager.playNext(tracks)
             uiManager.toast(Strings[R.string.toast_track_queued].icuFormat(tracks.size))
         },
         MenuItem.Button(Strings[R.string.track_add_to_queue], Icons.Filled.Add) {
             val tracks = tracks()
-            playerWrapper.addTracks(tracks)
+            playerManager.addTracks(tracks)
             uiManager.toast(Strings[R.string.toast_track_queued].icuFormat(tracks.size))
             continuation()
         },
@@ -126,16 +126,16 @@ inline fun collectionMenuItemsWithoutPlay(
 @Stable
 inline fun collectionMenuItems(
     crossinline tracks: () -> List<Track>,
-    playerWrapper: PlayerWrapper,
+    playerManager: PlayerManager,
     uiManager: UiManager,
     crossinline continuation: () -> Unit = {},
 ): List<MenuItem.Button> {
     return listOf(
         MenuItem.Button(Strings[R.string.track_play], Icons.Filled.PlayArrow) {
-            playerWrapper.setTracks(tracks(), null)
+            playerManager.setTracks(tracks(), null)
             continuation()
         }
-    ) + collectionMenuItemsWithoutPlay(tracks, playerWrapper, uiManager, continuation)
+    ) + collectionMenuItemsWithoutPlay(tracks, playerManager, uiManager, continuation)
 }
 
 @Stable

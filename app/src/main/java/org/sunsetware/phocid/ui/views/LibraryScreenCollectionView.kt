@@ -126,14 +126,14 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
             index: Int,
             viewModel: MainViewModel,
         ) {
-            viewModel.playerWrapper.setTracks(
+            viewModel.playerManager.setTracks(
                 items.mapNotNull { it.playTrack },
                 items.take(index).count { it.playTrack != null },
             )
         }
 
         override fun getMenuItems(viewModel: MainViewModel): List<MenuItem> {
-            return trackMenuItems(track, viewModel.playerWrapper, viewModel.uiManager)
+            return trackMenuItems(track, viewModel.playerManager, viewModel.uiManager)
         }
 
         override fun getMultiSelectMenuItems(
@@ -143,7 +143,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
         ): List<MenuItem.Button> {
             return collectionMenuItems(
                 { multiSelectTracks + others.flatMap { it.multiSelectTracks } },
-                viewModel.playerWrapper,
+                viewModel.playerManager,
                 viewModel.uiManager,
                 continuation,
             )
@@ -180,7 +180,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
         override fun getMenuItems(viewModel: MainViewModel): List<MenuItem> {
             return collectionMenuItems(
                 { folder.childTracks },
-                viewModel.playerWrapper,
+                viewModel.playerManager,
                 viewModel.uiManager,
             )
         }
@@ -192,7 +192,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
         ): List<MenuItem.Button> {
             return collectionMenuItems(
                 { multiSelectTracks + others.flatMap { it.multiSelectTracks } },
-                viewModel.playerWrapper,
+                viewModel.playerManager,
                 viewModel.uiManager,
                 continuation,
             )
@@ -224,7 +224,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
             index: Int,
             viewModel: MainViewModel,
         ) {
-            viewModel.playerWrapper.setTracks(
+            viewModel.playerManager.setTracks(
                 items.mapNotNull { it.playTrack },
                 items.take(index).count { it.playTrack != null },
             )
@@ -232,7 +232,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
 
         override fun getMenuItems(viewModel: MainViewModel): List<MenuItem> {
             return playlistTrackMenuItems(playlistKey, playlistEntry.key, viewModel.uiManager) +
-                trackMenuItems(playTrack, viewModel.playerWrapper, viewModel.uiManager)
+                trackMenuItems(playTrack, viewModel.playerManager, viewModel.uiManager)
         }
 
         override fun getMultiSelectMenuItems(
@@ -242,7 +242,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
         ): List<MenuItem.Button> {
             return collectionMenuItems(
                 { multiSelectTracks + others.flatMap { it.multiSelectTracks } },
-                viewModel.playerWrapper,
+                viewModel.playerManager,
                 viewModel.uiManager,
                 continuation,
             ) +

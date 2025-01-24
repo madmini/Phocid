@@ -101,7 +101,7 @@ class MainActivity : ComponentActivity(), IntentLauncher {
 
             val currentTrackColor by
                 remember {
-                        viewModel.playerWrapper.state.combine(
+                        viewModel.playerManager.state.combine(
                             coroutineScope,
                             viewModel.libraryIndex,
                             viewModel.preferences,

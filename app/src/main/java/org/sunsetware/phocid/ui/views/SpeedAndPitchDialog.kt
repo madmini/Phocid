@@ -32,25 +32,25 @@ import org.sunsetware.phocid.utils.icuFormat
 class SpeedAndPitchDialog() : Dialog() {
     @Composable
     override fun Compose(viewModel: MainViewModel) {
-        val playerWrapper = viewModel.playerWrapper
+        val playerManager = viewModel.playerManager
         var newSpeedTimes100 by remember {
-            mutableIntStateOf((viewModel.playerWrapper.state.value.speed * 100).roundToInt())
+            mutableIntStateOf((viewModel.playerManager.state.value.speed * 100).roundToInt())
         }
         var resample by remember {
             mutableStateOf(
-                viewModel.playerWrapper.state.value.let { it.speed == it.pitch && it.speed != 1f }
+                viewModel.playerManager.state.value.let { it.speed == it.pitch && it.speed != 1f }
             )
         }
         var newPitchSemitones by remember {
             mutableIntStateOf(
                 if (resample) 0
-                else (log(viewModel.playerWrapper.state.value.pitch, 2f) * 12).roundToInt()
+                else (log(viewModel.playerManager.state.value.pitch, 2f) * 12).roundToInt()
             )
         }
         DialogBase(
             title = Strings[R.string.player_speed_and_pitch],
             onConfirm = {
-                playerWrapper.setSpeedAndPitch(
+                playerManager.setSpeedAndPitch(
                     newSpeedTimes100 / 100f,
                     if (resample) newSpeedTimes100 / 100f else 2f.pow(newPitchSemitones / 12f),
                 )

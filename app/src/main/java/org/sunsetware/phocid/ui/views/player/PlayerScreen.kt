@@ -56,19 +56,19 @@ import org.sunsetware.phocid.utils.*
 fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
-    val playerWrapper = viewModel.playerWrapper
+    val playerManager = viewModel.playerManager
     val uiManager = viewModel.uiManager
     val playerScreenDragState = uiManager.playerScreenDragState
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val libraryIndex by viewModel.libraryIndex.collectAsStateWithLifecycle()
 
-    val playerState by playerWrapper.state.collectAsStateWithLifecycle()
+    val playerState by playerManager.state.collectAsStateWithLifecycle()
     val playerTransientStateVersion by
-        playerWrapper.transientState
+        playerManager.transientState
             .map(coroutineScope) { it.version }
             .collectAsStateWithLifecycle()
     val playQueue by
-        playerWrapper.state
+        playerManager.state
             .combine(coroutineScope, viewModel.libraryIndex) { state, library ->
                 val trackCounts = mutableMapOf<Long, Int>()
                 state.actualPlayQueue
@@ -82,7 +82,7 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
             .collectAsStateWithLifecycle()
     val currentTrack by
         remember {
-                playerWrapper.state
+                playerManager.state
                     .combine(viewModel.libraryIndex) { state, library ->
                         if (state.actualPlayQueue.isEmpty()) null
                         else library.tracks[state.actualPlayQueue[state.currentIndex]]
@@ -121,13 +121,13 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
             }
         }
     val isPlaying by
-        playerWrapper.transientState
+        playerManager.transientState
             .map(coroutineScope) { it.isPlaying }
             .collectAsStateWithLifecycle()
     val repeat by
-        playerWrapper.state.map(coroutineScope) { it.repeat }.collectAsStateWithLifecycle()
+        playerManager.state.map(coroutineScope) { it.repeat }.collectAsStateWithLifecycle()
     val shuffle by
-        playerWrapper.state.map(coroutineScope) { it.shuffle }.collectAsStateWithLifecycle()
+        playerManager.state.map(coroutineScope) { it.shuffle }.collectAsStateWithLifecycle()
 
     val defaultColor = LocalThemeAccent.current
     val animatedContainerColor = remember {
@@ -143,7 +143,7 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
     val playQueueDragLock = remember { DragLock() }
     val playQueueLazyListState = rememberLazyListState()
     suspend fun scrollPlayQueueToNextTrack() {
-        val state = playerWrapper.state.value
+        val state = playerManager.state.value
         val currentIndex = state.currentIndex
         val nextIndex =
             (currentIndex + 1).wrap(playQueue.size, state.repeat != Player.REPEAT_MODE_OFF)
@@ -369,14 +369,14 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                         libraryIndex.tracks[it]
                                     } ?: InvalidTrack
                                 },
-                                onPrevious = { playerWrapper.seekToPrevious() },
-                                onNext = { playerWrapper.seekToNext() },
+                                onPrevious = { playerManager.seekToPrevious() },
+                                onNext = { playerManager.seekToNext() },
                             )
                         }
                         Box {
                             components.lyricsOverlay.Compose(
                                 lyrics = currentTrackLyrics,
-                                currentPosition = { playerWrapper.currentPosition },
+                                currentPosition = { playerManager.currentPosition },
                                 preferences = preferences,
                                 containerColor = animatedContainerColor.value,
                                 contentColor = animatedContentColor,
@@ -389,10 +389,10 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                 isPlaying = isPlaying,
                                 repeat = repeat,
                                 shuffle = shuffle,
-                                currentPosition = { playerWrapper.currentPosition },
+                                currentPosition = { playerManager.currentPosition },
                                 overflowMenuItems =
                                     playerMenuItems(
-                                        playerWrapper,
+                                        playerManager,
                                         uiManager,
                                         libraryIndex,
                                         currentTrack,
@@ -401,12 +401,12 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                 dragModifier = controlsDragModifier,
                                 containerColor = animatedContainerColor.value,
                                 contentColor = animatedContentColor,
-                                onSeekToFraction = { playerWrapper.seekToFraction(it) },
-                                onToggleRepeat = { playerWrapper.toggleRepeat() },
-                                onSeekToPreviousSmart = { playerWrapper.seekToPreviousSmart() },
-                                onTogglePlay = { playerWrapper.togglePlay() },
-                                onSeekToNext = { playerWrapper.seekToNext() },
-                                onToggleShuffle = { playerWrapper.toggleShuffle(libraryIndex) },
+                                onSeekToFraction = { playerManager.seekToFraction(it) },
+                                onToggleRepeat = { playerManager.toggleRepeat() },
+                                onSeekToPreviousSmart = { playerManager.seekToPreviousSmart() },
+                                onTogglePlay = { playerManager.togglePlay() },
+                                onSeekToNext = { playerManager.seekToNext() },
+                                onToggleShuffle = { playerManager.toggleShuffle(libraryIndex) },
                                 onTogglePlayQueue = {
                                     playQueueDragState.animateTo(
                                         if (playQueueDragState.position <= 0) 1f else 0f
@@ -436,7 +436,7 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                 currentTrackIndex = currentTrackIndex,
                                 lazyListState = playQueueLazyListState,
                                 trackOverflowMenuItems = { track, index ->
-                                    queueMenuItems(playerWrapper, uiManager, track, index)
+                                    queueMenuItems(playerManager, uiManager, track, index)
                                 },
                                 dragModifier = controlsDragModifier,
                                 nestedScrollConnection = nestedScrollConnection,
@@ -447,8 +447,8 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                         if (playQueueDragState.position <= 0) 1f else 0f
                                     )
                                 },
-                                onMoveTrack = { from, to -> playerWrapper.moveTrack(from, to) },
-                                onSeekTo = { playerWrapper.seekTo(it) },
+                                onMoveTrack = { from, to -> playerManager.moveTrack(from, to) },
+                                onSeekTo = { playerManager.seekTo(it) },
                             )
                         }
                         Box {
@@ -498,7 +498,7 @@ private data class Components(
 )
 
 private fun playerMenuItems(
-    playerWrapper: PlayerWrapper,
+    playerManager: PlayerManager,
     uiManager: UiManager,
     libraryIndex: LibraryIndex,
     currentTrack: Track,
@@ -506,10 +506,10 @@ private fun playerMenuItems(
 ): List<MenuItem> {
     return listOf(
         MenuItem.Button(Strings[R.string.player_clear_queue], Icons.Filled.Clear) {
-            playerWrapper.clearTracks()
+            playerManager.clearTracks()
         },
         MenuItem.Button(Strings[R.string.player_save_queue], Icons.Filled.AddBox) {
-            val state = playerWrapper.state.value
+            val state = playerManager.state.value
             val tracks =
                 state.unshuffledPlayQueueMapping?.mapNotNull {
                     libraryIndex.tracks[state.actualPlayQueue[it]]
@@ -525,20 +525,20 @@ private fun playerMenuItems(
     ) +
         MenuItem.Divider +
         MenuItem.Button(Strings[R.string.track_remove_from_queue], Icons.Filled.Remove) {
-            playerWrapper.removeTrack(currentTrackIndex)
+            playerManager.removeTrack(currentTrackIndex)
         } +
-        trackMenuItems(currentTrack, playerWrapper, uiManager)
+        trackMenuItems(currentTrack, playerManager, uiManager)
 }
 
 private fun queueMenuItems(
-    playerWrapper: PlayerWrapper,
+    playerManager: PlayerManager,
     uiManager: UiManager,
     track: Track,
     index: Int,
 ): List<MenuItem> {
     return listOf(
         MenuItem.Button(Strings[R.string.track_remove_from_queue], Icons.Filled.Remove) {
-            playerWrapper.removeTrack(index)
+            playerManager.removeTrack(index)
         }
-    ) + trackMenuItems(track, playerWrapper, uiManager)
+    ) + trackMenuItems(track, playerManager, uiManager)
 }

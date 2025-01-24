@@ -71,7 +71,7 @@ fun LibraryScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
-    val playerWrapper = viewModel.playerWrapper
+    val playerManager = viewModel.playerManager
     val preferences by viewModel.preferences.collectAsStateWithLifecycle()
     val libraryIndex by viewModel.libraryIndex.collectAsStateWithLifecycle()
     val uiManager = viewModel.uiManager
@@ -121,7 +121,7 @@ fun LibraryScreen(
                                 it.value.multiSelectTracks
                             }
                         },
-                        playerWrapper,
+                        playerManager,
                         uiManager,
                     ) +
                         (currentCollection.info.value?.extraCollectionMenuItems(viewModel)
@@ -198,7 +198,7 @@ fun LibraryScreen(
                 searchQuery = searchQueryBuffer,
                 onSearchQueryChange = { query -> searchQueryBuffer = query },
                 onPlayAll = {
-                    playerWrapper.setTracks(
+                    playerManager.setTracks(
                         currentCollection?.multiSelectState?.items?.value?.mapNotNull {
                             it.value.playTrack
                         }
@@ -219,7 +219,7 @@ fun LibraryScreen(
         },
         bottomBar = {
             BottomBar(
-                playerWrapper,
+                playerManager,
                 libraryIndex,
                 preferences.artworkColorPreference,
                 preferences.shapePreference.artworkShape,
@@ -483,7 +483,7 @@ private fun SearchBar(value: String, onValueChange: (String) -> Unit) {
 
 @Composable
 private fun BottomBar(
-    playerWrapper: PlayerWrapper,
+    playerManager: PlayerManager,
     libraryIndex: LibraryIndex,
     artworkColorPreference: ArtworkColorPreference,
     artworkShape: Shape,
@@ -497,9 +497,9 @@ private fun BottomBar(
 
     var progress by remember { mutableFloatStateOf(0f) }
 
-    val playerState by playerWrapper.state.collectAsStateWithLifecycle()
+    val playerState by playerManager.state.collectAsStateWithLifecycle()
     val currentTrack by
-        playerWrapper.state
+        playerManager.state
             .map(coroutineScope) { state ->
                 val id = state.actualPlayQueue.getOrNull(state.currentIndex)
                 if (id != null) libraryIndex.tracks[id] ?: InvalidTrack else null
@@ -507,11 +507,11 @@ private fun BottomBar(
             .runningReduce(coroutineScope) { last, current -> current ?: last }
             .collectAsStateWithLifecycle()
     val isPlaying by
-        playerWrapper.transientState
+        playerManager.transientState
             .map(coroutineScope) { it.isPlaying }
             .collectAsStateWithLifecycle()
     val playerTransientStateVersion by
-        playerWrapper.transientState
+        playerManager.transientState
             .map(coroutineScope) { it.version }
             .collectAsStateWithLifecycle()
 
@@ -527,7 +527,7 @@ private fun BottomBar(
             progress =
                 if (currentTrack == null) 0f
                 else
-                    playerWrapper.currentPosition.toFloat() /
+                    playerManager.currentPosition.toFloat() /
                         currentTrack!!.duration.inWholeMilliseconds
             delay(frameTime)
         }
@@ -550,7 +550,7 @@ private fun BottomBar(
                     contentPadding = PaddingValues(start = 0.dp, top = 4.dp, end = 4.dp),
                     floatingActionButton = {
                         FloatingActionButton(
-                            onClick = { playerWrapper.togglePlay() },
+                            onClick = { playerManager.togglePlay() },
                             containerColor = animatedThemeAccent.value,
                             contentColor = animatedThemeAccent.value.contentColor(),
                         ) {
@@ -604,8 +604,8 @@ private fun BottomBar(
                                     playerScreenDragState.onDrag(playerScreenDragLock, dragAmount)
                                 }
                             },
-                            onPrevious = { playerWrapper.seekToPrevious() },
-                            onNext = { playerWrapper.seekToNext() },
+                            onPrevious = { playerManager.seekToPrevious() },
+                            onNext = { playerManager.seekToNext() },
                         ) { state, index ->
                             val id = state.actualPlayQueue.getOrNull(index)
                             val track =
