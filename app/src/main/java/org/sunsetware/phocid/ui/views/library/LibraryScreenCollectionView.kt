@@ -428,7 +428,7 @@ data class ArtistCollectionViewInfo(val artist: Artist) : CollectionViewInfo() {
                 ) { library ->
                     library.artists[artist.name]
                         ?.albumSlices
-                        ?.firstOrNull { it.album.name == slice.album.name }
+                        ?.firstOrNull { it.album.albumKey == slice.album.albumKey }
                         ?.let { AlbumSliceCollectionViewInfo(it) }
                 }
             },

@@ -823,10 +823,8 @@ data class LibraryIndex(
                         tracks.sorted(collator, Album.TrackSortingOptions.values.first().keys, true)
                     val name = sortedTracks.mode { it.album!! }
                     val albumArtist = sortedTracks.mode { it.albumArtist }
-                    val displayAlbumArtist =
-                        albumArtist ?: sortedTracks.modeOfNotNullOrNull { it.displayArtistOrNull }
                     AlbumKey(name, albumArtist) to
-                        Album(name, displayAlbumArtist, sortedTracks.mode { it.year }, sortedTracks)
+                        Album(name, albumArtist, sortedTracks.mode { it.year }, sortedTracks)
                 }
                 .toMap()
         }

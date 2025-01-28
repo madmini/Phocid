@@ -13,6 +13,7 @@ import org.sunsetware.phocid.data.InvalidTrack
 import org.sunsetware.phocid.data.LibraryIndex
 import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.data.UnfilteredTrackIndex
+import org.sunsetware.phocid.data.albumKey
 
 @RunWith(RobolectricTestRunner::class)
 class LibraryIndexTest {
@@ -58,10 +59,11 @@ class LibraryIndexTest {
     @Test
     fun indexing_album_CaseMerging() {
         val track1 = track(1, album = "album1", albumArtist = "artist1")
-        val track2 = track(2, album = "Album1", albumArtist = "artist1")
-        val track3 = track(3, album = "Album1", albumArtist = "artist1")
+        val track2 = track(2, album = "ALBUM1", albumArtist = "artist1")
+        val track3 = track(3, album = "ALBUM1", albumArtist = "ARTIST1")
         val index = listOf(track1, track2, track3).libraryIndex()
-        assertThat(index.albums.keys).containsExactlyInAnyOrder(AlbumKey("Album1", "artist1"))
+        assertThat(index.albums.keys.map { it.name.toString() to it.albumArtist?.toString() })
+            .containsExactlyInAnyOrder("ALBUM1" to "artist1")
     }
 
     @Test
@@ -82,6 +84,26 @@ class LibraryIndexTest {
         val index = listOf(track1, track2, track3, track4).libraryIndex()
         assertThat(index.albums.keys)
             .containsExactlyInAnyOrder(AlbumKey("album1", null), AlbumKey("album1", "artist1"))
+    }
+
+    @Test
+    fun indexing_album_SameNameDifferentAlbumArtists() {
+        val track1 = track(1, album = "album1", albumArtist = null)
+        val track2 = track(2, album = "album1", albumArtist = "artist1")
+        val track3 = track(3, album = "album1", albumArtist = "artist2")
+        val index = listOf(track1, track2, track3).libraryIndex()
+        assertThat(index.albums.keys)
+            .containsExactlyInAnyOrder(
+                AlbumKey("album1", null),
+                AlbumKey("album1", "artist1"),
+                AlbumKey("album1", "artist2"),
+            )
+        assertThat(index.albums[AlbumKey("album1", null)]?.albumKey)
+            .isEqualTo(AlbumKey("album1", null))
+        assertThat(index.albums[AlbumKey("album1", "artist1")]?.albumKey)
+            .isEqualTo(AlbumKey("album1", "artist1"))
+        assertThat(index.albums[AlbumKey("album1", "artist2")]?.albumKey)
+            .isEqualTo(AlbumKey("album1", "artist2"))
     }
 
     @Test

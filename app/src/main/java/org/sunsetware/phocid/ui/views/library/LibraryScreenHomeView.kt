@@ -77,7 +77,6 @@ import org.sunsetware.phocid.data.RealizedPlaylist
 import org.sunsetware.phocid.data.SortingOption
 import org.sunsetware.phocid.data.TabStylePreference
 import org.sunsetware.phocid.data.Track
-import org.sunsetware.phocid.data.albumKey
 import org.sunsetware.phocid.data.search
 import org.sunsetware.phocid.data.sorted
 import org.sunsetware.phocid.data.sortedBy
@@ -255,7 +254,7 @@ class LibraryScreenHomeViewState(
                     )
                 },
             ) {
-                it.uiManager.openAlbumCollectionView(album.albumKey)
+                it.uiManager.openAlbumCollectionView(key)
             }
         }
     }
