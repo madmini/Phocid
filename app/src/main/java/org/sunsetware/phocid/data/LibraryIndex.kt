@@ -116,7 +116,8 @@ data class Track(
         get() = Strings.separate(displayArtist, album)
 
     @Transient
-    override val searchableStrings = listOfNotNull(displayTitle, displayArtist, album, albumArtist)
+    override val searchableStrings =
+        listOfNotNull(displayTitle, displayArtist, album, albumArtist, fileName)
 
     override val sortTitle
         get() = displayTitle
