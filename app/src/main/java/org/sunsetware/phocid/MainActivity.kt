@@ -1,5 +1,6 @@
 package org.sunsetware.phocid
 
+import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -32,10 +33,14 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.ibm.icu.util.ULocale
 import java.lang.ref.WeakReference
+import java.net.URLConnection
+import java.util.ArrayList
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.roundToInt
+import org.apache.commons.io.FilenameUtils
+import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.data.getArtworkColor
 import org.sunsetware.phocid.data.preferencesSystemLocale
 import org.sunsetware.phocid.ui.components.AnimatedForwardBackwardTransition
@@ -207,5 +212,40 @@ class MainActivity : ComponentActivity(), IntentLauncher {
     override fun openDocumentTree(continuation: (Uri?) -> Unit) {
         openDocumentTreeContinuation.set(continuation)
         openDocumentTreeIntent.launch(null)
+    }
+
+    override fun share(tracks: List<Track>) {
+        if (tracks.isEmpty()) return
+
+        val shareIntent =
+            if (tracks.size == 1) {
+                Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_STREAM, tracks.first().uri)
+                    // guessContentTypeFromName can fail if file name contains special characters
+                    type =
+                        URLConnection.guessContentTypeFromName(
+                            "a." + FilenameUtils.getExtension(tracks.first().path)
+                        )
+                }
+            } else {
+                Intent().apply {
+                    action = Intent.ACTION_SEND_MULTIPLE
+                    putParcelableArrayListExtra(
+                        Intent.EXTRA_STREAM,
+                        ArrayList(tracks.map { it.uri }),
+                    )
+                    type =
+                        tracks
+                            .map {
+                                URLConnection.guessContentTypeFromName(
+                                    "a." + FilenameUtils.getExtension(it.path)
+                                )
+                            }
+                            .distinct()
+                            .singleOrNull() ?: "audio/*"
+                }
+            }
+        startActivity(Intent.createChooser(shareIntent, null))
     }
 }

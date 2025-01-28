@@ -25,6 +25,7 @@ import org.sunsetware.phocid.data.PlayerTimerSettings
 import org.sunsetware.phocid.data.PlaylistManager
 import org.sunsetware.phocid.data.Preferences
 import org.sunsetware.phocid.data.SaveManager
+import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.data.loadCbor
 import org.sunsetware.phocid.ui.components.BinaryDragState
 import org.sunsetware.phocid.ui.components.SelectableList
@@ -47,6 +48,8 @@ abstract class TopLevelScreen {
 
 interface IntentLauncher {
     fun openDocumentTree(continuation: (Uri?) -> Unit)
+
+    fun share(tracks: List<Track>)
 }
 
 @Stable

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlaylistRemove
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
@@ -69,6 +70,10 @@ fun trackMenuItems(
         MenuItem.Button(Strings[R.string.playlist_add_to], Icons.AutoMirrored.Filled.PlaylistAdd) {
             uiManager.openDialog(AddToPlaylistDialog(listOf(track)))
         }
+    val share =
+        MenuItem.Button(Strings[R.string.track_share], Icons.Filled.Share) {
+            uiManager.intentLauncher.get()?.share(listOf(track))
+        }
     val artists =
         track.artists.map { artist ->
             MenuItem.Button(
@@ -94,7 +99,7 @@ fun trackMenuItems(
             uiManager.openDialog(TrackDetailsDialog(track))
         }
 
-    return queue + playlist + MenuItem.Divider + artists + album + details
+    return queue + playlist + share + MenuItem.Divider + artists + album + details
 }
 
 @Stable
@@ -119,6 +124,9 @@ inline fun collectionMenuItemsWithoutPlay(
         MenuItem.Button(Strings[R.string.playlist_add_to], Icons.AutoMirrored.Filled.PlaylistAdd) {
             uiManager.openDialog(AddToPlaylistDialog(tracks()))
             continuation()
+        },
+        MenuItem.Button(Strings[R.string.track_share], Icons.Filled.Share) {
+            uiManager.intentLauncher.get()?.share(tracks())
         },
     )
 }

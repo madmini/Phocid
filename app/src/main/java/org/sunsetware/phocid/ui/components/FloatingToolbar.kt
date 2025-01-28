@@ -1,8 +1,12 @@
+@file:OptIn(ExperimentalLayoutApi::class)
+
 package org.sunsetware.phocid.ui.components
 
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -17,7 +21,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun FloatingToolbar(items: List<MenuItem.Button>) {
     ElevatedCard(
-        shape = CircleShape,
+        modifier = Modifier.padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(24.dp),
         colors =
             CardColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
@@ -27,7 +32,7 @@ fun FloatingToolbar(items: List<MenuItem.Button>) {
             ),
         elevation = CardDefaults.elevatedCardElevation(6.dp, 6.dp, 6.dp, 6.dp, 6.dp, 6.dp),
     ) {
-        Row {
+        FlowRow {
             items.forEach { item ->
                 IconButton(onClick = item.onClick, modifier = Modifier.size(48.dp)) {
                     Icon(item.icon, item.text)
