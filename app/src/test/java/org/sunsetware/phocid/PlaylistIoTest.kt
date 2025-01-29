@@ -29,7 +29,7 @@ class PlaylistIoTest {
         assertThat(actual).containsExactlyInAnyOrderElementsOf(expected)
     }
 
-    val parseM3uLibraryTrackPaths = setOf("dir/a", "dir/dir2/b", "c", "dir3/d")
+    val parseM3uLibraryTrackPaths = setOf("dir/a", "dir/dir2/b", "c", "dir3/d", "dir4/d")
 
     @Test
     fun parseM3u_MatchLocation() {
@@ -59,11 +59,11 @@ class PlaylistIoTest {
     fun parseM3u_IgnoreLocation() {
         testParseM3u(
             m3u =
-                listOf(" ../a ", "http://example.com/b", "#c", "D:\\D", "e", "http://invalid")
+                listOf(" ../a ", "http://example.com/b", "#c", "D:\\dir4\\D", "e", "http://invalid")
                     .joinToString("\r\n"),
             libraryTrackPaths = parseM3uLibraryTrackPaths,
             settings = PlaylistIoSettings(),
-            expected = listOf("dir/a", "dir/dir2/b", "dir3/d"),
+            expected = listOf("dir/a", "dir/dir2/b", "dir4/d"),
         )
     }
 
@@ -83,6 +83,26 @@ class PlaylistIoTest {
             libraryTrackPaths = parseM3uLibraryTrackPaths,
             settings = PlaylistIoSettings(),
             expected = parseM3uLibraryTrackPaths.toList(),
+        )
+    }
+
+    @Test
+    fun parseM3u_CaseSensitiveRoundTrip() {
+        val paths = setOf("a", "A")
+        testParseM3u(
+            m3u =
+                parseM3u(
+                        "",
+                        paths.joinToString("\r\n").toByteArray(Charsets.UTF_8),
+                        paths,
+                        PlaylistIoSettings(ignoreCase = false),
+                        Charsets.UTF_8.name(),
+                    )
+                    .entries
+                    .joinToString("\n") { it.path },
+            libraryTrackPaths = paths,
+            settings = PlaylistIoSettings(ignoreCase = false),
+            expected = paths.toList(),
         )
     }
 }

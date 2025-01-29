@@ -224,21 +224,19 @@ fun parseM3u(
             .filter { it.isNotBlank() && !it.startsWith('#') }
     val indexLookup =
         libraryTrackPaths
-            .associateBy({ if (settings.ignoreLocation) FilenameUtils.getName(it) else it }) {
-                setOf(it)
-            }
+            .groupBy { if (settings.ignoreLocation) FilenameUtils.getName(it) else it }
             .let { map ->
                 if (settings.ignoreCase)
-                    CaseInsensitiveMap(map) { duplicates -> duplicates.flatMap { it }.toSet() }
+                    CaseInsensitiveMap(map) { duplicates -> duplicates.flatMap { it } }
                 else map
             }
     val paths =
-        lines.mapNotNull {
+        lines.mapNotNull { line ->
             val candidates =
-                indexLookup[if (settings.ignoreLocation) FilenameUtils.getName(it) else it]
+                indexLookup[if (settings.ignoreLocation) FilenameUtils.getName(line) else line]
             val bestMatch =
-                candidates?.maxByOrNull { it.commonSuffixWith(it, settings.ignoreCase).length }
-            bestMatch ?: if (settings.removeInvalid) null else it
+                candidates?.maxByOrNull { line.commonSuffixWith(it, settings.ignoreCase).length }
+            bestMatch ?: if (settings.removeInvalid) null else line
         }
     return Playlist(name).addPaths(paths)
 }
