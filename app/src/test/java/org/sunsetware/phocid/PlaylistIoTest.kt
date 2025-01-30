@@ -1,12 +1,18 @@
 package org.sunsetware.phocid
 
+import java.util.UUID
 import kotlin.collections.joinToString
 import org.assertj.core.api.Assertions.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.sunsetware.phocid.data.InvalidTrack
+import org.sunsetware.phocid.data.PlaylistEntry
 import org.sunsetware.phocid.data.PlaylistIoSettings
+import org.sunsetware.phocid.data.RealizedPlaylist
+import org.sunsetware.phocid.data.RealizedPlaylistEntry
 import org.sunsetware.phocid.data.parseM3u
+import org.sunsetware.phocid.data.toM3u
 
 @RunWith(RobolectricTestRunner::class)
 class PlaylistIoTest {
@@ -87,7 +93,26 @@ class PlaylistIoTest {
     }
 
     @Test
-    fun parseM3u_CaseSensitiveRoundTrip() {
+    fun parseM3u_RoundTripDoNotIgnoreLocation() {
+        testParseM3u(
+            m3u =
+                parseM3u(
+                        "",
+                        parseM3uLibraryTrackPaths.joinToString("\r\n").toByteArray(Charsets.UTF_8),
+                        parseM3uLibraryTrackPaths,
+                        PlaylistIoSettings(ignoreLocation = false),
+                        Charsets.UTF_8.name(),
+                    )
+                    .entries
+                    .joinToString("\n") { it.path },
+            libraryTrackPaths = parseM3uLibraryTrackPaths,
+            settings = PlaylistIoSettings(ignoreCase = false),
+            expected = parseM3uLibraryTrackPaths.toList(),
+        )
+    }
+
+    @Test
+    fun parseM3u_RoundTripCaseSensitive() {
         val paths = setOf("a", "A")
         testParseM3u(
             m3u =
@@ -103,6 +128,57 @@ class PlaylistIoTest {
             libraryTrackPaths = paths,
             settings = PlaylistIoSettings(ignoreCase = false),
             expected = paths.toList(),
+        )
+    }
+
+    @Test
+    fun toM3u_absolute() {
+        assertThat(
+                RealizedPlaylist(
+                        null,
+                        "",
+                        listOf(realizedPlaylistEntry("/a/b"), realizedPlaylistEntry("/c/d")),
+                    )
+                    .toM3u(PlaylistIoSettings())
+                    .lines()
+            )
+            .containsExactlyInAnyOrder("/a/b", "/c/d")
+    }
+
+    @Test
+    fun toM3u_relative() {
+        assertThat(
+                RealizedPlaylist(
+                        null,
+                        "",
+                        listOf(realizedPlaylistEntry("/a/b"), realizedPlaylistEntry("/c/d")),
+                    )
+                    .toM3u(PlaylistIoSettings(exportRelative = true, exportRelativeBase = "/a"))
+                    .lines()
+            )
+            .containsExactlyInAnyOrder("b", "../c/d")
+    }
+
+    @Test
+    fun toM3u_relativeInvalid() {
+        assertThat(
+                RealizedPlaylist(
+                        null,
+                        "",
+                        listOf(realizedPlaylistEntry("/a/b"), realizedPlaylistEntry("/c/d")),
+                    )
+                    .toM3u(PlaylistIoSettings(exportRelative = true, exportRelativeBase = "|"))
+                    .lines()
+            )
+            .containsExactlyInAnyOrder("/a/b", "/c/d")
+    }
+
+    fun realizedPlaylistEntry(path: String): RealizedPlaylistEntry {
+        return RealizedPlaylistEntry(
+            UUID.fromString("00000000-0000-0000-0000-000000000000"),
+            0,
+            InvalidTrack,
+            PlaylistEntry(UUID.fromString("00000000-0000-0000-0000-000000000000"), path),
         )
     }
 }

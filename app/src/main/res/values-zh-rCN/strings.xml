@@ -146,6 +146,9 @@
     <string name="preferences_player_screen_layout_default">默认</string>
     <string name="preferences_player_screen_layout_no_queue">隐藏队列</string>
     <string name="preferences_playlist_io_settings">播放列表导入与导出设置</string>
+    <string name="preferences_playlist_io_settings_export_relative">导出相对路径</string>
+    <string name="preferences_playlist_io_settings_export_relative_base">路径相对于</string>
+    <string name="preferences_playlist_io_settings_export_relative_base_hint">提示：默认音乐目录为 {0}</string>
     <string name="preferences_playlist_io_settings_ignore_case">忽略文件名大小写</string>
     <string name="preferences_playlist_io_settings_ignore_location">忽略文件位置</string>
     <string name="preferences_playlist_io_settings_remove_invalid">删除未找到的曲目</string>

@@ -8,6 +8,9 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import java.util.UUID
+import kotlin.io.path.Path
+import kotlin.io.path.invariantSeparatorsPathString
+import kotlin.io.path.relativeToOrSelf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -208,6 +211,8 @@ data class PlaylistIoSettings(
     val ignoreCase: Boolean = true,
     val ignoreLocation: Boolean = true,
     val removeInvalid: Boolean = true,
+    val exportRelative: Boolean = false,
+    val exportRelativeBase: String = "",
 )
 
 fun parseM3u(
@@ -242,7 +247,27 @@ fun parseM3u(
 }
 
 fun RealizedPlaylist.toM3u(settings: PlaylistIoSettings): String {
+    val exportRelativeBase =
+        if (settings.exportRelative) {
+            try {
+                Path(settings.exportRelativeBase)
+            } catch (_: Exception) {
+                null
+            }
+        } else null
     return entries
         .filter { if (settings.removeInvalid) it.track != null else true }
-        .joinToString("\n") { it.playlistEntry.path }
+        .joinToString("\n") {
+            if (exportRelativeBase != null) {
+                try {
+                    Path(it.playlistEntry.path)
+                        .relativeToOrSelf(exportRelativeBase)
+                        .invariantSeparatorsPathString
+                } catch (_: Exception) {
+                    it.playlistEntry.path
+                }
+            } else {
+                it.playlistEntry.path
+            }
+        }
 }

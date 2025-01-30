@@ -169,6 +169,9 @@
     <string name="preferences_player_screen_layout_default">Default</string>
     <string name="preferences_player_screen_layout_no_queue">No queue</string>
     <string name="preferences_playlist_io_settings">Playlist I/O settings</string>
+    <string name="preferences_playlist_io_settings_export_relative">Export relative paths</string>
+    <string name="preferences_playlist_io_settings_export_relative_base">Relative path base</string>
+    <string name="preferences_playlist_io_settings_export_relative_base_hint">Hint: default music directory is {0}</string>
     <string name="preferences_playlist_io_settings_ignore_case">Ignore file name case</string>
     <string name="preferences_playlist_io_settings_ignore_location">Ignore file location</string>
     <string name="preferences_playlist_io_settings_remove_invalid">Remove unresolved tracks</string>
