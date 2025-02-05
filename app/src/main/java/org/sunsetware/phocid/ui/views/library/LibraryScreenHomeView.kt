@@ -109,7 +109,7 @@ data class LibraryScreenHomeViewItem(
     val title: String,
     val subtitle: String,
     val artwork: Artwork,
-    val tracks: List<Track>,
+    val tracks: () -> List<Track>,
     val menuItems: (MainViewModel) -> List<MenuItem>,
     val multiSelectMenuItems:
         (
@@ -208,11 +208,11 @@ class LibraryScreenHomeViewState(
                 title = track.displayTitle,
                 subtitle = track.displayArtistWithAlbum,
                 artwork = Artwork.Track(track),
-                tracks = listOf(track),
+                tracks = { listOf(track) },
                 menuItems = { trackMenuItems(track, it.playerManager, it.uiManager) },
                 multiSelectMenuItems = { others, viewModel, continuation ->
                     collectionMenuItems(
-                        { listOf(track) + others.flatMap { it.tracks } },
+                        { listOf(track) + others.flatMap { it.tracks() } },
                         viewModel.playerManager,
                         viewModel.uiManager,
                         continuation,
@@ -241,13 +241,13 @@ class LibraryScreenHomeViewState(
                 title = album.name,
                 subtitle = album.displayAlbumArtist,
                 artwork = Artwork.Track(album.tracks.firstOrNull() ?: InvalidTrack),
-                tracks = album.tracks,
+                tracks = { album.tracks },
                 menuItems = {
                     collectionMenuItems({ album.tracks }, it.playerManager, it.uiManager)
                 },
                 multiSelectMenuItems = { others, viewModel, continuation ->
                     collectionMenuItems(
-                        { album.tracks + others.flatMap { it.tracks } },
+                        { album.tracks + others.flatMap { it.tracks() } },
                         viewModel.playerManager,
                         viewModel.uiManager,
                         continuation,
@@ -275,13 +275,13 @@ class LibraryScreenHomeViewState(
                 title = artist.name,
                 subtitle = artist.displayStatistics,
                 artwork = Artwork.Track(artist.tracks.firstOrNull() ?: InvalidTrack),
-                tracks = artist.tracks,
+                tracks = { artist.tracks },
                 menuItems = {
                     collectionMenuItems({ artist.tracks }, it.playerManager, it.uiManager)
                 },
                 multiSelectMenuItems = { others, viewModel, continuation ->
                     collectionMenuItems(
-                        { artist.tracks + others.flatMap { it.tracks } },
+                        { artist.tracks + others.flatMap { it.tracks() } },
                         viewModel.playerManager,
                         viewModel.uiManager,
                         continuation,
@@ -309,13 +309,13 @@ class LibraryScreenHomeViewState(
                 title = albumArtist.name,
                 subtitle = albumArtist.displayStatistics,
                 artwork = Artwork.Track(albumArtist.tracks.firstOrNull() ?: InvalidTrack),
-                tracks = albumArtist.tracks,
+                tracks = { albumArtist.tracks },
                 menuItems = {
                     collectionMenuItems({ albumArtist.tracks }, it.playerManager, it.uiManager)
                 },
                 multiSelectMenuItems = { others, viewModel, continuation ->
                     collectionMenuItems(
-                        { albumArtist.tracks + others.flatMap { it.tracks } },
+                        { albumArtist.tracks + others.flatMap { it.tracks() } },
                         viewModel.playerManager,
                         viewModel.uiManager,
                         continuation,
@@ -343,13 +343,13 @@ class LibraryScreenHomeViewState(
                 title = genre.name,
                 subtitle = genre.displayStatistics,
                 artwork = Artwork.Track(genre.tracks.firstOrNull() ?: InvalidTrack),
-                tracks = genre.tracks,
+                tracks = { genre.tracks },
                 menuItems = {
                     collectionMenuItems({ genre.tracks }, it.playerManager, it.uiManager)
                 },
                 multiSelectMenuItems = { others, viewModel, continuation ->
                     collectionMenuItems(
-                        { genre.tracks + others.flatMap { it.tracks } },
+                        { genre.tracks + others.flatMap { it.tracks() } },
                         viewModel.playerManager,
                         viewModel.uiManager,
                         continuation,
@@ -386,17 +386,20 @@ class LibraryScreenHomeViewState(
                         title = folder.fileName,
                         subtitle = folder.displayStatistics,
                         artwork = Artwork.Icon(Icons.Outlined.Folder, folder.path.hashColor()),
-                        tracks = folder.childTracks,
+                        tracks = { folder.childTracksRecursive(libraryIndex.folders) },
                         menuItems = {
                             collectionMenuItems(
-                                { folder.childTracks },
+                                { folder.childTracksRecursive(libraryIndex.folders) },
                                 it.playerManager,
                                 it.uiManager,
                             )
                         },
                         multiSelectMenuItems = { others, viewModel, continuation ->
                             collectionMenuItems(
-                                { folder.childTracks + others.flatMap { it.tracks } },
+                                {
+                                    folder.childTracksRecursive(libraryIndex.folders) +
+                                        others.flatMap { it.tracks() }
+                                },
                                 viewModel.playerManager,
                                 viewModel.uiManager,
                                 continuation,
@@ -414,11 +417,11 @@ class LibraryScreenHomeViewState(
                         title = track.fileName,
                         subtitle = track.duration.format(),
                         artwork = Artwork.Track(track),
-                        tracks = listOf(track),
+                        tracks = { listOf(track) },
                         menuItems = { trackMenuItems(track, it.playerManager, it.uiManager) },
                         multiSelectMenuItems = { others, viewModel, continuation ->
                             collectionMenuItems(
-                                { listOf(track) + others.flatMap { it.tracks } },
+                                { listOf(track) + others.flatMap { it.tracks() } },
                                 viewModel.playerManager,
                                 viewModel.uiManager,
                                 continuation,
@@ -452,7 +455,7 @@ class LibraryScreenHomeViewState(
                 artwork =
                     playlist.specialType?.let { Artwork.Icon(it.icon, it.color) }
                         ?: Artwork.Track(playlist.entries.firstOrNull()?.track ?: InvalidTrack),
-                tracks = playlist.validTracks,
+                tracks = { playlist.validTracks },
                 menuItems = {
                     collectionMenuItems({ playlist.validTracks }, it.playerManager, it.uiManager) +
                         MenuItem.Divider +
@@ -460,7 +463,7 @@ class LibraryScreenHomeViewState(
                 },
                 multiSelectMenuItems = { others, viewModel, continuation ->
                     collectionMenuItems(
-                        { playlist.validTracks + others.flatMap { it.tracks } },
+                        { playlist.validTracks + others.flatMap { it.tracks() } },
                         viewModel.playerManager,
                         viewModel.uiManager,
                         continuation,

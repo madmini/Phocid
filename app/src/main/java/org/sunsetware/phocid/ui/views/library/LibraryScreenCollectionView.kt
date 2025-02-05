@@ -152,6 +152,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
     @Immutable
     data class LibraryFolder(
         val folder: Folder,
+        val childTracksRecursive: () -> List<Track>,
         override val title: String,
         override val subtitle: String,
         override val lead: LibraryScreenCollectionViewItemLead,
@@ -163,7 +164,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
             get() = null
 
         override val multiSelectTracks
-            get() = folder.childTracks
+            get() = childTracksRecursive()
 
         override val composeKey
             get() = folder.path
@@ -178,7 +179,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
 
         override fun getMenuItems(viewModel: MainViewModel): List<MenuItem> {
             return collectionMenuItems(
-                { folder.childTracks },
+                { childTracksRecursive() },
                 viewModel.playerManager,
                 viewModel.uiManager,
             )
@@ -582,6 +583,7 @@ data class FolderCollectionViewInfo(val folder: Folder, val folderIndex: Map<Str
                 val childFolder = folderIndex[child]!!
                 LibraryScreenCollectionViewItem.LibraryFolder(
                     folder = childFolder,
+                    childTracksRecursive = { childFolder.childTracksRecursive(folderIndex) },
                     title = childFolder.fileName,
                     subtitle = childFolder.displayStatistics,
                     lead =

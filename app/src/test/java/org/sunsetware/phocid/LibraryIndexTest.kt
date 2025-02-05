@@ -148,6 +148,7 @@ class LibraryIndexTest {
         val index = listOf(track1, track2, track3).libraryIndex()
         assertThat(index.folders.keys).contains("music")
         assertThat(index.folders.keys).contains("music/album")
+        assertThat(index.folders["music"]?.childFolders).containsExactly("music/album")
         assertThat(index.folders["music"]?.childTracks).containsExactly(track1)
         assertThat(index.folders["music/album"]?.childTracks).containsExactly(track2, track3)
     }
@@ -159,6 +160,17 @@ class LibraryIndexTest {
         val index = listOf(track1, track2).libraryIndex()
         assertThat(index.folders.keys).containsExactlyInAnyOrder("")
         assertThat(index.folders[""]?.childTracks).containsExactly(track1, track2)
+    }
+
+    @Test
+    fun indexing_folder_ChildTracksRecursive() {
+        val track1 = track(1, path = "/music/track1.mp3")
+        val track2 = track(2, path = "/music/album/track2.mp3")
+        val track3 = track(3, path = "/music/album2/track3.mp3")
+        val track4 = track(4, path = "/track4.mp3")
+        val index = listOf(track1, track2, track3, track4).libraryIndex()
+        assertThat(index.folders["music"]?.childTracksRecursive(index.folders))
+            .containsExactly(track1, track2, track3)
     }
 
     fun track(

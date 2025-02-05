@@ -639,6 +639,17 @@ data class Folder(
                 Strings[R.string.count_track].icuFormat(childTracks.size),
             )
 
+    fun childTracksRecursive(folderIndex: Map<String, Folder>): List<Track> {
+        val stack = mutableListOf(this)
+        val tracks = mutableListOf<Track>()
+        while (stack.isNotEmpty()) {
+            val current = stack.removeAt(0)
+            stack.addAll(0, current.childFolders.mapNotNull { folderIndex[it] })
+            tracks.addAll(current.childTracks)
+        }
+        return tracks
+    }
+
     override val searchableStrings: List<String>
         get() = listOf(fileName)
 
