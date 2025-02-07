@@ -15,8 +15,6 @@ const val PLAYER_STATE_FILE_NAME = "playerState"
 const val UI_STATE_FILE_NAME = "uiState"
 
 const val UNSHUFFLED_INDEX_KEY = "originalIndex"
-const val SET_SHUFFLE_COMMAND = "setShuffle"
-const val SHUFFLE_KEY = "shuffle"
 const val SET_TIMER_COMMAND = "setTimer"
 const val TIMER_TARGET_KEY = "timerTarget"
 const val TIMER_FINISH_LAST_TRACK_KEY = "timerFinishLastTrack"

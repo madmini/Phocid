@@ -52,7 +52,6 @@ data class PlayerState(
 
 /** This method should work even if values of [UNSHUFFLED_INDEX_KEY] are discontinuous. */
 private fun MediaController.capturePlayerState(): PlayerState {
-    val shuffle = sessionExtras.getBoolean(SHUFFLE_KEY, false)
     val mediaItems = (0..<mediaItemCount).map { getMediaItemAt(it) }
     fun getUnshuffledPlayQueueMapping(): List<Int> {
         return mediaItems
@@ -64,11 +63,11 @@ private fun MediaController.capturePlayerState(): PlayerState {
     }
     val actualPlayQueue = mediaItems.map { it.mediaId.toLong() }
     return PlayerState(
-        if (shuffle) getUnshuffledPlayQueueMapping() else null,
+        if (shuffleModeEnabled) getUnshuffledPlayQueueMapping() else null,
         actualPlayQueue,
         currentMediaItemIndex,
         if (isPlaying) 0 else currentPosition,
-        shuffle,
+        shuffleModeEnabled,
         repeatMode,
         playbackParameters.speed,
         playbackParameters.pitch,
@@ -79,6 +78,8 @@ private fun MediaController.restorePlayerState(
     state: PlayerState,
     unfilteredTrackIndex: UnfilteredTrackIndex,
 ) {
+    // Shuffle must be set before items or items will be shuffled again
+    shuffleModeEnabled = state.shuffle
     setMediaItems(
         state.actualPlayQueue.mapIndexed { index, id ->
             unfilteredTrackIndex.tracks[id]!!.getMediaItem(
@@ -87,10 +88,6 @@ private fun MediaController.restorePlayerState(
         }
     )
     seekTo(state.currentIndex, state.currentPosition)
-    sendCustomCommand(
-        SessionCommand(SET_SHUFFLE_COMMAND, Bundle.EMPTY),
-        bundleOf(Pair(SHUFFLE_KEY, state.shuffle)),
-    )
     repeatMode = state.repeat
     playbackParameters = PlaybackParameters(state.speed, state.pitch)
 }
@@ -355,68 +352,8 @@ class PlayerManager : AutoCloseable {
         mediaController.clearMediaItems()
     }
 
-    fun toggleShuffle(libraryIndex: LibraryIndex) {
-        val stateSnapshot = _state.value
-        with(stateSnapshot) {
-            if (actualPlayQueue.count() > 0) {
-                if (shuffle) {
-                    // Disable shuffling.
-                    val unshuffledIndex = unshuffledPlayQueueMapping!!.indexOf(currentIndex)
-                    mediaController.replaceMediaItem(
-                        currentIndex,
-                        libraryIndex.tracks[actualPlayQueue[currentIndex]]!!.getMediaItem(
-                            unshuffledIndex
-                        ),
-                    )
-                    mediaController.replaceMediaItems(
-                        currentIndex + 1,
-                        actualPlayQueue.size,
-                        unshuffledPlayQueueMapping
-                            .subList(unshuffledIndex + 1, unshuffledPlayQueueMapping.size)
-                            .mapNotNull {
-                                libraryIndex.tracks[actualPlayQueue[it]]?.getMediaItem(null)
-                            },
-                    )
-                    mediaController.replaceMediaItems(
-                        0,
-                        currentIndex,
-                        unshuffledPlayQueueMapping.subList(0, unshuffledIndex).mapNotNull {
-                            libraryIndex.tracks[actualPlayQueue[it]]?.getMediaItem(null)
-                        },
-                    )
-                } else {
-                    // Enable shuffling.
-                    val shuffledPlayQueue =
-                        actualPlayQueue
-                            .mapIndexed { index, id ->
-                                Pair(index, libraryIndex.tracks[id]?.getMediaItem(index))
-                            }
-                            .filter { it.first != currentIndex && it.second != null }
-                            .shuffled(Random)
-                            .map { it.second!! }
-                    mediaController.replaceMediaItems(
-                        currentIndex + 1,
-                        actualPlayQueue.size,
-                        shuffledPlayQueue,
-                    )
-                    mediaController.removeMediaItems(0, currentIndex)
-                    mediaController.replaceMediaItem(
-                        0,
-                        libraryIndex.tracks[actualPlayQueue[currentIndex]]!!.getMediaItem(
-                            currentIndex
-                        ),
-                    )
-                }
-            }
-
-            mediaController.sendCustomCommand(
-                SessionCommand(SET_SHUFFLE_COMMAND, Bundle.EMPTY),
-                bundleOf(Pair(SHUFFLE_KEY, !shuffle)),
-            )
-            // Media3 will not trigger [onEvents] if the playlist has not not fundamentally changed,
-            // so a manual update is required.
-            updateState()
-        }
+    fun toggleShuffle() {
+        mediaController.shuffleModeEnabled = !mediaController.shuffleModeEnabled
     }
 
     fun toggleRepeat() {
@@ -464,21 +401,6 @@ class PlayerManager : AutoCloseable {
     fun setSpeedAndPitch(speed: Float, pitch: Float) {
         mediaController.playbackParameters = PlaybackParameters(speed, pitch)
     }
-}
-
-private fun MediaItem.getUnshuffledIndex(): Int? {
-    return mediaMetadata.extras?.getInt(UNSHUFFLED_INDEX_KEY, -1)?.takeIf { it >= 0 }
-}
-
-private fun MediaItem.setUnshuffledIndex(unshuffledIndex: Int): MediaItem {
-    return buildUpon()
-        .setMediaMetadata(
-            mediaMetadata
-                .buildUpon()
-                .setExtras(bundleOf(Pair(UNSHUFFLED_INDEX_KEY, unshuffledIndex)))
-                .build()
-        )
-        .build()
 }
 
 private fun Track.getMediaItem(unshuffledIndex: Int?): MediaItem {

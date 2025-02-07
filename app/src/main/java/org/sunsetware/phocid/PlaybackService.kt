@@ -8,10 +8,13 @@ import android.media.AudioManager
 import android.media.audiofx.AudioEffect
 import android.os.Bundle
 import android.os.SystemClock
+import android.util.Log
 import androidx.annotation.OptIn
+import androidx.core.os.bundleOf
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.ForwardingPlayer
+import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.TrackSelectionParameters.AudioOffloadPreferences
@@ -34,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.sunsetware.phocid.utils.Random
 
 @OptIn(UnstableApi::class)
 class PlaybackService : MediaSessionService() {
@@ -158,15 +162,6 @@ class PlaybackService : MediaSessionService() {
                             args: Bundle,
                         ): ListenableFuture<SessionResult> {
                             when (customCommand.customAction) {
-                                SET_SHUFFLE_COMMAND -> {
-                                    session.updateSessionExtras {
-                                        putBoolean(SHUFFLE_KEY, args.getBoolean(SHUFFLE_KEY))
-                                    }
-                                    return Futures.immediateFuture(
-                                        SessionResult(SessionResult.RESULT_SUCCESS)
-                                    )
-                                }
-
                                 SET_TIMER_COMMAND -> {
                                     runBlocking {
                                         timerMutex.withLock {
@@ -213,7 +208,6 @@ class PlaybackService : MediaSessionService() {
                             return ConnectionResult.AcceptedResultBuilder(session)
                                 .setAvailableSessionCommands(
                                     ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
-                                        .add(SessionCommand(SET_SHUFFLE_COMMAND, Bundle.EMPTY))
                                         .add(SessionCommand(SET_TIMER_COMMAND, Bundle.EMPTY))
                                         .add(
                                             SessionCommand(
@@ -282,12 +276,114 @@ class PlaybackService : MediaSessionService() {
     }
 }
 
-/** TODO: try to find a way to move shuffling logic here instead of blocking the built-in shuffle */
 @UnstableApi
 private class CustomizedPlayer(val inner: ExoPlayer) : ForwardingPlayer(inner) {
-    override fun getShuffleModeEnabled(): Boolean {
-        return false
+    private val listeners = mutableListOf<Player.Listener>()
+    private var shuffle = false
+
+    override fun addListener(listener: Player.Listener) {
+        listeners.add(listener)
+        super.addListener(listener)
     }
 
-    override fun setShuffleModeEnabled(shuffleModeEnabled: Boolean) {}
+    override fun removeListener(listener: Player.Listener) {
+        listeners.remove(listener)
+        super.removeListener(listener)
+    }
+
+    override fun getShuffleModeEnabled(): Boolean {
+        return shuffle
+    }
+
+    override fun setShuffleModeEnabled(shuffleModeEnabled: Boolean) {
+        var raiseEvent = true
+        if (shuffleModeEnabled && !shuffle) {
+            enableShuffle()
+        } else if (!shuffleModeEnabled && shuffle) {
+            disableShuffle()
+        } else {
+            raiseEvent = false
+        }
+
+        shuffle = shuffleModeEnabled
+
+        if (raiseEvent) {
+            for (listener in listeners) {
+                listener.onShuffleModeEnabledChanged(shuffleModeEnabled)
+            }
+        }
+    }
+
+    fun enableShuffle() {
+        if (currentTimeline.isEmpty) return
+
+        val currentIndex = currentMediaItemIndex
+        val itemCount = mediaItemCount
+        val shuffledPlayQueue =
+            (0..<itemCount)
+                .map { getMediaItemAt(it) }
+                .mapIndexed { index, mediaItem -> index to mediaItem.setUnshuffledIndex(index) }
+                .filter { it.first != currentIndex }
+                .shuffled(Random)
+                .map { it.second }
+        replaceMediaItems(currentIndex + 1, itemCount, shuffledPlayQueue)
+        removeMediaItems(0, currentIndex)
+        replaceMediaItem(0, currentMediaItem!!.setUnshuffledIndex(currentIndex))
+    }
+
+    fun disableShuffle() {
+        if (currentTimeline.isEmpty) return
+
+        val currentIndex = currentMediaItemIndex
+        val itemCount = mediaItemCount
+        val unshuffledIndex = currentMediaItem!!.getUnshuffledIndex()
+        if (unshuffledIndex == null) {
+            Log.e("Phocid", "Current track has no unshuffled index when disabling shuffle")
+            replaceMediaItems(
+                0,
+                itemCount,
+                (0..<itemCount).map { getMediaItemAt(it).setUnshuffledIndex(null) },
+            )
+        } else {
+            val unshuffledPlayQueue =
+                (0..<itemCount)
+                    .map { getMediaItemAt(it) }
+                    .mapNotNull { mediaItem ->
+                        mediaItem.getUnshuffledIndex()?.let { Pair(mediaItem, it) }
+                    }
+                    .sortedBy { it.second }
+                    .map { it.first }
+            replaceMediaItem(currentIndex, currentMediaItem!!.setUnshuffledIndex(null))
+            replaceMediaItems(
+                currentIndex + 1,
+                itemCount,
+                unshuffledPlayQueue.subList(unshuffledIndex + 1, unshuffledPlayQueue.size).map {
+                    it.setUnshuffledIndex(null)
+                },
+            )
+            replaceMediaItems(
+                0,
+                currentIndex,
+                unshuffledPlayQueue.subList(0, unshuffledIndex).map { it.setUnshuffledIndex(null) },
+            )
+        }
+    }
+}
+
+fun MediaItem.getUnshuffledIndex(): Int? {
+    return mediaMetadata.extras?.getInt(UNSHUFFLED_INDEX_KEY, -1)?.takeIf { it >= 0 }
+}
+
+fun MediaItem.setUnshuffledIndex(unshuffledIndex: Int?): MediaItem {
+    return buildUpon()
+        .setMediaMetadata(
+            mediaMetadata
+                .buildUpon()
+                .setExtras(
+                    if (unshuffledIndex == null) bundleOf()
+                    else bundleOf(Pair(UNSHUFFLED_INDEX_KEY, unshuffledIndex))
+                )
+                .build()
+        )
+        .build()
 }

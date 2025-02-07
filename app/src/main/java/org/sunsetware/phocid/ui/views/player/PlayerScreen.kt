@@ -397,7 +397,7 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                 onSeekToPreviousSmart = { playerManager.seekToPreviousSmart() },
                                 onTogglePlay = { playerManager.togglePlay() },
                                 onSeekToNext = { playerManager.seekToNext() },
-                                onToggleShuffle = { playerManager.toggleShuffle(libraryIndex) },
+                                onToggleShuffle = { playerManager.toggleShuffle() },
                                 onTogglePlayQueue = {
                                     playQueueDragState.animateTo(
                                         if (playQueueDragState.position <= 0) 1f else 0f
