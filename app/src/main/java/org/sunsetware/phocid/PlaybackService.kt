@@ -48,6 +48,8 @@ class PlaybackService : MediaSessionService() {
     @Volatile private var timerFinishLastTrack = true
     @Volatile private var playOnOutputDeviceConnection = false
     @Volatile private var audioOffloading = true
+    @Volatile private var lastIndex = null as Int?
+    @Volatile private var reshuffleOnRepeat = false
     private val audioDeviceCallback =
         object : AudioDeviceCallback() {
             override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo?>?) {
@@ -122,6 +124,23 @@ class PlaybackService : MediaSessionService() {
                 override fun onPlaybackParametersChanged(playbackParameters: PlaybackParameters) {
                     player.updateAudioOffloading(audioOffloading)
                 }
+
+                override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                    if (
+                        player.currentMediaItemIndex == 0 &&
+                            lastIndex == player.mediaItemCount - 1 &&
+                            (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO ||
+                                reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK) &&
+                            player.shuffleModeEnabled &&
+                            reshuffleOnRepeat &&
+                            player.mediaItemCount > 2
+                    ) {
+                        player.seekTo(Random.nextInt(0, player.mediaItemCount - 1), 0)
+                        player.disableShuffle()
+                        player.enableShuffle()
+                    }
+                    lastIndex = player.currentMediaItemIndex
+                }
             }
         )
         coroutineScope.launch {
@@ -188,6 +207,8 @@ class PlaybackService : MediaSessionService() {
                                     playOnOutputDeviceConnection =
                                         args.getBoolean(PLAY_ON_OUTPUT_DEVICE_CONNECTION_KEY, false)
                                     audioOffloading = args.getBoolean(AUDIO_OFFLOADING_KEY, true)
+                                    reshuffleOnRepeat =
+                                        args.getBoolean(RESHUFFLE_ON_REPEAT_KEY, false)
                                     player.updateAudioOffloading(audioOffloading)
                                     return Futures.immediateFuture(
                                         SessionResult(SessionResult.RESULT_SUCCESS)

@@ -195,6 +195,13 @@ object PreferencesScreen : TopLevelScreen() {
                             viewModel.updatePreferences { it.copy(audioOffloading = checked) }
                         },
                     )
+                    UtilitySwitchListItem(
+                        title = Strings[R.string.preferences_reshuffle_on_repeat],
+                        checked = preferences.reshuffleOnRepeat,
+                        onCheckedChange = { checked ->
+                            viewModel.updatePreferences { it.copy(reshuffleOnRepeat = checked) }
+                        },
+                    )
                     UtilityListHeader(Strings[R.string.preferences_theme])
                     UtilityListItem(
                         title = Strings[R.string.preferences_dark_theme],

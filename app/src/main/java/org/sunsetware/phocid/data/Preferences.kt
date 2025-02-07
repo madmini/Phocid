@@ -50,6 +50,7 @@ data class Preferences(
     // Playback
     val playOnOutputDeviceConnection: Boolean = false,
     val audioOffloading: Boolean = true,
+    val reshuffleOnRepeat: Boolean = false,
     // Theme
     val darkTheme: DarkThemePreference = DarkThemePreference.SYSTEM,
     val themeColorSource: ThemeColorSource = ThemeColorSource.MATERIAL_YOU,

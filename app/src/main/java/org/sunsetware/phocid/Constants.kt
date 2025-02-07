@@ -21,6 +21,7 @@ const val TIMER_FINISH_LAST_TRACK_KEY = "timerFinishLastTrack"
 const val SET_PLAYBACK_PREFERENCE_COMMAND = "setPlaybackPreference"
 const val PLAY_ON_OUTPUT_DEVICE_CONNECTION_KEY = "playOnOutputDeviceConnection"
 const val AUDIO_OFFLOADING_KEY = "audioOffloading"
+const val RESHUFFLE_ON_REPEAT_KEY = "reshuffleOnRepeat"
 
 const val UNKNOWN = "<unknown>"
 
