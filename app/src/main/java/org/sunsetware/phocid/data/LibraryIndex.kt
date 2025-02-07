@@ -958,20 +958,23 @@ data class LibraryIndex(
                 parentFolder.childTracks.add(track)
                 parentFolder.childTracksCountRecursive++
             }
-            folders.keys.toMutableList().forEach {
-                var currentPath = it
-                var parentPath = FilenameUtils.getPathNoEndSeparator(it)
-                while (currentPath.isNotEmpty()) {
-                    val parentFolderExists = folders.containsKey(parentPath)
-                    val parentFolder = folders.getOrPut(parentPath) { MutableFolder(parentPath) }
-                    parentFolder.childFolders.add(currentPath)
-                    parentFolder.childTracksCountRecursive +=
-                        folders[currentPath]!!.childTracksCountRecursive
-                    if (parentFolderExists) break
-                    currentPath = parentPath
-                    parentPath = FilenameUtils.getPathNoEndSeparator(parentPath)
+            folders.keys
+                .sortedByDescending { it.length }
+                .forEach {
+                    var currentPath = it
+                    var parentPath = FilenameUtils.getPathNoEndSeparator(it)
+                    while (currentPath.isNotEmpty()) {
+                        val parentFolderExists = folders.containsKey(parentPath)
+                        val parentFolder =
+                            folders.getOrPut(parentPath) { MutableFolder(parentPath) }
+                        parentFolder.childFolders.add(currentPath)
+                        parentFolder.childTracksCountRecursive +=
+                            folders[currentPath]!!.childTracksCountRecursive
+                        if (parentFolderExists) break
+                        currentPath = parentPath
+                        parentPath = FilenameUtils.getPathNoEndSeparator(parentPath)
+                    }
                 }
-            }
             return folders.mapValues { it.value.toFolder(collator) }
         }
 

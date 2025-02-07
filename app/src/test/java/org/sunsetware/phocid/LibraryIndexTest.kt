@@ -171,6 +171,10 @@ class LibraryIndexTest {
         val index = listOf(track1, track2, track3, track4).libraryIndex()
         assertThat(index.folders["music"]?.childTracksRecursive(index.folders))
             .containsExactly(track1, track2, track3)
+        assertThat(index.folders["music"]?.childTracksCountRecursive).isEqualTo(3)
+        assertThat(index.folders[""]?.childTracksRecursive(index.folders))
+            .containsExactly(track4, track1, track2, track3)
+        assertThat(index.folders[""]?.childTracksCountRecursive).isEqualTo(4)
     }
 
     fun track(
