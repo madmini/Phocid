@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.util.UUID
-import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.StateFlow
@@ -80,7 +79,7 @@ import org.sunsetware.phocid.ui.components.trackMenuItems
 import org.sunsetware.phocid.ui.theme.hashColor
 import org.sunsetware.phocid.utils.combine
 import org.sunsetware.phocid.utils.icuFormat
-import org.sunsetware.phocid.utils.sumOf
+import org.sunsetware.phocid.utils.sumOfDuration
 
 @Immutable
 sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCollectionViewItem> {
@@ -88,7 +87,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
     abstract val title: String
     abstract val subtitle: String
     abstract val lead: LibraryScreenCollectionViewItemLead
-    abstract val playTrack: Track?
+    abstract val playTracks: List<Track>
     abstract val multiSelectTracks: List<Track>
     abstract val composeKey: Any
 
@@ -111,8 +110,8 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
         override val sortable
             get() = track
 
-        override val playTrack
-            get() = track
+        override val playTracks
+            get() = listOf(track)
 
         override val multiSelectTracks
             get() = listOf(track)
@@ -126,8 +125,8 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
             viewModel: MainViewModel,
         ) {
             viewModel.playerManager.setTracks(
-                items.mapNotNull { it.playTrack },
-                items.take(index).count { it.playTrack != null },
+                items.flatMap { it.playTracks },
+                items.take(index).sumOf { it.playTracks.size },
             )
         }
 
@@ -160,8 +159,8 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
         override val sortable
             get() = folder
 
-        override val playTrack
-            get() = null
+        override val playTracks
+            get() = childTracksRecursive()
 
         override val multiSelectTracks
             get() = childTracksRecursive()
@@ -210,8 +209,8 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
         override val sortable
             get() = playlistEntry.track!!
 
-        override val playTrack
-            get() = playlistEntry.track!!
+        override val playTracks
+            get() = listOf(playlistEntry.track!!)
 
         override val multiSelectTracks
             get() = listOf(playlistEntry.track!!)
@@ -225,14 +224,14 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
             viewModel: MainViewModel,
         ) {
             viewModel.playerManager.setTracks(
-                items.mapNotNull { it.playTrack },
-                items.take(index).count { it.playTrack != null },
+                items.flatMap { it.playTracks },
+                items.take(index).sumOf { it.playTracks.size },
             )
         }
 
         override fun getMenuItems(viewModel: MainViewModel): List<MenuItem> {
             return playlistTrackMenuItems(playlistKey, playlistEntry.key, viewModel.uiManager) +
-                trackMenuItems(playTrack, viewModel.playerManager, viewModel.uiManager)
+                trackMenuItems(playTracks.first(), viewModel.playerManager, viewModel.uiManager)
         }
 
         override fun getMultiSelectMenuItems(
@@ -806,13 +805,17 @@ fun LibraryScreenCollectionView(
                     }
                     item {
                         val totalDuration =
-                            items.sumOf { it.value.playTrack?.duration ?: Duration.ZERO }.format()
+                            items
+                                .sumOfDuration { item ->
+                                    item.value.playTracks.sumOfDuration { it.duration }
+                                }
+                                .format()
                         LibraryListHeader(
                             Strings.separate(
                                 info.additionalStatistics +
                                     listOf(
                                         Strings[R.string.count_track].icuFormat(
-                                            items.count { it.value.playTrack != null }
+                                            items.sumOf { it.value.playTracks.size }
                                         ),
                                         totalDuration,
                                     )

@@ -201,8 +201,8 @@ fun LibraryScreen(
                 onSearchQueryChange = { query -> searchQueryBuffer = query },
                 onPlayAll = {
                     playerManager.setTracks(
-                        currentCollection?.multiSelectState?.items?.value?.mapNotNull {
-                            it.value.playTrack
+                        currentCollection?.multiSelectState?.items?.value?.flatMap {
+                            it.value.playTracks
                         }
                             ?: libraryIndex.tracks.values.let { tracks ->
                                 val tracksTab =

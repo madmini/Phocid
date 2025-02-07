@@ -81,7 +81,7 @@ class PlayerScreenQueueDefaultBase(
         val upNextCount = playQueue.size - currentTrackIndex - 1
         val upNextDuration =
             remember(playQueue, currentTrackIndex) {
-                playQueue.drop(currentTrackIndex + 1).sumOf { it.second.duration }.format()
+                playQueue.drop(currentTrackIndex + 1).sumOfDuration { it.second.duration }.format()
             }
 
         var reorderableQueue by remember { mutableStateOf(null as List<Pair<Any, Track>>?) }

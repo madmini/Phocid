@@ -629,6 +629,7 @@ data class Folder(
     val fileName: String,
     val childFolders: List<String>,
     val childTracks: List<Track>,
+    val childTracksCountRecursive: Int,
 ) : Searchable, Sortable {
     val displayStatistics
         get() =
@@ -636,7 +637,7 @@ data class Folder(
                 childFolders.size
                     .takeIf { it != 0 }
                     ?.let { Strings[R.string.count_folder].icuFormat(it) },
-                Strings[R.string.count_track].icuFormat(childTracks.size),
+                Strings[R.string.count_track].icuFormat(childTracksCountRecursive),
             )
 
     fun childTracksRecursive(folderIndex: Map<String, Folder>): List<Track> {
@@ -704,16 +705,18 @@ private data class MutableFolder(
     val path: String,
     val childFolders: MutableSet<String> = mutableSetOf(),
     val childTracks: MutableList<Track> = mutableListOf(),
+    var childTracksCountRecursive: Int = 0,
 ) {
     fun toFolder(collator: Collator): Folder {
         return Folder(
             path,
             FilenameUtils.getName(path),
             childFolders
-                .map { it to Folder(it, FilenameUtils.getName(it), emptyList(), emptyList()) }
+                .map { it to Folder(it, FilenameUtils.getName(it), emptyList(), emptyList(), 0) }
                 .sortedBy(collator, Folder.SortingOptions.values.first().keys, true) { it.second }
                 .map { it.first },
             childTracks.sorted(collator, Folder.SortingOptions.values.first().keys, true),
+            childTracksCountRecursive,
         )
     }
 }
@@ -953,6 +956,7 @@ data class LibraryIndex(
                 val parentPath = FilenameUtils.getPathNoEndSeparator(track.path)
                 val parentFolder = folders.getOrPut(parentPath) { MutableFolder(parentPath) }
                 parentFolder.childTracks.add(track)
+                parentFolder.childTracksCountRecursive++
             }
             folders.keys.toMutableList().forEach {
                 var currentPath = it
@@ -961,6 +965,8 @@ data class LibraryIndex(
                     val parentFolderExists = folders.containsKey(parentPath)
                     val parentFolder = folders.getOrPut(parentPath) { MutableFolder(parentPath) }
                     parentFolder.childFolders.add(currentPath)
+                    parentFolder.childTracksCountRecursive +=
+                        folders[currentPath]!!.childTracksCountRecursive
                     if (parentFolderExists) break
                     currentPath = parentPath
                     parentPath = FilenameUtils.getPathNoEndSeparator(parentPath)

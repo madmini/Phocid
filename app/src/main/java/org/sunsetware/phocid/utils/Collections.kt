@@ -46,6 +46,7 @@ inline fun <T, R> Iterable<T>.modeOfNotNullOrNull(selector: (T) -> R): R? {
     return groupBy { selector(it) }.filter { it.key != null }.maxByOrNull { it.value.size }?.key
 }
 
-inline fun <T> Iterable<T>.sumOf(transform: (T) -> Duration): Duration {
+/** Not named `sumOf` because [OverloadResolutionByLambdaReturnType] doesn't work. */
+inline fun <T> Iterable<T>.sumOfDuration(transform: (T) -> Duration): Duration {
     return map(transform).fold(Duration.ZERO, Duration::plus)
 }
