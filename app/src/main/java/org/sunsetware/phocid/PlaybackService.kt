@@ -303,7 +303,7 @@ class PlaybackService : MediaSessionService() {
 
 @UnstableApi
 private class CustomizedPlayer(val inner: ExoPlayer) : ForwardingPlayer(inner) {
-    private val listeners = mutableListOf<Player.Listener>()
+    private val listeners = mutableSetOf<Player.Listener>()
     private var shuffle = false
 
     override fun addListener(listener: Player.Listener) {
