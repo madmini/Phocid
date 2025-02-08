@@ -188,6 +188,13 @@ object PreferencesScreen : TopLevelScreen() {
                         },
                     )
                     UtilitySwitchListItem(
+                        title = Strings[R.string.preferences_pause_on_focus_loss],
+                        checked = preferences.pauseOnFocusLoss,
+                        onCheckedChange = { checked ->
+                            viewModel.updatePreferences { it.copy(pauseOnFocusLoss = checked) }
+                        },
+                    )
+                    UtilitySwitchListItem(
                         title = Strings[R.string.preferences_audio_offloading],
                         subtitle = Strings[R.string.preferences_audio_offloading_subtitle],
                         checked = preferences.audioOffloading,

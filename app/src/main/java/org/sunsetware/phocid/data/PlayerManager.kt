@@ -192,6 +192,7 @@ class PlayerManager : AutoCloseable {
                                     PLAY_ON_OUTPUT_DEVICE_CONNECTION_KEY,
                                     it.playOnOutputDeviceConnection,
                                 ),
+                                Pair(PAUSE_ON_FOCUS_LOSS, it.pauseOnFocusLoss),
                                 Pair(AUDIO_OFFLOADING_KEY, it.audioOffloading),
                                 Pair(RESHUFFLE_ON_REPEAT_KEY, it.reshuffleOnRepeat),
                             ),

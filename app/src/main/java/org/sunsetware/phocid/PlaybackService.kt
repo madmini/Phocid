@@ -206,6 +206,10 @@ class PlaybackService : MediaSessionService() {
                                 SET_PLAYBACK_PREFERENCE_COMMAND -> {
                                     playOnOutputDeviceConnection =
                                         args.getBoolean(PLAY_ON_OUTPUT_DEVICE_CONNECTION_KEY, false)
+                                    player.setAudioAttributes(
+                                        player.audioAttributes,
+                                        args.getBoolean(PAUSE_ON_FOCUS_LOSS, true),
+                                    )
                                     audioOffloading = args.getBoolean(AUDIO_OFFLOADING_KEY, true)
                                     reshuffleOnRepeat =
                                         args.getBoolean(RESHUFFLE_ON_REPEAT_KEY, false)

@@ -49,6 +49,7 @@ data class Preferences(
     val densityMultiplier: Float = 1f,
     // Playback
     val playOnOutputDeviceConnection: Boolean = false,
+    val pauseOnFocusLoss: Boolean = true,
     val audioOffloading: Boolean = true,
     val reshuffleOnRepeat: Boolean = false,
     // Theme
