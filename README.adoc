@@ -17,6 +17,8 @@ A modern offline music player with familiar designs for Android 11+.
 
 This project aims to be a replacement with personal tweaks for the now-defunct https://github.com/kabouzeid/Phonograph[Phonograph] music player, but has no connections with it.
 
+Phocid is not officially available on Google Play or other app stores except https://f-droid.org/en/packages/org.sunsetware.phocid/[F-Droid]. I don't provide support for unauthorized repackaged versions, and you should report repackagers who violate GPL.
+
 == Features
 
 * Familiar user experience
