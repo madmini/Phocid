@@ -491,10 +491,7 @@ private fun playerMenuItems(
         },
         MenuItem.Button(Strings[R.string.player_save_queue], Icons.Filled.AddBox) {
             val state = playerManager.state.value
-            val tracks =
-                state.unshuffledPlayQueueMapping?.mapNotNull {
-                    libraryIndex.tracks[state.actualPlayQueue[it]]
-                } ?: state.actualPlayQueue.mapNotNull { libraryIndex.tracks[it] }
+            val tracks = state.actualPlayQueue.mapNotNull { libraryIndex.tracks[it] }
             uiManager.openDialog(NewPlaylistDialog(tracks))
         },
         MenuItem.Button(Strings[R.string.player_timer], Icons.Filled.Timer) {
