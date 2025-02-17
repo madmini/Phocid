@@ -71,10 +71,11 @@ fun loadCbor(type: KType, context: Context, fileName: String, isCache: Boolean):
         if (ex is SerializationException || ex is IllegalArgumentException) {
             Log.e("loadCbor", "$fileName is corrupted, loading backup")
             try {
-                Cbor.decodeFromByteArray(
-                    Cbor.serializersModule.serializer(type),
-                    backupFile.readBytes(),
-                )
+                Cbor { ignoreUnknownKeys = true }
+                    .decodeFromByteArray(
+                        Cbor.serializersModule.serializer(type),
+                        backupFile.readBytes(),
+                    )
             } catch (ex2: Exception) {
                 Log.e("loadCbor", "$fileName's backup is corrupted", ex2)
                 null
