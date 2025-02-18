@@ -6,4 +6,5 @@ import kotlinx.serialization.Serializable
 data class PersistentUiState(
     val libraryScreenHomeViewPage: Int = 0,
     val playerTimerSettings: PlayerTimerSettings = PlayerTimerSettings(),
+    val playlistIoSyncHelpShown: Boolean = false,
 )

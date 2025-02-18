@@ -78,7 +78,8 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                 libraryIndex
             }
 
-    val playlistManager = PlaylistManager(viewModelScope, libraryIndex)
+    val playlistManager =
+        PlaylistManager(application.applicationContext, viewModelScope, _preferences, libraryIndex)
 
     val uiManager =
         UiManager(
@@ -134,7 +135,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                                     }
                                 _unfilteredTrackIndex.update { unfilteredTrackIndex }
 
-                                playlistManager.initialize(application.applicationContext)
+                                playlistManager.initialize()
 
                                 playerManager.initialize(
                                     application.applicationContext,
@@ -201,6 +202,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                     }
                 }
             }
+            playlistManager.syncPlaylists()
         }
     }
 

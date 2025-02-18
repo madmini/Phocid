@@ -27,13 +27,13 @@ import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.data.albumKey
 import org.sunsetware.phocid.ui.views.AddToPlaylistDialog
 import org.sunsetware.phocid.ui.views.DeletePlaylistDialog
-import org.sunsetware.phocid.ui.views.PlaylistEditScreen
-import org.sunsetware.phocid.ui.views.PlaylistIoScreen
 import org.sunsetware.phocid.ui.views.RemoveFromPlaylistDialog
 import org.sunsetware.phocid.ui.views.RenamePlaylistDialog
 import org.sunsetware.phocid.ui.views.TrackDetailsDialog
 import org.sunsetware.phocid.ui.views.library.openAlbumCollectionView
 import org.sunsetware.phocid.ui.views.library.openArtistCollectionView
+import org.sunsetware.phocid.ui.views.playlist.PlaylistEditScreen
+import org.sunsetware.phocid.ui.views.playlist.PlaylistIoScreen
 import org.sunsetware.phocid.utils.icuFormat
 
 @Immutable

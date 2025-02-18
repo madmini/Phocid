@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import com.ibm.icu.text.Collator
 import com.ibm.icu.text.RuleBasedCollator
 import java.util.Locale
+import java.util.UUID
 import kotlin.math.PI
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -22,6 +23,7 @@ import org.sunsetware.phocid.ui.views.library.LibraryScreenCollectionType
 import org.sunsetware.phocid.ui.views.library.LibraryScreenTabInfo
 import org.sunsetware.phocid.ui.views.library.LibraryScreenTabType
 import org.sunsetware.phocid.ui.views.player.PlayerScreenLayoutType
+import org.sunsetware.phocid.utils.UUIDSerializer
 
 @Volatile var preferencesSystemLocale = Locale.getDefault()
 
@@ -75,6 +77,11 @@ data class Preferences(
     // Data
     val charsetName: String? = null,
     val playlistIoSettings: PlaylistIoSettings = PlaylistIoSettings(),
+    val playlistIoSyncLocation: String? = null,
+    val playlistIoSyncSettings: PlaylistIoSettings =
+        PlaylistIoSettings(ignoreLocation = false, removeInvalid = false, exportRelative = true),
+    val playlistIoSyncMappings: Map<@Serializable(with = UUIDSerializer::class) UUID, String> =
+        emptyMap(),
     val treatEmbeddedLyricsAsLrc: Boolean = false,
 ) {
     fun upgrade(): Preferences {

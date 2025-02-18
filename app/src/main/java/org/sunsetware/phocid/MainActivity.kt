@@ -119,7 +119,7 @@ class MainActivity : ComponentActivity(), IntentLauncher {
                     .collectAsStateWithLifecycle()
 
             LaunchedEffect(lifecycleState) {
-                if (lifecycleState != Lifecycle.State.DESTROYED) {
+                if (lifecycleState == Lifecycle.State.RESUMED) {
                     viewModel.initialize { dismissSplashScreen.set(true) }
                     viewModel.scanLibrary(false)
                 }

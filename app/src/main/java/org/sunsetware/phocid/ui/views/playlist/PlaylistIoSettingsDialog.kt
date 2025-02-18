@@ -1,7 +1,8 @@
-package org.sunsetware.phocid.ui.views.preferences
+package org.sunsetware.phocid.ui.views.playlist
 
 import android.os.Environment
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
@@ -23,82 +24,103 @@ import org.sunsetware.phocid.Dialog
 import org.sunsetware.phocid.MainViewModel
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
+import org.sunsetware.phocid.data.PlaylistIoSettings
+import org.sunsetware.phocid.data.Preferences
 import org.sunsetware.phocid.ui.components.DialogBase
 import org.sunsetware.phocid.ui.components.UtilitySwitchListItem
 import org.sunsetware.phocid.utils.icuFormat
 
 @Stable
-class PreferencesPlaylistIoSettingsDialog : Dialog() {
+class PlaylistIoSettingsDialog() :
+    PlaylistIoSettingsDialogBase(
+        R.string.preferences_playlist_io_settings,
+        { it.playlistIoSettings },
+        { preferences, settings -> preferences.copy(playlistIoSettings = settings) },
+    )
+
+@Stable
+class PlaylistIoSyncSettingsDialog() :
+    PlaylistIoSettingsDialogBase(
+        R.string.playlist_io_sync_settings,
+        { it.playlistIoSyncSettings },
+        { preferences, settings -> preferences.copy(playlistIoSyncSettings = settings) },
+    )
+
+@Stable
+sealed class PlaylistIoSettingsDialogBase(
+    protected val titleId: Int,
+    protected val settingsSelector: (Preferences) -> PlaylistIoSettings,
+    protected val preferencesTransform: (Preferences, PlaylistIoSettings) -> Preferences,
+) : Dialog() {
     @Composable
     override fun Compose(viewModel: MainViewModel) {
         val preferences by viewModel.preferences.collectAsStateWithLifecycle()
-        var relativeBaseBuffer by remember {
-            mutableStateOf(preferences.playlistIoSettings.relativeBase)
-        }
+        val playlistIoSettings = settingsSelector(preferences)
+        var relativeBaseBuffer by remember { mutableStateOf(playlistIoSettings.relativeBase) }
         LaunchedEffect(relativeBaseBuffer) {
-            viewModel.updatePreferences { preferences ->
-                preferences.copy(
-                    playlistIoSettings =
-                        preferences.playlistIoSettings.copy(relativeBase = relativeBaseBuffer)
+            viewModel.updatePreferences {
+                preferencesTransform(
+                    it,
+                    settingsSelector(it).copy(relativeBase = relativeBaseBuffer),
                 )
             }
         }
 
         DialogBase(
-            title = Strings[R.string.preferences_playlist_io_settings],
+            title = Strings[titleId],
             onConfirmOrDismiss = { viewModel.uiManager.closeDialog() },
         ) {
             Column {
                 UtilitySwitchListItem(
                     Strings[R.string.preferences_playlist_io_settings_ignore_case],
-                    preferences.playlistIoSettings.ignoreCase,
-                    {
-                        viewModel.updatePreferences { preferences ->
-                            preferences.copy(
-                                playlistIoSettings =
-                                    preferences.playlistIoSettings.copy(ignoreCase = it)
+                    playlistIoSettings.ignoreCase,
+                    { checked ->
+                        viewModel.updatePreferences {
+                            preferencesTransform(
+                                it,
+                                settingsSelector(it).copy(ignoreCase = checked),
                             )
                         }
                     },
                 )
                 UtilitySwitchListItem(
                     Strings[R.string.preferences_playlist_io_settings_ignore_location],
-                    preferences.playlistIoSettings.ignoreLocation,
-                    {
-                        viewModel.updatePreferences { preferences ->
-                            preferences.copy(
-                                playlistIoSettings =
-                                    preferences.playlistIoSettings.copy(ignoreLocation = it)
+                    playlistIoSettings.ignoreLocation,
+                    { checked ->
+                        viewModel.updatePreferences {
+                            preferencesTransform(
+                                it,
+                                settingsSelector(it).copy(ignoreLocation = checked),
                             )
                         }
                     },
                 )
                 UtilitySwitchListItem(
                     Strings[R.string.preferences_playlist_io_settings_remove_invalid],
-                    preferences.playlistIoSettings.removeInvalid,
-                    {
-                        viewModel.updatePreferences { preferences ->
-                            preferences.copy(
-                                playlistIoSettings =
-                                    preferences.playlistIoSettings.copy(removeInvalid = it)
+                    playlistIoSettings.removeInvalid,
+                    { checked ->
+                        viewModel.updatePreferences {
+                            preferencesTransform(
+                                it,
+                                settingsSelector(it).copy(removeInvalid = checked),
                             )
                         }
                     },
                 )
                 UtilitySwitchListItem(
                     Strings[R.string.preferences_playlist_io_settings_export_relative],
-                    preferences.playlistIoSettings.exportRelative,
-                    {
-                        viewModel.updatePreferences { preferences ->
-                            preferences.copy(
-                                playlistIoSettings =
-                                    preferences.playlistIoSettings.copy(exportRelative = it)
+                    playlistIoSettings.exportRelative,
+                    { checked ->
+                        viewModel.updatePreferences {
+                            preferencesTransform(
+                                it,
+                                settingsSelector(it).copy(exportRelative = checked),
                             )
                         }
                     },
                 )
                 TextField(
-                    modifier = Modifier.padding(horizontal = 24.dp),
+                    modifier = Modifier.padding(horizontal = 24.dp).fillMaxWidth(),
                     value = relativeBaseBuffer,
                     onValueChange = { relativeBaseBuffer = it },
                     label = {

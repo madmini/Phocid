@@ -1,20 +1,39 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package org.sunsetware.phocid.data
 
 import android.content.Context
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.core.content.ContextCompat
+import com.ibm.icu.text.DateFormat
+import java.util.Date
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.path.Path
 import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.relativeToOrSelf
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Required
 import kotlinx.serialization.Serializable
 import org.apache.commons.io.FilenameUtils
@@ -26,14 +45,14 @@ import org.sunsetware.phocid.utils.*
 enum class SpecialPlaylist(
     /** Version 8 UUID. Guaranteed to not collide with [UUID.randomUUID]. */
     val key: UUID,
-    val title: String,
+    val titleId: Int,
     val order: Int,
     val icon: ImageVector,
     val color: Color,
 ) {
     FAVORITES(
         UUID.fromString("00000000-0000-8000-8000-000000000000"),
-        Strings[R.string.playlist_special_favorites],
+        R.string.playlist_special_favorites,
         0,
         Icons.Outlined.FavoriteBorder,
         Color(0xffd2849c),
@@ -44,8 +63,10 @@ val SpecialPlaylistLookup = SpecialPlaylist.entries.associateBy { it.key }
 
 @Stable
 class PlaylistManager(
+    private val context: Context,
     private val coroutineScope: CoroutineScope,
-    libraryIndex: StateFlow<LibraryIndex>,
+    private val preferences: StateFlow<Preferences>,
+    private val libraryIndex: StateFlow<LibraryIndex>,
 ) : AutoCloseable {
     private val _playlists = MutableStateFlow(mapOf(SpecialPlaylist.FAVORITES.key to Playlist("")))
     val playlists =
@@ -58,8 +79,14 @@ class PlaylistManager(
             playlists.mapValues { it.value.realize(SpecialPlaylistLookup[it.key], trackIndex) }
         }
     private lateinit var saveManager: SaveManager<Map<String, Playlist>>
+    private lateinit var syncJob: Job
 
-    fun initialize(context: Context) {
+    private val syncMutex = Mutex()
+    private val syncAgain = AtomicBoolean(false)
+    private val _syncLog = MutableStateFlow(null as String?)
+    val syncLog = _syncLog.asStateFlow()
+
+    fun initialize() {
         loadCbor<Map<String, Playlist>>(context, PLAYLISTS_FILE_NAME, false)?.let { playlists ->
             _playlists.update { playlists.mapKeys { UUID.fromString(it.key) } }
         }
@@ -73,16 +100,25 @@ class PlaylistManager(
                 PLAYLISTS_FILE_NAME,
                 false,
             )
+        syncJob = coroutineScope.launch { _playlists.onEach { syncPlaylists() }.collect() }
     }
 
     override fun close() {
         saveManager.close()
+        syncJob.cancel()
     }
 
-    fun updatePlaylist(key: UUID, transform: (Playlist) -> Playlist) {
+    fun updatePlaylist(
+        key: UUID,
+        lastModified: Long = System.currentTimeMillis(),
+        transform: (Playlist) -> Playlist,
+    ) {
         _playlists.update { playlists ->
             if (playlists.containsKey(key)) {
-                playlists.mapValues { if (it.key == key) transform(it.value) else it.value }
+                playlists.mapValues {
+                    if (it.key == key) transform(it.value).copy(lastModified = lastModified)
+                    else it.value
+                }
             } else {
                 playlists + Pair(key, transform(Playlist("")))
             }
@@ -111,6 +147,176 @@ class PlaylistManager(
     fun removePlaylist(key: UUID) {
         _playlists.update { it - key }
     }
+
+    fun syncPlaylists() {
+        coroutineScope.launch {
+            withContext(Dispatchers.IO) {
+                if (syncMutex.tryLock()) {
+                    try {
+                        syncAgain.set(true)
+                        while (syncAgain.getAndSet(false)) {
+                            syncPlaylistsInner()
+                        }
+                    } finally {
+                        syncMutex.unlock()
+                    }
+                } else {
+                    syncAgain.set(true)
+                }
+            }
+        }
+    }
+
+    /** Reduce nesting. */
+    private fun syncPlaylistsInner() {
+        val preferences = preferences.value
+        val libraryIndex = libraryIndex.value
+        if (preferences.playlistIoSyncLocation == null) return
+        val playlists = playlists.value
+        val uri = Uri.parse(preferences.playlistIoSyncLocation)
+        var error = false
+        val syncLog = StringBuilder()
+        syncLog.appendLine(DateFormat.getInstance().format(Date(System.currentTimeMillis())))
+
+        val hasPermission =
+            context.contentResolver.persistedUriPermissions.any {
+                it.uri == uri && it.isReadPermission && it.isWritePermission
+            }
+        if (!hasPermission) {
+            error = true
+            syncLog.appendLine(Strings[R.string.playlist_io_sync_log_no_persistable_permission])
+        }
+
+        val files = listSafFiles(context, uri)
+        if (files == null) {
+            error = true
+            syncLog.appendLine(Strings[R.string.playlist_io_sync_log_error_listing_files])
+        }
+
+        if (preferences.playlistIoSyncMappings.values.groupBy { it }.any { it.value.size > 1 }) {
+            error = true
+            syncLog.appendLine(Strings[R.string.playlist_io_sync_log_conflicting_mappings])
+        }
+
+        if (!error) {
+            for ((key, fileName) in preferences.playlistIoSyncMappings) {
+                val playlist = playlists[key]
+                val file = files?.get(fileName)
+                if (playlist == null) {
+                    error = true
+                    syncLog.appendLine(
+                        Strings[R.string.playlist_io_sync_log_missing_playlist].icuFormat(fileName)
+                    )
+                } else if (file == null) {
+                    error = true
+                    syncLog.appendLine(
+                        Strings[R.string.playlist_io_sync_log_missing_file].icuFormat(
+                            playlist.displayName,
+                            fileName,
+                        )
+                    )
+                } else if (file.lastModified == null) {
+                    error = true
+                    syncLog.appendLine(
+                        Strings[R.string.playlist_io_sync_log_no_file_timestamp].icuFormat(
+                            playlist.displayName,
+                            fileName,
+                        )
+                    )
+                } else if (playlist.lastModified < file.lastModified) {
+                    try {
+                        requireNotNull(context.contentResolver.openInputStream(file.uri)).use {
+                            inputStream ->
+                            val newPlaylist =
+                                parseM3u(
+                                    FilenameUtils.getBaseName(file.name),
+                                    inputStream.readBytes(),
+                                    libraryIndex.tracks.values.map { it.path }.toSet(),
+                                    preferences.playlistIoSyncSettings,
+                                    if (FilenameUtils.getExtension(file.name).equals("m3u8", true))
+                                        Charsets.UTF_8.name()
+                                    else preferences.charsetName,
+                                    0,
+                                )
+                            updatePlaylist(key, file.lastModified) { newPlaylist }
+                        }
+                        syncLog.appendLine(
+                            Strings[R.string.playlist_io_sync_log_import_ok].icuFormat(
+                                playlist.displayName,
+                                fileName,
+                            )
+                        )
+                    } catch (ex: Exception) {
+                        error = true
+                        syncLog.appendLine(
+                            Strings[R.string.playlist_io_sync_log_import_error].icuFormat(
+                                playlist.displayName,
+                                fileName,
+                                ex.stackTraceToString(),
+                            )
+                        )
+                    }
+                } else if (playlist.lastModified > file.lastModified) {
+                    try {
+                        requireNotNull(context.contentResolver.openOutputStream(file.uri, "wt"))
+                            .use { outputStream ->
+                                outputStream.write(
+                                    playlist
+                                        .toM3u(preferences.playlistIoSyncSettings)
+                                        .toByteArray(Charsets.UTF_8)
+                                )
+                            }
+                        // SAF doesn't support setting file's last modified date, so we'll have to
+                        // set the playlist's date instead to keep both the same
+                        updatePlaylist(
+                            key,
+                            requireNotNull(listSafFiles(context, uri)?.get(file.name)?.lastModified),
+                        ) {
+                            it
+                        }
+                        syncLog.appendLine(
+                            Strings[R.string.playlist_io_sync_log_export_ok].icuFormat(
+                                playlist.displayName,
+                                fileName,
+                            )
+                        )
+                    } catch (ex: Exception) {
+                        error = true
+                        syncLog.appendLine(
+                            Strings[R.string.playlist_io_sync_log_export_error].icuFormat(
+                                playlist.displayName,
+                                fileName,
+                                ex.stackTraceToString(),
+                            )
+                        )
+                    }
+                } else {
+                    syncLog.appendLine(
+                        Strings[R.string.playlist_io_sync_log_up_to_date].icuFormat(
+                            playlist.displayName,
+                            fileName,
+                        )
+                    )
+                }
+            }
+        } else {
+            syncLog.appendLine(Strings[R.string.playlist_io_sync_log_skipped_all])
+        }
+
+        _syncLog.update { syncLog.toString() }
+
+        if (error) {
+            Log.e("PhocidPlaylistSync", syncLog.toString())
+            ContextCompat.getMainExecutor(context).execute {
+                Toast.makeText(
+                        context,
+                        Strings[R.string.toast_playlist_io_sync_error],
+                        Toast.LENGTH_LONG,
+                    )
+                    .show()
+            }
+        }
+    }
 }
 
 /**
@@ -119,7 +325,11 @@ class PlaylistManager(
  */
 @Immutable
 @Serializable
-data class Playlist(val name: String, @Required val entries: List<PlaylistEntry> = emptyList()) {
+data class Playlist(
+    val name: String,
+    @Required val entries: List<PlaylistEntry> = emptyList(),
+    @EncodeDefault(EncodeDefault.Mode.ALWAYS) val lastModified: Long = 0,
+) {
     /** I won't trust Android JVM's randomness. */
     fun addPaths(paths: List<String>): Playlist {
         val existingKeys = entries.map { it.key }.toSet()
@@ -151,6 +361,7 @@ private fun Playlist.realize(
         entries.mapIndexed { index, entry ->
             RealizedPlaylistEntry(entry.key, index, trackIndex[entry.path], entry)
         },
+        lastModified,
     )
 }
 
@@ -159,9 +370,10 @@ data class RealizedPlaylist(
     val specialType: SpecialPlaylist?,
     val customName: String,
     val entries: List<RealizedPlaylistEntry> = emptyList(),
+    val lastModified: Long,
 ) : Searchable, Sortable {
     val displayName
-        get() = specialType?.title ?: customName
+        get() = specialType?.titleId?.let { Strings[it] } ?: customName
 
     val validTracks = entries.mapNotNull { it.track }
     val invalidCount = entries.count { it.track == null }
@@ -224,6 +436,7 @@ fun parseM3u(
     libraryTrackPaths: Set<String>,
     settings: PlaylistIoSettings,
     charsetName: String?,
+    lastModified: Long,
 ): Playlist {
     val lines =
         m3u.decodeWithCharsetName(charsetName)
@@ -252,7 +465,7 @@ fun parseM3u(
                 candidates?.maxByOrNull { line.commonSuffixWith(it, settings.ignoreCase).length }
             bestMatch ?: if (settings.removeInvalid) null else line
         }
-    return Playlist(name).addPaths(paths)
+    return Playlist(name, lastModified = lastModified).addPaths(paths)
 }
 
 fun RealizedPlaylist.toM3u(settings: PlaylistIoSettings): String {

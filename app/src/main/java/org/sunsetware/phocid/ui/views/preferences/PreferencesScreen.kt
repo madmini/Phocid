@@ -36,6 +36,8 @@ import org.sunsetware.phocid.ui.components.UtilityListHeader
 import org.sunsetware.phocid.ui.components.UtilityListItem
 import org.sunsetware.phocid.ui.components.UtilitySwitchListItem
 import org.sunsetware.phocid.ui.views.player.PlayerScreenLayoutType
+import org.sunsetware.phocid.ui.views.playlist.PlaylistIoScreen
+import org.sunsetware.phocid.ui.views.playlist.PlaylistIoSettingsDialog
 import org.sunsetware.phocid.utils.combine
 import org.sunsetware.phocid.utils.icuFormat
 
@@ -440,8 +442,13 @@ object PreferencesScreen : TopLevelScreen() {
                     UtilityListItem(
                         title = Strings[R.string.preferences_playlist_io_settings],
                         modifier =
+                            Modifier.clickable { uiManager.openDialog(PlaylistIoSettingsDialog()) },
+                    )
+                    UtilityListItem(
+                        title = Strings[R.string.playlist_io_sync],
+                        modifier =
                             Modifier.clickable {
-                                uiManager.openDialog(PreferencesPlaylistIoSettingsDialog())
+                                uiManager.openTopLevelScreen(PlaylistIoScreen.sync())
                             },
                     )
                     UtilitySwitchListItem(

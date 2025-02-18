@@ -7,6 +7,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.core.content.ContextCompat
 import java.lang.ref.WeakReference
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
@@ -104,6 +105,8 @@ class UiManager(
 
     val playerTimerSettings = AtomicReference(PlayerTimerSettings())
 
+    val playlistIoSyncHelpShown = AtomicReference(false)
+
     private val libraryScreenActiveMultiSelectState =
         _libraryScreenCollectionViewStack.combine(
             coroutineScope,
@@ -148,6 +151,7 @@ class UiManager(
                             PersistentUiState(
                                 libraryScreenHomeViewState.pagerState.currentPage,
                                 playerTimerSettings.get(),
+                                playlistIoSyncHelpShown.get(),
                             )
                         )
                         delay(1.seconds)
@@ -167,6 +171,7 @@ class UiManager(
             )
         }
         playerTimerSettings.set(persistentState.playerTimerSettings)
+        playlistIoSyncHelpShown.set(persistentState.playlistIoSyncHelpShown)
     }
 
     override fun close() {
@@ -242,7 +247,13 @@ class UiManager(
     }
 
     fun toast(text: String, shortDuration: Boolean = true) {
-        Toast.makeText(context, text, if (shortDuration) Toast.LENGTH_SHORT else Toast.LENGTH_LONG)
-            .show()
+        ContextCompat.getMainExecutor(context).execute {
+            Toast.makeText(
+                    context,
+                    text,
+                    if (shortDuration) Toast.LENGTH_SHORT else Toast.LENGTH_LONG,
+                )
+                .show()
+        }
     }
 }

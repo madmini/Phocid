@@ -29,6 +29,7 @@ class PlaylistIoTest {
                     libraryTrackPaths,
                     settings,
                     Charsets.UTF_8.name(),
+                    0,
                 )
                 .entries
                 .map { it.path }
@@ -83,6 +84,7 @@ class PlaylistIoTest {
                         parseM3uLibraryTrackPaths,
                         PlaylistIoSettings(),
                         Charsets.UTF_8.name(),
+                        0,
                     )
                     .entries
                     .joinToString("\n") { it.path },
@@ -102,6 +104,7 @@ class PlaylistIoTest {
                         parseM3uLibraryTrackPaths,
                         PlaylistIoSettings(ignoreLocation = false),
                         Charsets.UTF_8.name(),
+                        0,
                     )
                     .entries
                     .joinToString("\n") { it.path },
@@ -122,6 +125,7 @@ class PlaylistIoTest {
                         paths,
                         PlaylistIoSettings(ignoreCase = false),
                         Charsets.UTF_8.name(),
+                        0,
                     )
                     .entries
                     .joinToString("\n") { it.path },
@@ -155,6 +159,7 @@ class PlaylistIoTest {
                         null,
                         "",
                         listOf(realizedPlaylistEntry("/a/b"), realizedPlaylistEntry("/c/d")),
+                        0,
                     )
                     .toM3u(PlaylistIoSettings())
                     .lines()
@@ -169,6 +174,7 @@ class PlaylistIoTest {
                         null,
                         "",
                         listOf(realizedPlaylistEntry("/a/b"), realizedPlaylistEntry("/c/d")),
+                        0,
                     )
                     .toM3u(PlaylistIoSettings(exportRelative = true, relativeBase = "/a"))
                     .lines()
@@ -183,6 +189,7 @@ class PlaylistIoTest {
                         null,
                         "",
                         listOf(realizedPlaylistEntry("/a/b"), realizedPlaylistEntry("/c/d")),
+                        0,
                     )
                     .toM3u(PlaylistIoSettings(exportRelative = true, relativeBase = "|"))
                     .lines()

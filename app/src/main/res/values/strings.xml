@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_copyright" translatable="false">Phocid\nCopyright (C) tjysunset &lt;tjysunset@outlook.com&gt;\n\nThis program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program. If not, see &lt;https://www.gnu.org/licenses/&gt;.</string>
     <string name="app_license_name" translatable="false">GNU General Public License v3.0 or later</string>
     <string name="app_name" translatable="false">Phocid</string>
@@ -20,6 +20,7 @@
     <string name="commons_quit">Quit</string>
     <string name="commons_remove">Remove</string>
     <string name="commons_reset">Reset</string>
+    <string name="commons_sync">Sync</string>
 
     <string name="count_album">{0, plural, one {# album} other {# albums}}</string>
     <string name="count_folder">{0, plural, one {# folder} other {# folders}}</string>
@@ -93,6 +94,29 @@
     <string name="playlist_io_location">Playlist location: {0}</string>
     <string name="playlist_io_location_not_set">Playlist location: not set</string>
     <string name="playlist_io_select_folder">Select folder</string>
+    <string name="playlist_io_sync">Playlist sync</string>
+    <string name="playlist_io_sync_help">Playlist sync help</string>
+    <string name="playlist_io_sync_help_body" tools:ignore="TypographyDashes">BACKUP TO ANOTHER LOCATION AND READ THE DOCUMENTATION CAREFULLY BEFORE CONTINUING!\n\nYou can view logs of the last sync from the top bar to debug problems.\n\nSync settings are independent of manual import/export settings, and can be set from the top bar. Modified sync settings will not take effect until the next time both sides have different timestamps, and modifying settings with sync enabled might corrupt your data. Backup and manually rewrite the older side before doing so.\n\nDue to Android limitations, Phocid will not create missing files on your behalf. You can export the playlists to create corresponding files.\n\n“Syncing” overwrites the older side with contents from the newer side, which means:\n• Creating a new playlist to sync from an existing file may overwrite the file with nothing, and vice versa. To add new mappings, use import/export instead to generate playlists and files that have matching “last modified” timestamps and contents.\n• Syncing relies on your files to have a correct “last modified” timestamp. Expect unexpected behavior if the files are modified externally with incorrect timestamps.\n\nNewly created playlists and playlists updated before Phocid v20250219 have an initial timestamp of 1970-01-01. Exported files will have the timestamp of when exporting happens. Exporting a playlist will also update its timestamp.\n\nPhocid is not aware of M3U comments (and by extension, extended directives), and will strip those when syncing. Do not use syncing if your use case requires M3U comments.\n\nSyncing happens when the app gains focus, a playlist changes, or manually requested.</string>
+    <string name="playlist_io_sync_location">Sync location: {0}</string>
+    <string name="playlist_io_sync_location_not_set">Sync location: not set</string>
+    <string name="playlist_io_sync_log">Playlist sync log</string>
+    <string name="playlist_io_sync_log_conflicting_mappings">Multiple playlists are mapped to the same file.</string>
+    <string name="playlist_io_sync_log_error_listing_files">Error listing files.</string>
+    <string name="playlist_io_sync_log_export_error">{0} ⇄ {1}: Export error: {0}</string>
+    <string name="playlist_io_sync_log_export_ok">{0} ⇄ {1}: Exported.</string>
+    <string name="playlist_io_sync_log_import_error">{0} ⇄ {1}: Import error: {0}</string>
+    <string name="playlist_io_sync_log_import_ok">{0} ⇄ {1}: Imported.</string>
+    <string name="playlist_io_sync_log_missing_file">{0} ⇄ {1}: Missing file.</string>
+    <string name="playlist_io_sync_log_missing_playlist">&lt;UNKNOWN&gt; ⇄ {0}: Missing playlist.</string>
+    <string name="playlist_io_sync_log_no_file_timestamp">{0} ⇄ {1}: Can’t get last modified date for file.</string>
+    <string name="playlist_io_sync_log_no_persistable_permission">No file access permission. Please set sync location again to fix.</string>
+    <string name="playlist_io_sync_log_skipped_all">Skipped syncing due to errors listed above.</string>
+    <string name="playlist_io_sync_log_up_to_date">{0} ⇄ {1}: Up-do-date.</string>
+    <string name="playlist_io_sync_now">Sync now</string>
+    <string name="playlist_io_sync_settings">Playlist sync settings</string>
+    <string name="playlist_io_sync_target_file">Target file</string>
+    <string name="playlist_io_sync_target_file_conflict">Another playlist is mapped to this file</string>
+    <string name="playlist_io_sync_target_file_nonexistent">File doesn’t exist</string>
     <string name="playlist_name">Playlist name</string>
     <string name="playlist_new">New playlist</string>
     <string name="playlist_new_with_tracks">New playlist with {0, plural, one {# track} other {# tracks}}</string>
@@ -245,6 +269,7 @@
     <string name="toast_playlist_exported">Exported {0, plural, one {# playlist} other {# playlists}}</string>
     <string name="toast_playlist_exported_with_failure">Exported {0, plural, one {# playlist} other {# playlists}}, {1, plural, other {#}} failed</string>
     <string name="toast_playlist_imported">Imported {0, plural, one {# playlist} other {# playlists}}</string>
+    <string name="toast_playlist_io_sync_error">Error syncing playlists. See logs in sync screen for details.</string>
     <string name="toast_timer_canceled">Canceled sleep timer</string>
     <string name="toast_timer_set">Playback will pause after ~{0, plural, one {# minute} other {# minutes}}</string>
     <string name="toast_track_queued">{0, plural, one {# track} other {# tracks}} queued</string>

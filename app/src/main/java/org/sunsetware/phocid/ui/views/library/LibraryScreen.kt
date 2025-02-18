@@ -51,7 +51,7 @@ import org.sunsetware.phocid.ui.theme.contentColor
 import org.sunsetware.phocid.ui.theme.emphasizedEnter
 import org.sunsetware.phocid.ui.theme.emphasizedExit
 import org.sunsetware.phocid.ui.views.NewPlaylistDialog
-import org.sunsetware.phocid.ui.views.PlaylistIoScreen
+import org.sunsetware.phocid.ui.views.playlist.PlaylistIoScreen
 import org.sunsetware.phocid.ui.views.preferences.PreferencesScreen
 import org.sunsetware.phocid.utils.*
 
@@ -140,6 +140,9 @@ fun LibraryScreen(
                             Icons.Filled.ImportExport,
                         ) {
                             uiManager.openTopLevelScreen(PlaylistIoScreen.import())
+                        },
+                        MenuItem.Button(Strings[R.string.playlist_io_sync], Icons.Filled.Sync) {
+                            uiManager.openTopLevelScreen(PlaylistIoScreen.sync())
                         },
                         MenuItem.Divider,
                     )
