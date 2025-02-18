@@ -32,16 +32,14 @@ class PreferencesPlaylistIoSettingsDialog : Dialog() {
     @Composable
     override fun Compose(viewModel: MainViewModel) {
         val preferences by viewModel.preferences.collectAsStateWithLifecycle()
-        var exportRelativeBaseBuffer by remember {
-            mutableStateOf(preferences.playlistIoSettings.exportRelativeBase)
+        var relativeBaseBuffer by remember {
+            mutableStateOf(preferences.playlistIoSettings.relativeBase)
         }
-        LaunchedEffect(exportRelativeBaseBuffer) {
+        LaunchedEffect(relativeBaseBuffer) {
             viewModel.updatePreferences { preferences ->
                 preferences.copy(
                     playlistIoSettings =
-                        preferences.playlistIoSettings.copy(
-                            exportRelativeBase = exportRelativeBaseBuffer
-                        )
+                        preferences.playlistIoSettings.copy(relativeBase = relativeBaseBuffer)
                 )
             }
         }
@@ -101,9 +99,8 @@ class PreferencesPlaylistIoSettingsDialog : Dialog() {
                 )
                 TextField(
                     modifier = Modifier.padding(horizontal = 24.dp),
-                    value = exportRelativeBaseBuffer,
-                    onValueChange = { exportRelativeBaseBuffer = it },
-                    enabled = preferences.playlistIoSettings.exportRelative,
+                    value = relativeBaseBuffer,
+                    onValueChange = { relativeBaseBuffer = it },
                     label = {
                         Text(
                             Strings[R.string.preferences_playlist_io_settings_export_relative_base]

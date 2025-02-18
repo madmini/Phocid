@@ -212,8 +212,11 @@ data class PlaylistIoSettings(
     val ignoreLocation: Boolean = true,
     val removeInvalid: Boolean = true,
     val exportRelative: Boolean = false,
-    val exportRelativeBase: String = "",
+    val relativeBase: String = "",
 )
+
+/** TODO: is this exhaustive? */
+private val absolutePathRegex = Regex("^(/|[^/]*:/).*")
 
 fun parseM3u(
     name: String,
@@ -225,8 +228,14 @@ fun parseM3u(
     val lines =
         m3u.decodeWithCharsetName(charsetName)
             .lines()
-            .mapNotNull { it.trimAndNormalize().let { FilenameUtils.separatorsToUnix(it) } }
+            .mapNotNull { it.trimAndNormalize().let(FilenameUtils::separatorsToUnix) }
             .filter { it.isNotBlank() && !it.startsWith('#') }
+            .map {
+                if (absolutePathRegex.matches(it)) it
+                else
+                    FilenameUtils.concat(settings.relativeBase, it)
+                        ?.let(FilenameUtils::separatorsToUnix) ?: it
+            }
     val indexLookup =
         libraryTrackPaths
             .groupBy { if (settings.ignoreLocation) FilenameUtils.getName(it) else it }
@@ -250,7 +259,7 @@ fun RealizedPlaylist.toM3u(settings: PlaylistIoSettings): String {
     val exportRelativeBase =
         if (settings.exportRelative) {
             try {
-                Path(settings.exportRelativeBase)
+                Path(settings.relativeBase)
             } catch (_: Exception) {
                 null
             }

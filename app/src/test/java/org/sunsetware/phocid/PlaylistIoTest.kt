@@ -35,17 +35,17 @@ class PlaylistIoTest {
         assertThat(actual).containsExactlyInAnyOrderElementsOf(expected)
     }
 
-    val parseM3uLibraryTrackPaths = setOf("dir/a", "dir/dir2/b", "c", "dir3/d", "dir4/d")
+    val parseM3uLibraryTrackPaths = setOf("/dir/a", "/dir/dir2/b", "/c", "/dir3/d", "/dir4/d")
 
     @Test
     fun parseM3u_MatchLocation() {
         testParseM3u(
             m3u =
-                listOf(" dir/a ", "dir/dir2/b", "#c", "D:\\D", "e", "http://invalid")
+                listOf(" /dir/a ", "/dir/dir2/b", "#c", "D:\\D", "e", "http://invalid")
                     .joinToString("\r\n"),
             libraryTrackPaths = parseM3uLibraryTrackPaths,
             settings = PlaylistIoSettings(ignoreLocation = false),
-            expected = listOf("dir/a", "dir/dir2/b"),
+            expected = listOf("/dir/a", "/dir/dir2/b"),
         )
     }
 
@@ -53,11 +53,11 @@ class PlaylistIoTest {
     fun parseM3u_DoNotRemoveInvalid() {
         testParseM3u(
             m3u =
-                listOf(" dir/a ", "dir/dir2/b", "#c", "D:\\D", "e", "http://invalid")
+                listOf(" /dir/a ", "/dir/dir2/b", "#c", "D:\\D", "e", "http://invalid")
                     .joinToString("\r\n"),
             libraryTrackPaths = parseM3uLibraryTrackPaths,
             settings = PlaylistIoSettings(ignoreLocation = false, removeInvalid = false),
-            expected = listOf("dir/a", "dir/dir2/b", "D:/D", "e", "http://invalid"),
+            expected = listOf("/dir/a", "/dir/dir2/b", "D:/D", "e", "http://invalid"),
         )
     }
 
@@ -69,7 +69,7 @@ class PlaylistIoTest {
                     .joinToString("\r\n"),
             libraryTrackPaths = parseM3uLibraryTrackPaths,
             settings = PlaylistIoSettings(),
-            expected = listOf("dir/a", "dir/dir2/b", "dir4/d"),
+            expected = listOf("/dir/a", "/dir/dir2/b", "/dir4/d"),
         )
     }
 
@@ -132,6 +132,23 @@ class PlaylistIoTest {
     }
 
     @Test
+    fun parseM3u_Relative() {
+        testParseM3u(
+            m3u =
+                listOf(" a ", "/dir/dir2/b", "#c", "..\\dir3\\d", "C:\\e", "http://invalid")
+                    .joinToString("\r\n"),
+            libraryTrackPaths = parseM3uLibraryTrackPaths,
+            settings =
+                PlaylistIoSettings(
+                    ignoreLocation = false,
+                    removeInvalid = false,
+                    relativeBase = "/dir",
+                ),
+            expected = listOf("/dir/a", "/dir/dir2/b", "/dir3/d", "C:/e", "http://invalid"),
+        )
+    }
+
+    @Test
     fun toM3u_absolute() {
         assertThat(
                 RealizedPlaylist(
@@ -153,7 +170,7 @@ class PlaylistIoTest {
                         "",
                         listOf(realizedPlaylistEntry("/a/b"), realizedPlaylistEntry("/c/d")),
                     )
-                    .toM3u(PlaylistIoSettings(exportRelative = true, exportRelativeBase = "/a"))
+                    .toM3u(PlaylistIoSettings(exportRelative = true, relativeBase = "/a"))
                     .lines()
             )
             .containsExactlyInAnyOrder("b", "../c/d")
@@ -167,7 +184,7 @@ class PlaylistIoTest {
                         "",
                         listOf(realizedPlaylistEntry("/a/b"), realizedPlaylistEntry("/c/d")),
                     )
-                    .toM3u(PlaylistIoSettings(exportRelative = true, exportRelativeBase = "|"))
+                    .toM3u(PlaylistIoSettings(exportRelative = true, relativeBase = "|"))
                     .lines()
             )
             .containsExactlyInAnyOrder("/a/b", "/c/d")
