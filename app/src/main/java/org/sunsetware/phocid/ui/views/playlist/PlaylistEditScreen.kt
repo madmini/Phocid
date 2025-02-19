@@ -186,21 +186,23 @@ class PlaylistEditScreen(private val playlistKey: UUID) : TopLevelScreen() {
                                                 preferences.artworkColorPreference,
                                             shape = preferences.shapePreference.artworkShape,
                                             modifier =
-                                                Modifier.draggableHandle(
-                                                    onDragStarted = {
-                                                        ViewCompat.performHapticFeedback(
-                                                            view,
-                                                            HapticFeedbackConstantsCompat.DRAG_START,
-                                                        )
-                                                    },
-                                                    onDragStopped = {
-                                                        ViewCompat.performHapticFeedback(
-                                                            view,
-                                                            HapticFeedbackConstantsCompat
-                                                                .GESTURE_END,
-                                                        )
-                                                    },
-                                                ),
+                                                Modifier.fillMaxSize()
+                                                    .draggableHandle(
+                                                        onDragStarted = {
+                                                            ViewCompat.performHapticFeedback(
+                                                                view,
+                                                                HapticFeedbackConstantsCompat
+                                                                    .DRAG_START,
+                                                            )
+                                                        },
+                                                        onDragStopped = {
+                                                            ViewCompat.performHapticFeedback(
+                                                                view,
+                                                                HapticFeedbackConstantsCompat
+                                                                    .GESTURE_END,
+                                                            )
+                                                        },
+                                                    ),
                                         )
                                     },
                                     actions = {

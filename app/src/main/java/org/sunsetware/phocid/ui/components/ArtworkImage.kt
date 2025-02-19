@@ -114,7 +114,7 @@ fun ArtworkImage(
             modifier = modifier.clip(shape).background(color.contentColor()),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(icon!!, null, tint = color, modifier = Modifier.fillMaxSize(0.5f))
+            Icon(icon, null, tint = color, modifier = Modifier.fillMaxSize(0.5f))
         }
     }
 }
