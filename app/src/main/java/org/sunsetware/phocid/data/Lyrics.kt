@@ -2,6 +2,7 @@ package org.sunsetware.phocid.data
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.util.fastFlatMap
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -28,9 +29,13 @@ data class Lyrics(val lines: List<Pair<Duration, String>>) {
     }
 }
 
-private val lrcRegex =
+private val lrcLineRegex =
     Regex(
-        """^\[(?<minutes>[0-9]+):(?<seconds>[0-9]{1,2})\.((?<milliseconds>[0-9]{3})|(?<centiseconds>[0-9]{2}))](?<text>.*)$"""
+        """^(?<timestamps>(?:\[\d+:\d{1,2}\.\d{2,3}])+)(?<text>.*)$""",
+    )
+private val lrcTimestampRegex =
+    Regex(
+        """\[(?<minutes>\d+):(?<seconds>\d{1,2})\.((?<milliseconds>\d{3})|(?<centiseconds>\d{2}))]""",
     )
 
 @Stable
@@ -42,16 +47,18 @@ fun parseLrc(lrc: ByteArray, charsetName: String?): Lyrics {
 fun parseLrc(lrc: String): Lyrics {
     return Lyrics(
         lrc.lines()
-            .mapNotNull { line ->
-                lrcRegex.matchEntire(line.trimAndNormalize())?.let {
-                    val timestamp =
-                        it.groups["minutes"]!!.value.toInt().minutes +
-                            it.groups["seconds"]!!.value.toInt().seconds +
-                            (it.groups["milliseconds"]?.value?.toInt()?.milliseconds
-                                ?: (it.groups["centiseconds"]!!.value.toInt() * 10).milliseconds)
-                    val text = it.groups["text"]!!.value.trim()
-                    Pair(timestamp, text)
-                }
+            .fastFlatMap { line ->
+                lrcLineRegex.matchEntire(line.trimAndNormalize())?.let { m1 ->
+                    val text = m1.groups["text"]!!.value.trim()
+                    lrcTimestampRegex.findAll(m1.groups["timestamps"]!!.value).map { m2 ->
+                        val timestamp =
+                            m2.groups["minutes"]!!.value.toInt().minutes +
+                                m2.groups["seconds"]!!.value.toInt().seconds +
+                                (m2.groups["milliseconds"]?.value?.toInt()?.milliseconds
+                                    ?: (m2.groups["centiseconds"]!!.value.toInt() * 10).milliseconds)
+                        Pair(timestamp, text)
+                    }.toList()
+                } ?: emptyList()
             }
             .sortedBy { it.first }
     )
