@@ -2,7 +2,6 @@ package org.sunsetware.phocid.data
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
-import androidx.compose.ui.util.fastFlatMap
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -30,12 +29,10 @@ data class Lyrics(val lines: List<Pair<Duration, String>>) {
 }
 
 private val lrcLineRegex =
-    Regex(
-        """^(?<timestamps>(?:\[\d+:\d{1,2}\.\d{2,3}])+)(?<text>.*)$""",
-    )
+    Regex("""^(?<timestamps>(?:\[[0-9]+:[0-9]{1,2}\.[0-9]{2,3}])+)(?<text>.*)$""")
 private val lrcTimestampRegex =
     Regex(
-        """\[(?<minutes>\d+):(?<seconds>\d{1,2})\.((?<milliseconds>\d{3})|(?<centiseconds>\d{2}))]""",
+        """\[(?<minutes>[0-9]+):(?<seconds>[0-9]{1,2})\.((?<milliseconds>[0-9]{3})|(?<centiseconds>[0-9]{2}))]"""
     )
 
 @Stable
@@ -47,17 +44,21 @@ fun parseLrc(lrc: ByteArray, charsetName: String?): Lyrics {
 fun parseLrc(lrc: String): Lyrics {
     return Lyrics(
         lrc.lines()
-            .fastFlatMap { line ->
+            .flatMap { line ->
                 lrcLineRegex.matchEntire(line.trimAndNormalize())?.let { m1 ->
                     val text = m1.groups["text"]!!.value.trim()
-                    lrcTimestampRegex.findAll(m1.groups["timestamps"]!!.value).map { m2 ->
-                        val timestamp =
-                            m2.groups["minutes"]!!.value.toInt().minutes +
-                                m2.groups["seconds"]!!.value.toInt().seconds +
-                                (m2.groups["milliseconds"]?.value?.toInt()?.milliseconds
-                                    ?: (m2.groups["centiseconds"]!!.value.toInt() * 10).milliseconds)
-                        Pair(timestamp, text)
-                    }.toList()
+                    lrcTimestampRegex
+                        .findAll(m1.groups["timestamps"]!!.value)
+                        .map { m2 ->
+                            val timestamp =
+                                m2.groups["minutes"]!!.value.toInt().minutes +
+                                    m2.groups["seconds"]!!.value.toInt().seconds +
+                                    (m2.groups["milliseconds"]?.value?.toInt()?.milliseconds
+                                        ?: (m2.groups["centiseconds"]!!.value.toInt() * 10)
+                                            .milliseconds)
+                            Pair(timestamp, text)
+                        }
+                        .toList()
                 } ?: emptyList()
             }
             .sortedBy { it.first }
