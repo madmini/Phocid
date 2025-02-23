@@ -82,7 +82,7 @@ class PlaylistManager(
     private lateinit var syncJob: Job
 
     private val syncMutex = Mutex()
-    private val syncAgain = AtomicBoolean(false)
+    private val syncPending = AtomicBoolean(false)
     private val _syncLog = MutableStateFlow(null as String?)
     val syncLog = _syncLog.asStateFlow()
 
@@ -100,7 +100,10 @@ class PlaylistManager(
                 PLAYLISTS_FILE_NAME,
                 false,
             )
-        syncJob = coroutineScope.launch { _playlists.onEach { syncPlaylists() }.collect() }
+        syncJob =
+            coroutineScope.launch {
+                _playlists.onEach { if (syncPending.get()) syncPlaylists() }.collect()
+            }
     }
 
     override fun close() {
@@ -111,8 +114,10 @@ class PlaylistManager(
     fun updatePlaylist(
         key: UUID,
         lastModified: Long = System.currentTimeMillis(),
+        setSyncPending: Boolean = true,
         transform: (Playlist) -> Playlist,
     ) {
+        if (setSyncPending) syncPending.set(true)
         _playlists.update { playlists ->
             if (playlists.containsKey(key)) {
                 playlists.mapValues {
@@ -127,6 +132,7 @@ class PlaylistManager(
 
     /** I won't trust Android JVM's randomness. */
     fun addPlaylist(playlist: Playlist): UUID {
+        syncPending.set(true)
         while (true) {
             val key = UUID.randomUUID()
             var success = false
@@ -145,23 +151,22 @@ class PlaylistManager(
     }
 
     fun removePlaylist(key: UUID) {
+        syncPending.set(true)
         _playlists.update { it - key }
     }
 
     fun syncPlaylists() {
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
+                syncPending.set(true)
                 if (syncMutex.tryLock()) {
                     try {
-                        syncAgain.set(true)
-                        while (syncAgain.getAndSet(false)) {
+                        while (syncPending.getAndSet(false)) {
                             syncPlaylistsInner()
                         }
                     } finally {
                         syncMutex.unlock()
                     }
-                } else {
-                    syncAgain.set(true)
                 }
             }
         }
@@ -238,7 +243,7 @@ class PlaylistManager(
                                     else preferences.charsetName,
                                     0,
                                 )
-                            updatePlaylist(key, file.lastModified) { newPlaylist }
+                            updatePlaylist(key, file.lastModified, false) { newPlaylist }
                         }
                         syncLog.appendLine(
                             Strings[R.string.playlist_io_sync_log_import_ok].icuFormat(
@@ -270,7 +275,10 @@ class PlaylistManager(
                         // set the playlist's date instead to keep both the same
                         updatePlaylist(
                             key,
-                            requireNotNull(listSafFiles(context, uri)?.get(file.name)?.lastModified),
+                            requireNotNull(
+                                listSafFiles(context, uri)?.get(file.name)?.lastModified
+                            ),
+                            false,
                         ) {
                             it
                         }
