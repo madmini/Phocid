@@ -164,17 +164,34 @@ class LibraryIndexTest {
 
     @Test
     fun indexing_folder_ChildTracksRecursive() {
-        val track1 = track(1, path = "/music/track1.mp3")
-        val track2 = track(2, path = "/music/album/track2.mp3")
-        val track3 = track(3, path = "/music/album2/track3.mp3")
-        val track4 = track(4, path = "/track4.mp3")
-        val index = listOf(track1, track2, track3, track4).libraryIndex()
-        assertThat(index.folders["music"]?.childTracksRecursive(index.folders))
-            .containsExactly(track1, track2, track3)
-        assertThat(index.folders["music"]?.childTracksCountRecursive).isEqualTo(3)
+        val track611 = track(611, path = "/6/1/1.mp3")
+        val track621 = track(621, path = "/6/2/1.mp3")
+        val track622 = track(622, path = "/6/2/2.mp3")
+        val track631 = track(631, path = "/6/3/1.mp3")
+        val track632 = track(632, path = "/6/3/2.mp3")
+        val track633 = track(633, path = "/6/3/3.mp3")
+        val track11 = track(11, path = "/1/1.mp3")
+        val track1 = track(4, path = "/1.mp3")
+        val index =
+            listOf(track611, track621, track622, track631, track632, track633, track11, track1)
+                .libraryIndex()
+        assertThat(index.folders["6"]?.childTracksRecursive(index.folders))
+            .containsExactly(track611, track621, track622, track631, track632, track633)
+        assertThat(index.folders["6"]?.childTracksCountRecursive).isEqualTo(6)
+        assertThat(index.folders["1"]?.childTracksRecursive(index.folders)).containsExactly(track11)
+        assertThat(index.folders["1"]?.childTracksCountRecursive).isEqualTo(1)
         assertThat(index.folders[""]?.childTracksRecursive(index.folders))
-            .containsExactly(track4, track1, track2, track3)
-        assertThat(index.folders[""]?.childTracksCountRecursive).isEqualTo(4)
+            .containsExactly(
+                track1,
+                track11,
+                track611,
+                track621,
+                track622,
+                track631,
+                track632,
+                track633,
+            )
+        assertThat(index.folders[""]?.childTracksCountRecursive).isEqualTo(8)
     }
 
     fun track(
