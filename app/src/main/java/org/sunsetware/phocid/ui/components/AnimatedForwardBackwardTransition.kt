@@ -9,6 +9,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import kotlin.math.absoluteValue
 import org.sunsetware.phocid.ui.theme.emphasizedEnter
 import org.sunsetware.phocid.ui.theme.emphasizedExit
@@ -21,8 +23,16 @@ fun forwardBackwardTransitionAlpha(position: Float, index: Int): Float {
 }
 
 @Stable
-fun forwardBackwardTransitionTranslation(position: Float, index: Int, width: Float): Float {
-    return ((index - position).coerceIn(-1f, 1f) * width * FORWARD_BACKWARD_SLIDE_FRACTION)
+fun forwardBackwardTransitionTranslation(
+    position: Float,
+    index: Int,
+    width: Float,
+    ltr: Boolean,
+): Float {
+    return (index - position).coerceIn(-1f, 1f) *
+        width *
+        FORWARD_BACKWARD_SLIDE_FRACTION *
+        (if (ltr) 1 else -1)
 }
 
 @Composable
@@ -56,6 +66,7 @@ inline fun <T> AnimatedForwardBackwardTransition(
 
     Box(modifier = modifier) {
         val rootAlpha = forwardBackwardTransitionAlpha(position.value, 0)
+        val ltr = LocalLayoutDirection.current == LayoutDirection.Ltr
         if (keepRoot || rootAlpha > 0) {
             Box(
                 modifier =
@@ -63,7 +74,12 @@ inline fun <T> AnimatedForwardBackwardTransition(
                         alpha = rootAlpha
                         if (slide) {
                             translationX =
-                                forwardBackwardTransitionTranslation(position.value, 0, size.width)
+                                forwardBackwardTransitionTranslation(
+                                    position.value,
+                                    0,
+                                    size.width,
+                                    ltr,
+                                )
                         }
                     }
             ) {
@@ -88,6 +104,7 @@ inline fun <T> AnimatedForwardBackwardTransition(
                                             position.value,
                                             index + 1,
                                             size.width,
+                                            ltr,
                                         )
                                 }
                             }
