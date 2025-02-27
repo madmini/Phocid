@@ -1,4 +1,4 @@
-package org.sunsetware.phocid.ui.views
+package org.sunsetware.phocid.ui.views.playlist
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn

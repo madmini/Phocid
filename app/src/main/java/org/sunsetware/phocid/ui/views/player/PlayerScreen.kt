@@ -48,9 +48,9 @@ import org.sunsetware.phocid.ui.theme.contentColor
 import org.sunsetware.phocid.ui.theme.customColorScheme
 import org.sunsetware.phocid.ui.theme.pureBackgroundColor
 import org.sunsetware.phocid.ui.views.LyricsDialog
-import org.sunsetware.phocid.ui.views.NewPlaylistDialog
 import org.sunsetware.phocid.ui.views.SpeedAndPitchDialog
 import org.sunsetware.phocid.ui.views.TimerDialog
+import org.sunsetware.phocid.ui.views.playlist.NewPlaylistDialog
 import org.sunsetware.phocid.utils.*
 
 @Composable
