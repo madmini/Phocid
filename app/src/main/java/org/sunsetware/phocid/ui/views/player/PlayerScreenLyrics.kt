@@ -2,8 +2,8 @@ package org.sunsetware.phocid.ui.views.player
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -109,7 +109,10 @@ object PlayerScreenLyricsOverlay : PlayerScreenLyrics() {
                         AnimatedContent(
                             currentLine,
                             transitionSpec = {
-                                fadeIn(emphasizedExit()) togetherWith fadeOut(emphasizedExit())
+                                slideInVertically(emphasizedExit()) togetherWith
+                                        slideOutVertically(
+                                            emphasizedExit(),
+                                            targetOffsetY = { it / 2 })
                             },
                             contentAlignment = Alignment.TopStart,
                         ) { animatedLine ->
@@ -121,7 +124,10 @@ object PlayerScreenLyricsOverlay : PlayerScreenLyrics() {
                         AnimatedContent(
                             Pair(currentLine, nextLine),
                             transitionSpec = {
-                                fadeIn(emphasizedExit()) togetherWith fadeOut(emphasizedExit())
+                                slideInVertically(emphasizedExit()) togetherWith
+                                        slideOutVertically(
+                                            emphasizedExit(),
+                                            targetOffsetY = { it / 2 })
                             },
                             contentAlignment = Alignment.TopCenter,
                         ) { (animatedCurrentLine, animatedNextLine) ->
