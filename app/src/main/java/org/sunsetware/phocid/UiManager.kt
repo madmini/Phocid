@@ -17,7 +17,16 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.sunsetware.phocid.data.LibraryIndex
@@ -35,7 +44,9 @@ import org.sunsetware.phocid.ui.views.library.LibraryScreenCollectionViewState
 import org.sunsetware.phocid.ui.views.library.LibraryScreenHomeViewItem
 import org.sunsetware.phocid.ui.views.library.LibraryScreenHomeViewState
 import org.sunsetware.phocid.ui.views.library.PlaylistCollectionViewInfo
-import org.sunsetware.phocid.utils.*
+import org.sunsetware.phocid.utils.combine
+import org.sunsetware.phocid.utils.flatMapLatest
+import org.sunsetware.phocid.utils.map
 
 @Stable
 abstract class Dialog {
@@ -101,6 +112,8 @@ class UiManager(
 
     val playerScreenDragState = BinaryDragState()
 
+    val playerScreenUseLyricsView = MutableStateFlow(false)
+
     val overrideStatusBarLightColor = MutableStateFlow(null as Boolean?)
 
     val playerTimerSettings = AtomicReference(PlayerTimerSettings())
@@ -150,6 +163,7 @@ class UiManager(
                         emit(
                             PersistentUiState(
                                 libraryScreenHomeViewState.pagerState.currentPage,
+                                playerScreenUseLyricsView.value,
                                 playerTimerSettings.get(),
                                 playlistIoSyncHelpShown.get(),
                             )
@@ -170,6 +184,7 @@ class UiManager(
                 persistentState.libraryScreenHomeViewPage
             )
         }
+        playerScreenUseLyricsView.update { persistentState.playerScreenUseLyricsView }
         playerTimerSettings.set(persistentState.playerTimerSettings)
         playlistIoSyncHelpShown.set(persistentState.playlistIoSyncHelpShown)
     }

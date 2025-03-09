@@ -9,19 +9,27 @@ import org.sunsetware.phocid.ui.components.BinaryDragState
 
 @Immutable
 sealed class PlayerScreenLayout {
-    /** [queueDragState]'s [BinaryDragState.length] must be updated here. */
+    /**
+     * [queueDragState]'s [BinaryDragState.length] must be updated here.
+     *
+     * @param lyricsViewVisibility 0-0.5: [scrimLyrics]'s transition; 0.5-1: [lyricsView]'s
+     *   transition
+     */
     abstract fun Placeable.PlacementScope.place(
         topBarStandalone: Measurable,
         topBarOverlay: Measurable,
         artwork: Measurable,
+        lyricsView: Measurable,
         lyricsOverlay: Measurable,
         controls: Measurable,
         queue: Measurable,
-        scrim: Measurable,
+        scrimQueue: Measurable,
+        scrimLyrics: Measurable,
         width: Int,
         height: Int,
         density: Density,
         queueDragState: BinaryDragState,
+        lyricsViewVisibility: Float,
     )
 }
 

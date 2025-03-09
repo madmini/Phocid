@@ -5,13 +5,26 @@ package org.sunsetware.phocid.ui.views.player
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Subtitles
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.VerticalAlignCenter
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,9 +39,11 @@ sealed class PlayerScreenTopBar {
     abstract fun Compose(
         containerColor: Color,
         contentColor: Color,
+        lyricsAutoScrollButtonVisibility: Boolean,
         lyricsButtonEnabled: Boolean,
         onBack: () -> Unit,
-        onShowLyrics: () -> Unit,
+        onEnableLyricsViewAutoScroll: () -> Unit,
+        onToggleLyricsView: () -> Unit,
     )
 }
 
@@ -38,9 +53,11 @@ object PlayerScreenTopBarDefaultOverlay : PlayerScreenTopBar() {
     override fun Compose(
         containerColor: Color,
         contentColor: Color,
+        lyricsAutoScrollButtonVisibility: Boolean,
         lyricsButtonEnabled: Boolean,
         onBack: () -> Unit,
-        onShowLyrics: () -> Unit,
+        onEnableLyricsViewAutoScroll: () -> Unit,
+        onToggleLyricsView: () -> Unit,
     ) {
         Box(modifier = Modifier.fillMaxWidth().height((48 + 8 * 2).dp)) {
             FilledTonalIconButton(
@@ -56,24 +73,40 @@ object PlayerScreenTopBarDefaultOverlay : PlayerScreenTopBar() {
                     contentDescription = Strings[R.string.commons_back],
                 )
             }
-            AnimatedVisibility(
-                lyricsButtonEnabled,
-                enter = fadeIn(),
-                exit = fadeOut(),
-                modifier = Modifier.align(Alignment.TopEnd).padding(end = 8.dp, top = 8.dp),
-            ) {
-                FilledTonalIconButton(
-                    onClick = onShowLyrics,
-                    colors =
-                        IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = containerColor,
-                            contentColor = contentColor,
-                        ),
+            Row(modifier = Modifier.align(Alignment.TopEnd).padding(end = 8.dp, top = 8.dp)) {
+                AnimatedVisibility(
+                    lyricsAutoScrollButtonVisibility,
+                    enter = fadeIn(),
+                    exit = fadeOut(),
                 ) {
-                    Icon(
-                        Icons.Outlined.Subtitles,
-                        contentDescription = Strings[R.string.player_lyrics],
-                    )
+                    FilledTonalIconButton(
+                        onClick = onEnableLyricsViewAutoScroll,
+                        colors =
+                            IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = containerColor,
+                                contentColor = contentColor,
+                            ),
+                    ) {
+                        Icon(
+                            Icons.Outlined.VerticalAlignCenter,
+                            contentDescription = Strings[R.string.player_lyrics_auto_scroll],
+                        )
+                    }
+                }
+                AnimatedVisibility(lyricsButtonEnabled, enter = fadeIn(), exit = fadeOut()) {
+                    FilledTonalIconButton(
+                        onClick = onToggleLyricsView,
+                        colors =
+                            IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = containerColor,
+                                contentColor = contentColor,
+                            ),
+                    ) {
+                        Icon(
+                            Icons.Outlined.Subtitles,
+                            contentDescription = Strings[R.string.player_lyrics],
+                        )
+                    }
                 }
             }
         }
@@ -86,9 +119,11 @@ object PlayerScreenTopBarDefaultStandalone : PlayerScreenTopBar() {
     override fun Compose(
         containerColor: Color,
         contentColor: Color,
+        lyricsAutoScrollButtonVisibility: Boolean,
         lyricsButtonEnabled: Boolean,
         onBack: () -> Unit,
-        onShowLyrics: () -> Unit,
+        onEnableLyricsViewAutoScroll: () -> Unit,
+        onToggleLyricsView: () -> Unit,
     ) {
         // Hack to remove animation delay
         // https://stackoverflow.com/q/77928923
@@ -107,7 +142,19 @@ object PlayerScreenTopBarDefaultStandalone : PlayerScreenTopBar() {
                         }
                     },
                     actions = {
-                        IconButton(enabled = lyricsButtonEnabled, onClick = onShowLyrics) {
+                        AnimatedVisibility(
+                            lyricsAutoScrollButtonVisibility,
+                            enter = fadeIn(),
+                            exit = fadeOut(),
+                        ) {
+                            IconButton(onClick = onEnableLyricsViewAutoScroll) {
+                                Icon(
+                                    Icons.Outlined.VerticalAlignCenter,
+                                    contentDescription = Strings[R.string.player_lyrics_auto_scroll],
+                                )
+                            }
+                        }
+                        IconButton(enabled = lyricsButtonEnabled, onClick = onToggleLyricsView) {
                             Icon(
                                 Icons.Outlined.Subtitles,
                                 contentDescription = Strings[R.string.player_lyrics],

@@ -52,7 +52,9 @@
 
     <string name="player_clear_queue">Clear queue</string>
     <string name="player_lyrics">Lyrics</string>
+    <string name="player_lyrics_auto_scroll">Auto scroll lyrics</string>
     <string name="player_next">Next</string>
+    <string name="player_no_lyrics">No lyrics</string>
     <string name="player_now_playing">Now playing</string>
     <!-- Alt text of the "favorite" button next to the currently playing track -->
     <string name="player_now_playing_add_favorites">Add now playing to favorites</string>

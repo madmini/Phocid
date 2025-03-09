@@ -36,7 +36,9 @@
     <string name="permission_dialog_title">需要授权</string>
     <string name="player_clear_queue">清空队列</string>
     <string name="player_lyrics">歌词</string>
+    <string name="player_lyrics_auto_scroll">自动滚动歌词</string>
     <string name="player_next">下一首</string>
+    <string name="player_no_lyrics">无歌词</string>
     <string name="player_now_playing">正在播放</string>
     <string name="player_now_playing_add_favorites">收藏当前曲目</string>
     <string name="player_now_playing_remove_favorites">取消收藏当前曲目</string>

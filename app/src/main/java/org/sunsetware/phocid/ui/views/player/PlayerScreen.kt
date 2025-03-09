@@ -3,21 +3,46 @@
 package org.sunsetware.phocid.ui.views.player
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.*
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.stopScroll
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.AddBox
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -41,17 +66,30 @@ import org.sunsetware.phocid.MainViewModel
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
 import org.sunsetware.phocid.UiManager
-import org.sunsetware.phocid.data.*
-import org.sunsetware.phocid.ui.components.*
+import org.sunsetware.phocid.data.InvalidTrack
+import org.sunsetware.phocid.data.LibraryIndex
+import org.sunsetware.phocid.data.Lyrics
+import org.sunsetware.phocid.data.PlayerManager
+import org.sunsetware.phocid.data.SpecialPlaylist
+import org.sunsetware.phocid.data.Track
+import org.sunsetware.phocid.data.getArtworkColor
+import org.sunsetware.phocid.data.loadLyrics
+import org.sunsetware.phocid.data.parseLrc
+import org.sunsetware.phocid.ui.components.BinaryDragState
+import org.sunsetware.phocid.ui.components.DragLock
+import org.sunsetware.phocid.ui.components.MenuItem
+import org.sunsetware.phocid.ui.components.trackMenuItems
 import org.sunsetware.phocid.ui.theme.LocalThemeAccent
 import org.sunsetware.phocid.ui.theme.contentColor
 import org.sunsetware.phocid.ui.theme.customColorScheme
+import org.sunsetware.phocid.ui.theme.emphasizedEnter
 import org.sunsetware.phocid.ui.theme.pureBackgroundColor
-import org.sunsetware.phocid.ui.views.LyricsDialog
 import org.sunsetware.phocid.ui.views.SpeedAndPitchDialog
 import org.sunsetware.phocid.ui.views.TimerDialog
 import org.sunsetware.phocid.ui.views.playlist.NewPlaylistDialog
-import org.sunsetware.phocid.utils.*
+import org.sunsetware.phocid.utils.combine
+import org.sunsetware.phocid.utils.map
+import org.sunsetware.phocid.utils.wrap
 
 @Composable
 fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
@@ -106,23 +144,22 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
             } == true
         }
     val currentTrackLyrics =
-        remember(currentTrack, preferences) {
-            if (preferences.lyricsDisplay == LyricsDisplayPreference.DISABLED) return@remember null
-
+        remember(currentTrack) {
             val cachedLyrics = viewModel.lyricsCache.get()
             if (cachedLyrics != null && cachedLyrics.first == currentTrack.id) {
-                cachedLyrics.second
+                PlayerScreenLyrics.Synced(cachedLyrics.second)
             } else {
                 val externalLyrics = loadLyrics(currentTrack, preferences.charsetName)
                 if (externalLyrics != null)
                     viewModel.lyricsCache.set(Pair(currentTrack.id, externalLyrics))
-                externalLyrics
+                externalLyrics?.let { PlayerScreenLyrics.Synced(it) }
                     ?: if (preferences.treatEmbeddedLyricsAsLrc) {
                         currentTrack.unsyncedLyrics
                             ?.let { parseLrc(it) }
                             ?.takeIf { it.lines.isNotEmpty() }
+                            ?.let { PlayerScreenLyrics.Synced(it) }
                     } else {
-                        null
+                        currentTrack.unsyncedLyrics?.let { PlayerScreenLyrics.Unsynced(it) }
                     }
             }
         }
@@ -228,12 +265,12 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                 }
             }
 
-    val lyricsButtonEnabled = currentTrack.unsyncedLyrics != null || currentTrackLyrics != null
+    val useLyricsView by uiManager.playerScreenUseLyricsView.collectAsStateWithLifecycle()
+    val lyricsViewVisibility by
+        animateFloatAsState(if (useLyricsView) 1f else 0f, emphasizedEnter())
+    var lyricsViewAutoScroll by rememberSaveable { mutableStateOf(true) }
 
-    fun showLyrics() {
-        (currentTrackLyrics?.lines?.map { it.second } ?: currentTrack.unsyncedLyrics?.lines())
-            ?.let { uiManager.openDialog(LyricsDialog(currentTrack.displayTitle, it)) }
-    }
+    LaunchedEffect(currentTrack) { lyricsViewAutoScroll = true }
 
     BackHandler(playerScreenDragState.position >= 1) {
         if (playQueueDragState.position >= 1) {
@@ -334,18 +371,32 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                             components.topBarStandalone.Compose(
                                 containerColor = animatedContainerColor.value,
                                 contentColor = animatedContentColor,
-                                lyricsButtonEnabled = lyricsButtonEnabled,
+                                lyricsAutoScrollButtonVisibility =
+                                    useLyricsView &&
+                                        !lyricsViewAutoScroll &&
+                                        currentTrackLyrics is PlayerScreenLyrics.Synced,
+                                lyricsButtonEnabled = useLyricsView || currentTrackLyrics != null,
                                 onBack = { uiManager.back() },
-                                onShowLyrics = { showLyrics() },
+                                onEnableLyricsViewAutoScroll = { lyricsViewAutoScroll = true },
+                                onToggleLyricsView = {
+                                    uiManager.playerScreenUseLyricsView.update { !it }
+                                },
                             )
                         }
                         Box {
                             components.topBarOverlay.Compose(
                                 containerColor = animatedContainerColor.value,
                                 contentColor = animatedContentColor,
-                                lyricsButtonEnabled = lyricsButtonEnabled,
+                                lyricsAutoScrollButtonVisibility =
+                                    useLyricsView &&
+                                        !lyricsViewAutoScroll &&
+                                        currentTrackLyrics is PlayerScreenLyrics.Synced,
+                                lyricsButtonEnabled = useLyricsView || currentTrackLyrics != null,
                                 onBack = { uiManager.back() },
-                                onShowLyrics = { showLyrics() },
+                                onEnableLyricsViewAutoScroll = { lyricsViewAutoScroll = true },
+                                onToggleLyricsView = {
+                                    uiManager.playerScreenUseLyricsView.update { !it }
+                                },
                             )
                         }
                         Box {
@@ -365,8 +416,17 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                             )
                         }
                         Box {
-                            components.lyricsOverlay.Compose(
+                            components.lyricsView.Compose(
                                 lyrics = currentTrackLyrics,
+                                autoScroll = { lyricsViewAutoScroll },
+                                currentPosition = { playerManager.currentPosition },
+                                preferences = preferences,
+                                onDisableAutoScroll = { lyricsViewAutoScroll = false },
+                            )
+                        }
+                        Box {
+                            components.lyricsOverlay.Compose(
+                                lyrics = (currentTrackLyrics as? PlayerScreenLyrics.Synced)?.value,
                                 currentPosition = { playerManager.currentPosition },
                                 preferences = preferences,
                                 containerColor = animatedContainerColor.value,
@@ -443,13 +503,19 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                             )
                         }
                         Box {
-                            // Scrim
-                            val scrimColor = MaterialTheme.colorScheme.scrim
+                            // Scrim under queue
                             Box(
                                 modifier =
-                                    Modifier.fillMaxSize().drawBehind {
-                                        drawRect(scrimColor, alpha = playQueueDragState.position)
-                                    }
+                                    Modifier.fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.scrim)
+                            )
+                        }
+                        Box {
+                            // Scrim under lyrics
+                            Box(
+                                modifier =
+                                    Modifier.fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.surfaceContainerLow)
                             )
                         }
                     },
@@ -461,14 +527,17 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                 topBarStandalone = measurables[0],
                                 topBarOverlay = measurables[1],
                                 artwork = measurables[2],
-                                lyricsOverlay = measurables[3],
-                                controls = measurables[4],
-                                queue = measurables[5],
-                                scrim = measurables[6],
+                                lyricsView = measurables[3],
+                                lyricsOverlay = measurables[4],
+                                controls = measurables[5],
+                                queue = measurables[6],
+                                scrimQueue = measurables[7],
+                                scrimLyrics = measurables[8],
                                 width = constraints.maxWidth,
                                 height = constraints.maxHeight,
                                 density = density,
                                 queueDragState = playQueueDragState,
+                                lyricsViewVisibility = lyricsViewVisibility,
                             )
                         }
                     }
@@ -522,11 +591,19 @@ private fun queueMenuItems(
 }
 
 @Immutable
+sealed class PlayerScreenLyrics {
+    @Immutable class Synced(val value: Lyrics) : PlayerScreenLyrics()
+
+    @Immutable class Unsynced(val value: String) : PlayerScreenLyrics()
+}
+
+@Immutable
 data class PlayerScreenComponents(
     val topBarStandalone: PlayerScreenTopBar,
     val topBarOverlay: PlayerScreenTopBar,
     val artwork: PlayerScreenArtwork,
-    val lyricsOverlay: PlayerScreenLyrics,
+    val lyricsView: PlayerScreenLyricsView,
+    val lyricsOverlay: PlayerScreenLyricsOverlay,
     val controls: PlayerScreenControls,
     val queue: PlayerScreenQueue,
 )
@@ -544,7 +621,8 @@ enum class PlayerScreenLayoutType(
             PlayerScreenTopBarDefaultStandalone,
             PlayerScreenTopBarDefaultOverlay,
             PlayerScreenArtworkDefault,
-            PlayerScreenLyricsOverlay,
+            PlayerScreenLyricsViewDefault,
+            PlayerScreenLyricsOverlayDefault,
             PlayerScreenControlsDefault,
             PlayerScreenQueueDefault,
         ),
@@ -556,7 +634,8 @@ enum class PlayerScreenLayoutType(
             PlayerScreenTopBarDefaultStandalone,
             PlayerScreenTopBarDefaultOverlay,
             PlayerScreenArtworkDefault,
-            PlayerScreenLyricsOverlay,
+            PlayerScreenLyricsViewDefault,
+            PlayerScreenLyricsOverlayDefault,
             PlayerScreenControlsNoQueue,
             PlayerScreenQueueColored,
         ),

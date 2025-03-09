@@ -37,7 +37,7 @@ import org.sunsetware.phocid.ui.theme.Typography
 import org.sunsetware.phocid.ui.theme.emphasizedExit
 
 @Immutable
-sealed class PlayerScreenLyrics {
+sealed class PlayerScreenLyricsOverlay {
     @Composable
     abstract fun Compose(
         lyrics: Lyrics?,
@@ -49,7 +49,7 @@ sealed class PlayerScreenLyrics {
 }
 
 @Immutable
-object PlayerScreenLyricsOverlay : PlayerScreenLyrics() {
+object PlayerScreenLyricsOverlayDefault : PlayerScreenLyricsOverlay() {
     @Composable
     override fun Compose(
         lyrics: Lyrics?,
