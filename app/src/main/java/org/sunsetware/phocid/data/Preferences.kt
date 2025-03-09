@@ -52,7 +52,7 @@ data class Preferences(
     // Playback
     val playOnOutputDeviceConnection: Boolean = false,
     val pauseOnFocusLoss: Boolean = true,
-    val audioOffloading: Boolean = true,
+    val audioOffloading: Boolean = false,
     val reshuffleOnRepeat: Boolean = false,
     // Theme
     val darkTheme: DarkThemePreference = DarkThemePreference.SYSTEM,
