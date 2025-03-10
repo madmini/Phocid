@@ -134,7 +134,7 @@ object PlayerScreenLayoutNoQueuePortrait : PlayerScreenLayout() {
                     Constraints(
                         maxWidth = width,
                         maxHeight =
-                            (height - topBarOverlayPlaceable.height - controlsPlaceable.height)
+                            (height - topBarOverlayPlaceable.height * 2 - controlsPlaceable.height)
                                 .coerceAtLeast(0),
                     )
                 )
