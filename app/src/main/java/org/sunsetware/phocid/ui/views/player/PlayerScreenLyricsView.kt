@@ -83,11 +83,13 @@ object PlayerScreenLyricsViewDefault : PlayerScreenLyricsView() {
             if (lyrics != null) {
                 while (isActive) {
                     currentLineIndex = getLineIndex()
-                    if (currentLineIndex != null && autoScroll()) {
+                    val autoScrollTarget =
+                        currentLineIndex ?: if (lyrics is PlayerScreenLyrics.Synced) 0 else null
+                    if (autoScrollTarget != null && autoScroll()) {
                         if (!scrollState.isScrollInProgress) {
                             linePositions
                                 .get()
-                                .getOrNull(currentLineIndex!!)
+                                .getOrNull(autoScrollTarget)
                                 ?.let { it - scrollState.viewportSize / 2 }
                                 ?.let {
                                     launch {
