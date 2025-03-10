@@ -42,9 +42,9 @@ data class Preferences(
     val tabStyle: TabStylePreference = TabStylePreference.TEXT_ONLY,
     val scrollableTabs: Boolean = true,
     val collectionViewSorting: Map<LibraryScreenCollectionType, Pair<String, Boolean>> =
-        LibraryScreenCollectionType.entries
-            .map { it to Pair(it.sortingOptions.keys.first(), true) }
-            .toMap(),
+        LibraryScreenCollectionType.entries.associateWith {
+            Pair(it.sortingOptions.keys.first(), true)
+        },
     val playerScreenLayout: PlayerScreenLayoutType = PlayerScreenLayoutType.DEFAULT,
     val sortingLocaleLanguageTag: String? = null,
     val lyricsDisplay: LyricsDisplayPreference = LyricsDisplayPreference.DEFAULT,
