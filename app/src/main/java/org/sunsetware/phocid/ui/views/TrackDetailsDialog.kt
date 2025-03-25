@@ -1,6 +1,5 @@
 package org.sunsetware.phocid.ui.views
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -10,9 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import com.ibm.icu.number.LocalizedNumberFormatter
 import com.ibm.icu.number.Notation
 import com.ibm.icu.number.NumberFormatter
@@ -21,6 +20,7 @@ import com.ibm.icu.text.DateFormat
 import com.ibm.icu.util.MeasureUnit
 import java.util.Date
 import java.util.Locale
+import kotlin.math.max
 import org.sunsetware.phocid.Dialog
 import org.sunsetware.phocid.MainViewModel
 import org.sunsetware.phocid.R
@@ -81,37 +81,48 @@ class TrackDetailsDialog(private val track: Track) : Dialog() {
             title = Strings[R.string.track_details],
             onConfirmOrDismiss = { viewModel.uiManager.closeDialog() },
         ) {
-            ConstraintLayout(
-                modifier =
-                    Modifier.fillMaxWidth().verticalScroll(scrollState).padding(horizontal = 24.dp)
-            ) {
-                val refs = content.map { createRef() to createRef() }
-                val horizontalBarrier = createEndBarrier(*refs.map { it.first }.toTypedArray())
-                val verticalBarriers = refs.map { createBottomBarrier(it.first, it.second) }
+            Layout(
+                modifier = Modifier.verticalScroll(scrollState).padding(horizontal = 24.dp),
+                content = {
+                    for ((key, value) in content) {
+                        SingleLineText(key, color = MaterialTheme.colorScheme.primary)
+                        Text(value)
+                    }
+                },
+            ) { measurables, constraints ->
+                val horizontalSpacing = 16.dp.roundToPx()
+                val verticalSpacing = 4.dp.roundToPx()
+                val pairs = measurables.chunked(2)
+                val keys =
+                    pairs.map {
+                        it[0].measure(
+                            Constraints(
+                                maxWidth =
+                                    ((constraints.maxWidth - horizontalSpacing) / 2).coerceAtLeast(
+                                        0
+                                    )
+                            )
+                        )
+                    }
+                val keyWidth = keys.maxOf { it.width }
+                val valueWidth =
+                    (constraints.maxWidth - keyWidth - horizontalSpacing).coerceAtLeast(0)
+                val values = pairs.map { it[1].measure(Constraints(maxWidth = valueWidth)) }
+                val rows =
+                    keys.zip(values) { key, value ->
+                        Triple(key, value, max(key.height, value.height))
+                    }
 
-                content.forEachIndexed { index, (title, content) ->
-                    val (titleRef, contentRef) = refs[index]
-                    val verticalBarrier = if (index > 0) verticalBarriers[index - 1] else null
-                    val verticalMargin = if (index > 0) 4.dp else 0.dp
-                    SingleLineText(
-                        title,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier =
-                            Modifier.constrainAs(titleRef) {
-                                top.linkTo(verticalBarrier ?: parent.top, verticalMargin)
-                                start.linkTo(parent.start)
-                            },
-                    )
-                    Text(
-                        content,
-                        modifier =
-                            Modifier.constrainAs(contentRef) {
-                                top.linkTo(verticalBarrier ?: parent.top, verticalMargin)
-                                start.linkTo(horizontalBarrier, margin = 16.dp)
-                                end.linkTo(parent.end)
-                                width = Dimension.fillToConstraints
-                            },
-                    )
+                layout(
+                    constraints.maxWidth,
+                    rows.sumOf { it.third } + verticalSpacing * (rows.size - 1),
+                ) {
+                    var y = 0
+                    for ((key, value, height) in rows) {
+                        key.placeRelative(0, y)
+                        value.placeRelative(keyWidth + horizontalSpacing, y)
+                        y += height + verticalSpacing
+                    }
                 }
             }
         }

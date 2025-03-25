@@ -4,7 +4,6 @@ activityKtx = "1.10.1"
 agp = "8.9.0"
 assertjCore = "3.26.3"
 commonsIo = "2.17.0"
-constraintlayoutCompose = "1.1.1"
 coreSplashscreenVersion = "1.0.1"
 icu4j = "76.1"
 junit = "4.13.2"
@@ -29,7 +28,6 @@ robolectric = "4.13"
 [libraries]
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activityKtx" }
-androidx-constraintlayout-compose = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraintlayoutCompose" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleViewmodelCompose" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }

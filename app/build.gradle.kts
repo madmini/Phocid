@@ -57,7 +57,6 @@ dependencies {
     implementation(libs.accompanist.permissions)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.activity.ktx)
-    implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
