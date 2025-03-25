@@ -41,6 +41,7 @@ data class Preferences(
         LibraryScreenTabType.entries.map { it to true },
     val tabStyle: TabStylePreference = TabStylePreference.TEXT_ONLY,
     val scrollableTabs: Boolean = true,
+    val folderTabRoot: String? = null,
     val collectionViewSorting: Map<LibraryScreenCollectionType, Pair<String, Boolean>> =
         LibraryScreenCollectionType.entries.associateWith {
             Pair(it.sortingOptions.keys.first(), true)

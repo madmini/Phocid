@@ -6,6 +6,7 @@
     <string name="app_url" translatable="false">https://github.com/tjysunset/phocid</string>
 
     <string name="commons_add">Add</string>
+    <string name="commons_automatic">Automatic</string>
     <string name="commons_back">Back</string>
     <string name="commons_cancel">Cancel</string>
     <!-- Verb, "remove everything" -->
@@ -151,6 +152,9 @@
     <string name="preferences_dark_theme_light">Light</string>
     <string name="preferences_dark_theme_system">Follow system</string>
     <string name="preferences_data">Data</string>
+    <string name="preferences_folder_picker_dialog_title">Select folder</string>
+    <string name="preferences_folder_picker_dialog_up">Up</string>
+    <string name="preferences_folder_tab_root">Folder tab root</string>
     <string name="preferences_indexing">Indexing</string>
     <string name="preferences_indexing_advanced_metadata_extraction">Advanced metadata extraction</string>
     <string name="preferences_indexing_advanced_metadata_extraction_subtitle">Reads multiple tags and embedded lyrics, but is very slow. Applies after a manual rescan.</string>

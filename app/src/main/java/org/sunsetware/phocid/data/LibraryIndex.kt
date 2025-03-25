@@ -797,7 +797,7 @@ data class LibraryIndex(
     val albumArtists: CaseInsensitiveMap<AlbumArtist>,
     val genres: CaseInsensitiveMap<Genre>,
     val folders: Map<String, Folder>,
-    val rootFolder: String,
+    val defaultRootFolder: String,
 ) {
     companion object {
         fun new(

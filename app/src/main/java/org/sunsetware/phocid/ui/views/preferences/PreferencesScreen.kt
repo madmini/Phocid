@@ -12,7 +12,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
+import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -20,6 +28,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.nio.charset.Charset
 import org.sunsetware.phocid.BuildConfig
@@ -35,6 +44,7 @@ import org.sunsetware.phocid.data.TabStylePreference
 import org.sunsetware.phocid.ui.components.UtilityListHeader
 import org.sunsetware.phocid.ui.components.UtilityListItem
 import org.sunsetware.phocid.ui.components.UtilitySwitchListItem
+import org.sunsetware.phocid.ui.components.negativePadding
 import org.sunsetware.phocid.ui.views.player.PlayerScreenLayoutType
 import org.sunsetware.phocid.ui.views.playlist.PlaylistIoScreen
 import org.sunsetware.phocid.ui.views.playlist.PlaylistIoSettingsDialog
@@ -117,6 +127,40 @@ object PreferencesScreen : TopLevelScreen() {
                                     )
                                 )
                             },
+                    )
+                    UtilityListItem(
+                        title = Strings[R.string.preferences_folder_tab_root],
+                        subtitle =
+                            preferences.folderTabRoot?.let { "/$it" }
+                                ?: Strings[R.string.commons_automatic],
+                        modifier =
+                            Modifier.clickable {
+                                uiManager.openDialog(
+                                    PreferencesFolderPickerDialog(
+                                        initialPath = preferences.folderTabRoot,
+                                        onConfirmOrDismiss = { path ->
+                                            if (path != null) {
+                                                viewModel.updatePreferences {
+                                                    it.copy(folderTabRoot = path)
+                                                }
+                                            }
+                                        },
+                                    )
+                                )
+                            },
+                        actions = {
+                            IconButton(
+                                onClick = {
+                                    viewModel.updatePreferences { it.copy(folderTabRoot = null) }
+                                },
+                                modifier = Modifier.negativePadding(end = 12.dp),
+                            ) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.Undo,
+                                    Strings[R.string.commons_reset],
+                                )
+                            }
+                        },
                     )
                     UtilityListItem(
                         title = Strings[R.string.preferences_player_screen_layout],

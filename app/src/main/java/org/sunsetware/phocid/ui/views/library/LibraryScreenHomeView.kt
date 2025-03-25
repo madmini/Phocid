@@ -50,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.util.UUID
-import kotlin.collections.plus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -367,7 +366,9 @@ class LibraryScreenHomeViewState(
         searchQuery: String,
     ): List<LibraryScreenHomeViewItem> {
         val tab = preferences.tabSettings[LibraryScreenTabType.FOLDERS]!!
-        val rootFolder = libraryIndex.folders[libraryIndex.rootFolder]!!
+        val rootFolder =
+            libraryIndex.folders[preferences.folderTabRoot]
+                ?: libraryIndex.folders[libraryIndex.defaultRootFolder]!!
         val filteredChildFolders =
             rootFolder.childFolders
                 .map { libraryIndex.folders[it]!! }

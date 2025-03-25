@@ -1,7 +1,14 @@
 package org.sunsetware.phocid.ui.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -28,6 +35,7 @@ inline fun UtilityListItem(
     title: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
+    crossinline lead: @Composable () -> Unit = {},
     crossinline actions: @Composable () -> Unit = {},
 ) {
     Row(
@@ -38,6 +46,7 @@ inline fun UtilityListItem(
                 .padding(horizontal = 24.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        lead()
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, style = Typography.bodyLarge)
             if (subtitle != null) {
