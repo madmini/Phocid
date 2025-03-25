@@ -137,6 +137,7 @@ object PreferencesScreen : TopLevelScreen() {
                             Modifier.clickable {
                                 uiManager.openDialog(
                                     PreferencesFolderPickerDialog(
+                                        unfiltered = false,
                                         initialPath = preferences.folderTabRoot,
                                         onConfirmOrDismiss = { path ->
                                             if (path != null) {

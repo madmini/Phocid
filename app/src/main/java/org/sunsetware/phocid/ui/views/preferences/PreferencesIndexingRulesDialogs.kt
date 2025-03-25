@@ -2,6 +2,7 @@ package org.sunsetware.phocid.ui.views.preferences
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -12,14 +13,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -39,7 +46,7 @@ import org.sunsetware.phocid.utils.icuFormat
 import org.sunsetware.phocid.utils.removeAt
 
 @Stable
-class PreferencesBlacklistDialog() : Dialog() {
+class PreferencesBlacklistDialog(private val initialTextFieldValue: String = "") : Dialog() {
     @Composable
     override fun Compose(viewModel: MainViewModel) {
         val preferences by viewModel.preferences.collectAsStateWithLifecycle()
@@ -49,6 +56,32 @@ class PreferencesBlacklistDialog() : Dialog() {
             onConfirmOrDismiss = { viewModel.uiManager.closeDialog() },
             rules = preferences.blacklist,
             unfilteredTrackIndex = unfilteredTrackIndex,
+            extraButton = { getTextFieldValue ->
+                IconButton(
+                    onClick = {
+                        val textFieldValue = getTextFieldValue()
+                        viewModel.uiManager.openDialog(
+                            PreferencesFolderPickerDialog(
+                                unfiltered = true,
+                                initialPath = null,
+                                onConfirmOrDismiss = { path ->
+                                    viewModel.uiManager.openDialog(
+                                        PreferencesBlacklistDialog(
+                                            path?.let { "^" + Regex.escape("/$it/") }
+                                                ?: textFieldValue
+                                        )
+                                    )
+                                },
+                            )
+                        )
+                    }
+                ) {
+                    Icon(
+                        Icons.Filled.FolderOpen,
+                        contentDescription = Strings[R.string.preferences_indexing_select_folder],
+                    )
+                }
+            },
             onRemoveRule = { index ->
                 viewModel.updatePreferences { it.copy(blacklist = it.blacklist.removeAt(index)) }
             },
@@ -59,12 +92,13 @@ class PreferencesBlacklistDialog() : Dialog() {
             matchCount = ::regexMatchCount,
             errorText = Strings[R.string.preferences_indexing_invalid_regex],
             footnote = null,
+            initialTextFieldValue = initialTextFieldValue,
         )
     }
 }
 
 @Stable
-class PreferencesWhitelistDialog() : Dialog() {
+class PreferencesWhitelistDialog(private val initialTextFieldValue: String = "") : Dialog() {
     @Composable
     override fun Compose(viewModel: MainViewModel) {
         val preferences by viewModel.preferences.collectAsStateWithLifecycle()
@@ -74,6 +108,32 @@ class PreferencesWhitelistDialog() : Dialog() {
             onConfirmOrDismiss = { viewModel.uiManager.closeDialog() },
             rules = preferences.whitelist,
             unfilteredTrackIndex = unfilteredTrackIndex,
+            extraButton = { getTextFieldValue ->
+                IconButton(
+                    onClick = {
+                        val textFieldValue = getTextFieldValue()
+                        viewModel.uiManager.openDialog(
+                            PreferencesFolderPickerDialog(
+                                unfiltered = true,
+                                initialPath = null,
+                                onConfirmOrDismiss = { path ->
+                                    viewModel.uiManager.openDialog(
+                                        PreferencesWhitelistDialog(
+                                            path?.let { "^" + Regex.escape("/$it/") }
+                                                ?: textFieldValue
+                                        )
+                                    )
+                                },
+                            )
+                        )
+                    }
+                ) {
+                    Icon(
+                        Icons.Filled.FolderOpen,
+                        contentDescription = Strings[R.string.preferences_indexing_select_folder],
+                    )
+                }
+            },
             onRemoveRule = { index ->
                 viewModel.updatePreferences { it.copy(whitelist = it.whitelist.removeAt(index)) }
             },
@@ -84,6 +144,7 @@ class PreferencesWhitelistDialog() : Dialog() {
             matchCount = ::regexMatchCount,
             errorText = Strings[R.string.preferences_indexing_invalid_regex],
             footnote = null,
+            initialTextFieldValue = initialTextFieldValue,
         )
     }
 }
@@ -99,6 +160,7 @@ class PreferencesArtistSeparatorDialog() : Dialog() {
             onConfirmOrDismiss = { viewModel.uiManager.closeDialog() },
             rules = preferences.artistMetadataSeparators,
             unfilteredTrackIndex = unfilteredTrackIndex,
+            extraButton = {},
             onRemoveRule = { index ->
                 viewModel.updatePreferences {
                     it.copy(artistMetadataSeparators = it.artistMetadataSeparators.removeAt(index))
@@ -128,6 +190,7 @@ class PreferencesArtistSeparatorExceptionDialog() : Dialog() {
             onConfirmOrDismiss = { viewModel.uiManager.closeDialog() },
             rules = preferences.artistMetadataSeparatorExceptions,
             unfilteredTrackIndex = unfilteredTrackIndex,
+            extraButton = {},
             onRemoveRule = { index ->
                 viewModel.updatePreferences {
                     it.copy(
@@ -163,6 +226,7 @@ class PreferencesGenreSeparatorDialog() : Dialog() {
             onConfirmOrDismiss = { viewModel.uiManager.closeDialog() },
             rules = preferences.genreMetadataSeparators,
             unfilteredTrackIndex = unfilteredTrackIndex,
+            extraButton = {},
             onRemoveRule = { index ->
                 viewModel.updatePreferences {
                     it.copy(genreMetadataSeparators = it.genreMetadataSeparators.removeAt(index))
@@ -192,6 +256,7 @@ class PreferencesGenreSeparatorExceptionDialog() : Dialog() {
             onConfirmOrDismiss = { viewModel.uiManager.closeDialog() },
             rules = preferences.genreMetadataSeparatorExceptions,
             unfilteredTrackIndex = unfilteredTrackIndex,
+            extraButton = {},
             onRemoveRule = { index ->
                 viewModel.updatePreferences {
                     it.copy(
@@ -283,14 +348,16 @@ private inline fun IndexRulesDialog(
     noinline onConfirmOrDismiss: () -> Unit,
     rules: List<String>,
     unfilteredTrackIndex: UnfilteredTrackIndex,
+    crossinline extraButton: @Composable (() -> String) -> Unit,
     crossinline onRemoveRule: (Int) -> Unit,
     crossinline onAddRule: (String) -> Unit,
     crossinline validate: (String) -> Boolean,
     noinline matchCount: ((String, UnfilteredTrackIndex) -> Int)?,
     errorText: String?,
     footnote: String?,
+    initialTextFieldValue: String = "",
 ) {
-    var textFieldValue by rememberSaveable { mutableStateOf("") }
+    var textFieldValue by rememberSaveable { mutableStateOf(initialTextFieldValue) }
     val error = remember(textFieldValue) { !validate(textFieldValue) }
     val matchCount =
         remember(unfilteredTrackIndex, textFieldValue) {
@@ -312,17 +379,20 @@ private inline fun IndexRulesDialog(
                             contentDescription = Strings[R.string.commons_error],
                         )
                     } else {
-                        IconButton(
-                            onClick = {
-                                onAddRule(textFieldValue)
-                                textFieldValue = ""
-                            },
-                            enabled = textFieldValue.isNotEmpty(),
-                        ) {
-                            Icon(
-                                Icons.Filled.Add,
-                                contentDescription = Strings[R.string.commons_add],
-                            )
+                        Row {
+                            extraButton { textFieldValue }
+                            IconButton(
+                                onClick = {
+                                    onAddRule(textFieldValue)
+                                    textFieldValue = ""
+                                },
+                                enabled = textFieldValue.isNotEmpty(),
+                            ) {
+                                Icon(
+                                    Icons.Filled.Add,
+                                    contentDescription = Strings[R.string.commons_add],
+                                )
+                            }
                         }
                     }
                 },

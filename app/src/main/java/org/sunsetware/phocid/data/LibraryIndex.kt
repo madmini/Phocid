@@ -42,7 +42,12 @@ import org.sunsetware.phocid.R
 import org.sunsetware.phocid.READ_PERMISSION
 import org.sunsetware.phocid.Strings
 import org.sunsetware.phocid.UNKNOWN
-import org.sunsetware.phocid.utils.*
+import org.sunsetware.phocid.utils.CaseInsensitiveMap
+import org.sunsetware.phocid.utils.ColorSerializer
+import org.sunsetware.phocid.utils.distinctCaseInsensitive
+import org.sunsetware.phocid.utils.icuFormat
+import org.sunsetware.phocid.utils.mode
+import org.sunsetware.phocid.utils.trimAndNormalize
 
 @Immutable
 @Serializable
@@ -786,7 +791,12 @@ val EmptyTrackIndex = UnfilteredTrackIndex(null, mapOf())
 
 @Immutable
 @Serializable
-data class UnfilteredTrackIndex(val version: String?, val tracks: Map<Long, Track>)
+data class UnfilteredTrackIndex(val version: String?, val tracks: Map<Long, Track>) {
+    fun getFolders(collator: Collator): Pair<Map<String, Folder>, String> {
+        val folders = getFolders(tracks.values, collator)
+        return folders to getRootFolder(folders)
+    }
+}
 
 @Immutable
 data class LibraryIndex(
@@ -948,49 +958,48 @@ data class LibraryIndex(
                 }
                 .let { CaseInsensitiveMap.noMerge(it) }
         }
+    }
+}
 
-        private fun getFolders(tracks: Collection<Track>, collator: Collator): Map<String, Folder> {
-            val folders = mutableMapOf<String, MutableFolder>("" to MutableFolder(""))
-            tracks.sorted(collator, Folder.SortingOptions.values.first().keys, true).forEach { track
-                ->
-                val parentPath = FilenameUtils.getPathNoEndSeparator(track.path)
-                val parentFolder = folders.getOrPut(parentPath) { MutableFolder(parentPath) }
-                parentFolder.childTracks.add(track)
-            }
-            for (path in folders.keys.toMutableList()) {
-                var currentPath = path
-                var parentPath = FilenameUtils.getPathNoEndSeparator(path)
-                while (currentPath.isNotEmpty()) {
-                    val parentFolderExists = folders.containsKey(parentPath)
-                    val parentFolder = folders.getOrPut(parentPath) { MutableFolder(parentPath) }
-                    parentFolder.childFolders.add(currentPath)
-                    if (parentFolderExists) break
-                    currentPath = parentPath
-                    parentPath = FilenameUtils.getPathNoEndSeparator(parentPath)
-                }
-            }
-            for ((path, folder) in folders) {
-                folder.childTracksCountRecursive += folder.childTracks.size
-                var currentPath = path
-                while (currentPath.isNotEmpty()) {
-                    val parentPath = FilenameUtils.getPathNoEndSeparator(currentPath)
-                    folders[parentPath]!!.childTracksCountRecursive += folder.childTracks.size
-                    currentPath = parentPath
-                }
-            }
-            return folders.mapValues { it.value.toFolder(collator) }
-        }
-
-        private fun getRootFolder(folders: Map<String, Folder>): String {
-            var root = ""
-            while (true) {
-                val folder = folders[root]!!
-                if (folder.childFolders.size != 1 || folder.childTracks.isNotEmpty()) break
-                root = folder.childFolders[0]
-            }
-            return root
+private fun getFolders(tracks: Collection<Track>, collator: Collator): Map<String, Folder> {
+    val folders = mutableMapOf<String, MutableFolder>("" to MutableFolder(""))
+    tracks.sorted(collator, Folder.SortingOptions.values.first().keys, true).forEach { track ->
+        val parentPath = FilenameUtils.getPathNoEndSeparator(track.path)
+        val parentFolder = folders.getOrPut(parentPath) { MutableFolder(parentPath) }
+        parentFolder.childTracks.add(track)
+    }
+    for (path in folders.keys.toMutableList()) {
+        var currentPath = path
+        var parentPath = FilenameUtils.getPathNoEndSeparator(path)
+        while (currentPath.isNotEmpty()) {
+            val parentFolderExists = folders.containsKey(parentPath)
+            val parentFolder = folders.getOrPut(parentPath) { MutableFolder(parentPath) }
+            parentFolder.childFolders.add(currentPath)
+            if (parentFolderExists) break
+            currentPath = parentPath
+            parentPath = FilenameUtils.getPathNoEndSeparator(parentPath)
         }
     }
+    for ((path, folder) in folders) {
+        folder.childTracksCountRecursive += folder.childTracks.size
+        var currentPath = path
+        while (currentPath.isNotEmpty()) {
+            val parentPath = FilenameUtils.getPathNoEndSeparator(currentPath)
+            folders[parentPath]!!.childTracksCountRecursive += folder.childTracks.size
+            currentPath = parentPath
+        }
+    }
+    return folders.mapValues { it.value.toFolder(collator) }
+}
+
+private fun getRootFolder(folders: Map<String, Folder>): String {
+    var root = ""
+    while (true) {
+        val folder = folders[root]!!
+        if (folder.childFolders.size != 1 || folder.childTracks.isNotEmpty()) break
+        root = folder.childFolders[0]
+    }
+    return root
 }
 
 private val contentResolverColumns =

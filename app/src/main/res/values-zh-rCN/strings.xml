@@ -162,6 +162,7 @@
     <string name="preferences_indexing_help_whitelist_title">白名单</string>
     <string name="preferences_indexing_invalid_regex">不符合正则表达式语法</string>
     <string name="preferences_indexing_rescan_footnote">变更仅在手动重新扫描后生效</string>
+    <string name="preferences_indexing_select_folder">选择文件夹</string>
     <string name="preferences_indexing_whitelist">白名单</string>
     <string name="preferences_indexing_whitelist_subtitle">{0, plural, other {#}} 条规则</string>
     <string name="preferences_interface">界面</string>

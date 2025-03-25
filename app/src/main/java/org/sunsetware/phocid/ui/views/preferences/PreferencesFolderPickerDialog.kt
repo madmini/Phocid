@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.apache.commons.io.FilenameUtils
 import org.sunsetware.phocid.Dialog
 import org.sunsetware.phocid.MainViewModel
@@ -40,19 +39,24 @@ import org.sunsetware.phocid.ui.theme.Typography
 
 @Stable
 class PreferencesFolderPickerDialog(
+    private val unfiltered: Boolean,
     private val initialPath: String?,
     private val onConfirmOrDismiss: (String?) -> Unit,
 ) : Dialog() {
     @Composable
     override fun Compose(viewModel: MainViewModel) {
-        val libraryIndex by viewModel.libraryIndex.collectAsStateWithLifecycle()
+        val (folders, defaultRootFolder) =
+            remember {
+                if (unfiltered)
+                    viewModel.unfilteredTrackIndex.value.getFolders(
+                        viewModel.preferences.value.sortCollator
+                    )
+                else viewModel.libraryIndex.value.let { it.folders to it.defaultRootFolder }
+            }
         var currentPath by remember {
-            mutableStateOf(
-                initialPath.takeIf { libraryIndex.folders.contains(it) }
-                    ?: libraryIndex.defaultRootFolder
-            )
+            mutableStateOf(initialPath.takeIf { folders.contains(it) } ?: defaultRootFolder)
         }
-        val currentFolder = libraryIndex.folders[currentPath]
+        val currentFolder = folders[currentPath]
         val lazyListState = rememberLazyListState()
         DialogBase(
             title = Strings[R.string.preferences_folder_picker_dialog_title],

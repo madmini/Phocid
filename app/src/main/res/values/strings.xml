@@ -185,6 +185,7 @@
     <string name="preferences_indexing_help_whitelist_title">Allowlist</string>
     <string name="preferences_indexing_invalid_regex">Not a valid regular expression</string>
     <string name="preferences_indexing_rescan_footnote">Perform a manual rescan for changes to take effect</string>
+    <string name="preferences_indexing_select_folder">Select folder</string>
     <string name="preferences_indexing_whitelist">Allowlist</string>
     <string name="preferences_indexing_whitelist_subtitle">{0, plural, one {# rule} other {# rules}}</string>
     <string name="preferences_interface">Interface</string>
