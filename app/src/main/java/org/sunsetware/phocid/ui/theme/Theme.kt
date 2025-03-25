@@ -11,7 +11,12 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +35,7 @@ import org.sunsetware.phocid.data.CustomThemeColor
 import org.sunsetware.phocid.data.ThemeColorSource
 
 val LocalThemeAccent = compositionLocalOf { primary400 }
+val LocalDarkTheme = compositionLocalOf { false }
 
 @Composable
 fun PhocidTheme(
@@ -115,24 +121,30 @@ fun PhocidTheme(
         LocalDensity provides
             Density(density.density * densityMultiplier, density.fontScale * densityMultiplier)
     ) {
-        CompositionLocalProvider(LocalThemeAccent provides accent) {
-            // Prevent random bleeding behind navigation bars in landscape mode
-            if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                Box(
-                    modifier =
-                        Modifier.background(colorScheme.surfaceContainer)
-                            .padding(WindowInsets.navigationBars.asPaddingValues())
-                ) {
-                    Box(modifier = Modifier.consumeWindowInsets(WindowInsets.navigationBars)) {
-                        MaterialTheme(
-                            colorScheme = colorScheme,
-                            typography = Typography,
-                            content = content,
-                        )
+        CompositionLocalProvider(LocalDarkTheme provides darkTheme) {
+            CompositionLocalProvider(LocalThemeAccent provides accent) {
+                // Prevent random bleeding behind navigation bars in landscape mode
+                if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    Box(
+                        modifier =
+                            Modifier.background(colorScheme.surfaceContainer)
+                                .padding(WindowInsets.navigationBars.asPaddingValues())
+                    ) {
+                        Box(modifier = Modifier.consumeWindowInsets(WindowInsets.navigationBars)) {
+                            MaterialTheme(
+                                colorScheme = colorScheme,
+                                typography = Typography,
+                                content = content,
+                            )
+                        }
                     }
+                } else {
+                    MaterialTheme(
+                        colorScheme = colorScheme,
+                        typography = Typography,
+                        content = content,
+                    )
                 }
-            } else {
-                MaterialTheme(colorScheme = colorScheme, typography = Typography, content = content)
             }
         }
     }

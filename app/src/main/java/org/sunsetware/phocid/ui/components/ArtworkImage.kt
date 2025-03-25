@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -30,7 +31,7 @@ import kotlinx.coroutines.withContext
 import org.sunsetware.phocid.data.ArtworkColorPreference
 import org.sunsetware.phocid.data.getArtworkColor
 import org.sunsetware.phocid.data.loadArtwork
-import org.sunsetware.phocid.ui.theme.contentColor
+import org.sunsetware.phocid.ui.theme.LocalDarkTheme
 
 @Immutable
 sealed class Artwork {
@@ -61,6 +62,7 @@ fun ArtworkImage(
     async: Boolean = true,
 ) {
     val context = LocalContext.current
+    val darkTheme = LocalDarkTheme.current
     var image by
         remember(artwork) {
             mutableStateOf(
@@ -111,7 +113,13 @@ fun ArtworkImage(
         val color =
             remember(artwork, artworkColorPreference) { artwork.getColor(artworkColorPreference) }
         Box(
-            modifier = modifier.clip(shape).background(color.contentColor()),
+            modifier =
+                modifier
+                    .clip(shape)
+                    .background(
+                        if (darkTheme) lerp(color, Color.Black, 0.4f)
+                        else lerp(color, Color.White, 0.9f)
+                    ),
             contentAlignment = Alignment.Center,
         ) {
             Icon(icon, null, tint = color, modifier = Modifier.fillMaxSize(0.5f))
