@@ -76,6 +76,8 @@ import org.sunsetware.phocid.data.RealizedPlaylist
 import org.sunsetware.phocid.data.SortingOption
 import org.sunsetware.phocid.data.TabStylePreference
 import org.sunsetware.phocid.data.Track
+import org.sunsetware.phocid.data.hint
+import org.sunsetware.phocid.data.hintBy
 import org.sunsetware.phocid.data.search
 import org.sunsetware.phocid.data.sorted
 import org.sunsetware.phocid.data.sortedBy
@@ -107,6 +109,7 @@ data class LibraryScreenHomeViewItem(
     val key: Any,
     val title: String,
     val subtitle: String,
+    val scrollHint: String,
     val artwork: Artwork,
     val tracks: () -> List<Track>,
     val menuItems: (MainViewModel) -> List<MenuItem>,
@@ -201,11 +204,13 @@ class LibraryScreenHomeViewState(
             libraryIndex.tracks.values
                 .search(searchQuery, preferences.searchCollator)
                 .sorted(preferences.sortCollator, tab.sortingKeys, tab.sortAscending)
-        return tracks.mapIndexed { index, track ->
+                .hint(preferences.sortCollator, tab.sortingKeys)
+        return tracks.mapIndexed { index, (track, hint) ->
             LibraryScreenHomeViewItem(
                 key = track.id,
                 title = track.displayTitle,
                 subtitle = track.displayArtistWithAlbum,
+                scrollHint = hint,
                 artwork = Artwork.Track(track),
                 tracks = { listOf(track) },
                 menuItems = { trackMenuItems(track, it.playerManager, it.uiManager) },
@@ -218,7 +223,7 @@ class LibraryScreenHomeViewState(
                     )
                 },
             ) {
-                it.playerManager.setTracks(tracks, index)
+                it.playerManager.setTracks(tracks.map { it.first }, index)
             }
         }
     }
@@ -234,11 +239,14 @@ class LibraryScreenHomeViewState(
                 .asIterable()
                 .search(searchQuery, preferences.searchCollator) { it.value }
                 .sortedBy(preferences.sortCollator, tab.sortingKeys, tab.sortAscending) { it.value }
-        return albums.map { (key, album) ->
+                .hintBy(preferences.sortCollator, tab.sortingKeys) { it.value }
+        return albums.map { (pair, hint) ->
+            val (key, album) = pair
             LibraryScreenHomeViewItem(
                 key = key.composeKey,
                 title = album.name,
                 subtitle = album.displayAlbumArtist,
+                scrollHint = hint,
                 artwork = Artwork.Track(album.tracks.firstOrNull() ?: InvalidTrack),
                 tracks = { album.tracks },
                 menuItems = {
@@ -268,11 +276,13 @@ class LibraryScreenHomeViewState(
             libraryIndex.artists.values
                 .search(searchQuery, preferences.searchCollator)
                 .sorted(preferences.sortCollator, tab.sortingKeys, tab.sortAscending)
-        return artists.map { artist ->
+                .hint(preferences.sortCollator, tab.sortingKeys)
+        return artists.map { (artist, hint) ->
             LibraryScreenHomeViewItem(
                 key = artist.name,
                 title = artist.name,
                 subtitle = artist.displayStatistics,
+                scrollHint = hint,
                 artwork = Artwork.Track(artist.tracks.firstOrNull() ?: InvalidTrack),
                 tracks = { artist.tracks },
                 menuItems = {
@@ -302,11 +312,13 @@ class LibraryScreenHomeViewState(
             libraryIndex.albumArtists.values
                 .search(searchQuery, preferences.searchCollator)
                 .sorted(preferences.sortCollator, tab.sortingKeys, tab.sortAscending)
-        return albumArtists.map { albumArtist ->
+                .hint(preferences.sortCollator, tab.sortingKeys)
+        return albumArtists.map { (albumArtist, hint) ->
             LibraryScreenHomeViewItem(
                 key = albumArtist.name,
                 title = albumArtist.name,
                 subtitle = albumArtist.displayStatistics,
+                scrollHint = hint,
                 artwork = Artwork.Track(albumArtist.tracks.firstOrNull() ?: InvalidTrack),
                 tracks = { albumArtist.tracks },
                 menuItems = {
@@ -336,11 +348,13 @@ class LibraryScreenHomeViewState(
             libraryIndex.genres.values
                 .search(searchQuery, preferences.searchCollator)
                 .sorted(preferences.sortCollator, tab.sortingKeys, tab.sortAscending)
-        return genres.map { genre ->
+                .hint(preferences.sortCollator, tab.sortingKeys)
+        return genres.map { (genre, hint) ->
             LibraryScreenHomeViewItem(
                 key = genre.name,
                 title = genre.name,
                 subtitle = genre.displayStatistics,
+                scrollHint = hint,
                 artwork = Artwork.Track(genre.tracks.firstOrNull() ?: InvalidTrack),
                 tracks = { genre.tracks },
                 menuItems = {
@@ -374,18 +388,21 @@ class LibraryScreenHomeViewState(
                 .map { libraryIndex.folders[it]!! }
                 .search(searchQuery, preferences.searchCollator)
                 .sorted(preferences.sortCollator, tab.sortingKeys, tab.sortAscending)
+                .hint(preferences.sortCollator, tab.sortingKeys)
         // Sorting is required here because onClick is "baked" with this order.
         val filteredSortedChildTracks =
             rootFolder.childTracks
                 .search(searchQuery, preferences.searchCollator)
                 .sorted(preferences.sortCollator, tab.sortingKeys, tab.sortAscending)
+                .hint(preferences.sortCollator, tab.sortingKeys)
         val folderItems =
-            filteredChildFolders.map { folder ->
+            filteredChildFolders.map { (folder, hint) ->
                 folder to
                     LibraryScreenHomeViewItem(
                         key = folder.path,
                         title = folder.fileName,
                         subtitle = folder.displayStatistics,
+                        scrollHint = hint,
                         artwork = Artwork.Icon(Icons.Outlined.Folder, folder.path.hashColor()),
                         tracks = { folder.childTracksRecursive(libraryIndex.folders) },
                         menuItems = {
@@ -411,12 +428,13 @@ class LibraryScreenHomeViewState(
                     }
             }
         val trackItems =
-            filteredSortedChildTracks.mapIndexed { index, track ->
+            filteredSortedChildTracks.mapIndexed { index, (track, hint) ->
                 track to
                     LibraryScreenHomeViewItem(
                         key = track.id,
                         title = track.fileName,
                         subtitle = track.duration.format(),
+                        scrollHint = hint,
                         artwork = Artwork.Track(track),
                         tracks = { listOf(track) },
                         menuItems = { trackMenuItems(track, it.playerManager, it.uiManager) },
@@ -429,7 +447,10 @@ class LibraryScreenHomeViewState(
                             )
                         },
                     ) {
-                        it.playerManager.setTracks(filteredSortedChildTracks, index)
+                        it.playerManager.setTracks(
+                            filteredSortedChildTracks.map { it.first },
+                            index,
+                        )
                     }
             }
         return (folderItems + trackItems)
@@ -448,11 +469,14 @@ class LibraryScreenHomeViewState(
                 .asIterable()
                 .search(searchQuery, preferences.searchCollator) { it.value }
                 .sortedBy(preferences.sortCollator, tab.sortingKeys, tab.sortAscending) { it.value }
-        return filteredSortedPlaylists.map { (key, playlist) ->
+                .hintBy(preferences.sortCollator, tab.sortingKeys) { it.value }
+        return filteredSortedPlaylists.map { (pair, hint) ->
+            val (key, playlist) = pair
             LibraryScreenHomeViewItem(
                 key = key,
                 title = playlist.displayName,
                 subtitle = playlist.displayStatistics,
+                scrollHint = hint,
                 artwork =
                     playlist.specialType?.let { Artwork.Icon(it.icon, it.color) }
                         ?: Artwork.Track(playlist.entries.firstOrNull()?.track ?: InvalidTrack),
@@ -632,7 +656,7 @@ private fun LibraryList(
     if (items.isEmpty()) {
         EmptyListIndicator()
     } else if (gridSize == 0) {
-        Scrollbar(gridState) {
+        Scrollbar(gridState, { items.getOrNull(it)?.value?.scrollHint }) {
             LazyVerticalGrid(
                 state = gridState,
                 columns = GridCells.Fixed(1),
@@ -669,7 +693,7 @@ private fun LibraryList(
             }
         }
     } else {
-        Scrollbar(gridState) {
+        Scrollbar(gridState, { items.getOrNull(it)?.value?.scrollHint }) {
             LazyVerticalGrid(
                 state = gridState,
                 columns = GridCells.Fixed(gridSize),

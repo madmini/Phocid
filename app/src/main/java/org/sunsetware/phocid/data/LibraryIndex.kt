@@ -142,6 +142,9 @@ data class Track(
     override val sortTrackNumber
         get() = trackNumber ?: 0
 
+    override val sortTrackNumberDisplay: String?
+        get() = displayNumber
+
     override val sortGenre
         get() = Strings.conjoin(genres)
 
@@ -678,6 +681,9 @@ data class Folder(
 
     override val sortTrackNumber
         get() = 0
+
+    override val sortTrackNumberDisplay: String?
+        get() = Strings[R.string.track_number_not_available]
 
     override val sortGenre
         get() = ""

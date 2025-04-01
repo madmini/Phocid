@@ -40,8 +40,6 @@ import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.util.UUID
-import kotlin.collections.associateBy
-import kotlin.collections.toMutableList
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import org.apache.commons.io.FilenameUtils
@@ -162,7 +160,7 @@ class PlaylistEditScreen(private val playlistKey: UUID) : TopLevelScreen() {
                 modifier = Modifier.fillMaxSize().padding(scaffoldPadding),
                 color = MaterialTheme.colorScheme.background,
             ) {
-                Scrollbar(lazyListState) {
+                Scrollbar(lazyListState, { (it + 1).toString() }) {
                     LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize()) {
                         itemsIndexed(playlist?.entries ?: emptyList(), { _, entry -> entry.key }) {
                             index,

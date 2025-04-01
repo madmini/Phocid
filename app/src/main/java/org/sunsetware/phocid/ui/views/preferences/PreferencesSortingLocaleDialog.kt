@@ -23,7 +23,10 @@ class PreferencesSortingLocaleDialog : Dialog() {
     override fun Compose(viewModel: MainViewModel) {
         val preferences by viewModel.preferences.collectAsStateWithLifecycle()
         val availableLocales = rememberSaveable {
-            listOf(null) + Collator.getAvailableLocales().sortedBy { it.toLanguageTag() }
+            listOf(null) +
+                Collator.getAvailableLocales()
+                    .sortedBy { it.toLanguageTag() }
+                    .filter { it.language != "zh" || it.country.isEmpty() }
         }
         var selectedIndex by rememberSaveable {
             mutableIntStateOf(availableLocales.indexOf(preferences.sortingLocale).coerceAtLeast(0))

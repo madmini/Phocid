@@ -3,7 +3,13 @@ package org.sunsetware.phocid.data
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import com.ibm.icu.text.Collator
+import com.ibm.icu.text.DateFormat
+import com.ibm.icu.util.ULocale
+import java.util.Date
 import kotlinx.serialization.Serializable
+import org.sunsetware.phocid.R
+import org.sunsetware.phocid.Strings
+import org.sunsetware.phocid.utils.initialLetter
 
 /**
  * All properties should return null if and only if this type doesn't support that property. Missing
@@ -26,6 +32,9 @@ interface Sortable {
         get() = null
 
     val sortTrackNumber: Int?
+        get() = null
+
+    val sortTrackNumberDisplay: String?
         get() = null
 
     val sortYear: Int?
@@ -123,4 +132,47 @@ fun <T : Sortable> Iterable<T>.sorted(
     ascending: Boolean,
 ): List<T> {
     return sortedBy(collator, sortingKeys, ascending) { it }
+}
+
+@Stable
+inline fun <T> Iterable<T>.hintBy(
+    collator: Collator,
+    sortingKeys: List<SortingKey>,
+    crossinline selector: (T) -> Sortable,
+): List<Pair<T, String>> {
+    val locale = collator.getLocale(ULocale.VALID_LOCALE).toLocale()
+    return mapIndexed { index, item ->
+        val sortable = selector(item)
+        item to
+            when (sortingKeys.firstOrNull()) {
+                SortingKey.TITLE -> sortable.sortTitle!!.initialLetter(locale)
+                SortingKey.ARTIST -> sortable.sortArtist!!.initialLetter(locale)
+                SortingKey.ALBUM -> sortable.sortAlbum!!.initialLetter(locale)
+                SortingKey.ALBUM_ARTIST -> sortable.sortAlbumArtist!!.initialLetter(locale)
+                SortingKey.TRACK -> sortable.sortTrackNumberDisplay!!
+                SortingKey.YEAR ->
+                    sortable.sortYear!!.takeIf { it > 0 }?.toString()
+                        ?: Strings[R.string.track_number_not_available]
+                SortingKey.GENRE -> sortable.sortGenre!!.initialLetter(locale)
+                SortingKey.PLAYLIST ->
+                    sortable.sortPlaylist!!.let {
+                        if (it.first != null) Strings[R.string.track_number_not_available]
+                        else it.second.initialLetter(locale)
+                    }
+                SortingKey.FILE_NAME -> sortable.sortFilename!!.initialLetter(locale)
+                SortingKey.DATE_ADDED ->
+                    DateFormat.getInstance().format(Date(sortable.sortDateAdded!! * 1000))
+                SortingKey.DATE_MODIFIED ->
+                    DateFormat.getInstance().format(Date(sortable.sortDateModified!! * 1000))
+                null -> (index + 1).toString()
+            }
+    }
+}
+
+@Stable
+fun <T : Sortable> Iterable<T>.hint(
+    collator: Collator,
+    sortingKeys: List<SortingKey>,
+): List<Pair<T, String>> {
+    return hintBy(collator, sortingKeys) { it }
 }

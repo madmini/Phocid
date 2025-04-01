@@ -58,6 +58,7 @@ import org.sunsetware.phocid.data.SortingKey
 import org.sunsetware.phocid.data.SortingOption
 import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.data.albumKey
+import org.sunsetware.phocid.data.hintBy
 import org.sunsetware.phocid.data.sorted
 import org.sunsetware.phocid.data.sortedBy
 import org.sunsetware.phocid.format
@@ -82,7 +83,8 @@ import org.sunsetware.phocid.utils.icuFormat
 import org.sunsetware.phocid.utils.sumOfDuration
 
 @Immutable
-sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCollectionViewItem> {
+sealed class LibraryScreenCollectionViewItemInfo :
+    LibraryScreenItem<LibraryScreenCollectionViewItemInfo> {
     abstract val sortable: Sortable
     abstract val title: String
     abstract val subtitle: String
@@ -93,7 +95,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
 
     @Stable
     abstract fun onClick(
-        items: List<LibraryScreenCollectionViewItem>,
+        items: List<LibraryScreenCollectionViewItemInfo>,
         index: Int,
         viewModel: MainViewModel,
     )
@@ -106,7 +108,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
         override val title: String,
         override val subtitle: String,
         override val lead: LibraryScreenCollectionViewItemLead,
-    ) : LibraryScreenCollectionViewItem() {
+    ) : LibraryScreenCollectionViewItemInfo() {
         override val sortable
             get() = track
 
@@ -120,7 +122,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
             get() = track.id
 
         override fun onClick(
-            items: List<LibraryScreenCollectionViewItem>,
+            items: List<LibraryScreenCollectionViewItemInfo>,
             index: Int,
             viewModel: MainViewModel,
         ) {
@@ -135,7 +137,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
         }
 
         override fun getMultiSelectMenuItems(
-            others: List<LibraryScreenCollectionViewItem>,
+            others: List<LibraryScreenCollectionViewItemInfo>,
             viewModel: MainViewModel,
             continuation: () -> Unit,
         ): List<MenuItem.Button> {
@@ -155,7 +157,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
         override val title: String,
         override val subtitle: String,
         override val lead: LibraryScreenCollectionViewItemLead,
-    ) : LibraryScreenCollectionViewItem() {
+    ) : LibraryScreenCollectionViewItemInfo() {
         override val sortable
             get() = folder
 
@@ -169,7 +171,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
             get() = folder.path
 
         override fun onClick(
-            items: List<LibraryScreenCollectionViewItem>,
+            items: List<LibraryScreenCollectionViewItemInfo>,
             index: Int,
             viewModel: MainViewModel,
         ) {
@@ -185,7 +187,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
         }
 
         override fun getMultiSelectMenuItems(
-            others: List<LibraryScreenCollectionViewItem>,
+            others: List<LibraryScreenCollectionViewItemInfo>,
             viewModel: MainViewModel,
             continuation: () -> Unit,
         ): List<MenuItem.Button> {
@@ -205,7 +207,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
         override val title: String,
         override val subtitle: String,
         override val lead: LibraryScreenCollectionViewItemLead,
-    ) : LibraryScreenCollectionViewItem() {
+    ) : LibraryScreenCollectionViewItemInfo() {
         override val sortable
             get() = playlistEntry.track!!
 
@@ -219,7 +221,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
             get() = playlistEntry.key
 
         override fun onClick(
-            items: List<LibraryScreenCollectionViewItem>,
+            items: List<LibraryScreenCollectionViewItemInfo>,
             index: Int,
             viewModel: MainViewModel,
         ) {
@@ -235,7 +237,7 @@ sealed class LibraryScreenCollectionViewItem : LibraryScreenItem<LibraryScreenCo
         }
 
         override fun getMultiSelectMenuItems(
-            others: List<LibraryScreenCollectionViewItem>,
+            others: List<LibraryScreenCollectionViewItemInfo>,
             viewModel: MainViewModel,
             continuation: () -> Unit,
         ): List<MenuItem.Button> {
@@ -267,6 +269,20 @@ sealed class LibraryScreenCollectionViewItemLead {
         LibraryScreenCollectionViewItemLead()
 }
 
+@Immutable
+data class LibraryScreenCollectionViewItem(
+    val info: LibraryScreenCollectionViewItemInfo,
+    val scrollHint: String,
+) : LibraryScreenItem<LibraryScreenCollectionViewItem> {
+    override fun getMultiSelectMenuItems(
+        others: List<LibraryScreenCollectionViewItem>,
+        viewModel: MainViewModel,
+        continuation: () -> Unit,
+    ): List<MenuItem.Button> {
+        return info.getMultiSelectMenuItems(others.map { it.info }, viewModel, continuation)
+    }
+}
+
 @Stable
 class LibraryScreenCollectionViewState(
     private val stateScope: CoroutineScope,
@@ -283,13 +299,21 @@ class LibraryScreenCollectionViewState(
 
                 val type = info.type
                 val (id, ascending) = preferences.collectionViewSorting[type]!!
-                info.items.sortedBy(
-                    preferences.sortCollator,
-                    (type.sortingOptions[id] ?: type.sortingOptions.values.first()).keys,
-                    ascending,
-                ) {
-                    it.sortable
-                }
+                info.items
+                    .sortedBy(
+                        preferences.sortCollator,
+                        (type.sortingOptions[id] ?: type.sortingOptions.values.first()).keys,
+                        ascending,
+                    ) {
+                        it.sortable
+                    }
+                    .hintBy(
+                        preferences.sortCollator,
+                        (type.sortingOptions[id] ?: type.sortingOptions.values.first()).keys,
+                    ) {
+                        it.sortable
+                    }
+                    .map { LibraryScreenCollectionViewItem(it.first, it.second) }
             },
         )
 
@@ -305,7 +329,7 @@ abstract class CollectionViewInfo {
     abstract val artwork: Artwork?
     abstract val cards: CollectionViewCards?
     abstract val additionalStatistics: List<String>
-    abstract val items: List<LibraryScreenCollectionViewItem>
+    abstract val items: List<LibraryScreenCollectionViewItemInfo>
 
     @Stable abstract fun extraCollectionMenuItems(viewModel: MainViewModel): List<MenuItem>
 }
@@ -328,7 +352,7 @@ val InvalidCollectionViewInfo =
             get() = emptyList<String>()
 
         override val items
-            get() = emptyList<LibraryScreenCollectionViewItem>()
+            get() = emptyList<LibraryScreenCollectionViewItemInfo>()
 
         override fun extraCollectionMenuItems(viewModel: MainViewModel): List<MenuItem> {
             return emptyList()
@@ -392,7 +416,7 @@ data class AlbumCollectionViewInfo(val album: Album) : CollectionViewInfo() {
     override val items
         get() =
             album.tracks.map { track ->
-                LibraryScreenCollectionViewItem.LibraryTrack(
+                LibraryScreenCollectionViewItemInfo.LibraryTrack(
                     track = track,
                     title = track.displayTitle,
                     subtitle = Strings.separate(track.displayArtist, track.duration.format()),
@@ -442,7 +466,7 @@ data class ArtistCollectionViewInfo(val artist: Artist) : CollectionViewInfo() {
     override val items
         get() =
             artist.tracks.map { track ->
-                LibraryScreenCollectionViewItem.LibraryTrack(
+                LibraryScreenCollectionViewItemInfo.LibraryTrack(
                     track = track,
                     title = track.displayTitle,
                     subtitle = Strings.separate(track.album, track.duration.format()),
@@ -489,7 +513,7 @@ data class AlbumArtistCollectionViewInfo(val albumArtist: AlbumArtist) : Collect
     override val items
         get() =
             albumArtist.tracks.map { track ->
-                LibraryScreenCollectionViewItem.LibraryTrack(
+                LibraryScreenCollectionViewItemInfo.LibraryTrack(
                     track = track,
                     title = track.displayTitle,
                     subtitle = Strings.separate(track.album, track.duration.format()),
@@ -539,7 +563,7 @@ data class GenreCollectionViewInfo(val genre: Genre) : CollectionViewInfo() {
     override val items
         get() =
             genre.tracks.map { track ->
-                LibraryScreenCollectionViewItem.LibraryTrack(
+                LibraryScreenCollectionViewItemInfo.LibraryTrack(
                     track = track,
                     title = track.displayTitle,
                     subtitle = Strings.separate(track.displayArtist, track.duration.format()),
@@ -580,7 +604,7 @@ data class FolderCollectionViewInfo(val folder: Folder, val folderIndex: Map<Str
         get() =
             folder.childFolders.map { child ->
                 val childFolder = folderIndex[child]!!
-                LibraryScreenCollectionViewItem.LibraryFolder(
+                LibraryScreenCollectionViewItemInfo.LibraryFolder(
                     folder = childFolder,
                     childTracksRecursive = { childFolder.childTracksRecursive(folderIndex) },
                     title = childFolder.fileName,
@@ -592,7 +616,7 @@ data class FolderCollectionViewInfo(val folder: Folder, val folderIndex: Map<Str
                 )
             } +
                 folder.childTracks.map { track ->
-                    LibraryScreenCollectionViewItem.LibraryTrack(
+                    LibraryScreenCollectionViewItemInfo.LibraryTrack(
                         track = track,
                         title = track.fileName,
                         subtitle = track.duration.format(),
@@ -630,7 +654,7 @@ data class PlaylistCollectionViewInfo(val key: UUID, val playlist: RealizedPlayl
                 .filter { it.track != null }
                 .map { entry ->
                     val track = entry.track!!
-                    LibraryScreenCollectionViewItem.PlaylistEntry(
+                    LibraryScreenCollectionViewItemInfo.PlaylistEntry(
                         playlistKey = key,
                         playlistEntry = entry,
                         title = track.displayTitle,
@@ -665,7 +689,7 @@ data class AlbumSliceCollectionViewInfo(val albumSlice: AlbumSlice) : Collection
     override val items
         get() =
             albumSlice.tracks.map { track ->
-                LibraryScreenCollectionViewItem.LibraryTrack(
+                LibraryScreenCollectionViewItemInfo.LibraryTrack(
                     track = track,
                     title = track.displayTitle,
                     subtitle = track.duration.format(),
@@ -699,7 +723,7 @@ data class ArtistSliceCollectionViewInfo(val artistSlice: ArtistSlice) : Collect
     override val items
         get() =
             artistSlice.tracks.map { track ->
-                LibraryScreenCollectionViewItem.LibraryTrack(
+                LibraryScreenCollectionViewItemInfo.LibraryTrack(
                     track = track,
                     title = track.displayTitle,
                     subtitle = track.duration.format(),
@@ -742,9 +766,15 @@ fun LibraryScreenCollectionView(
         if (info.artwork == null && info.cards?.items?.isEmpty() != false && info.items.isEmpty()) {
             EmptyListIndicator()
         } else {
-            Scrollbar(tracksLazyListState) {
+            val hasArtwork = info.artwork != null
+            val hasCards = info.cards?.items?.isNotEmpty() == true
+            val beforeCount = (if (hasArtwork) 1 else 0) + (if (hasCards) 1 else 0) + 1
+            Scrollbar(
+                tracksLazyListState,
+                { items.getOrNull((it - beforeCount).coerceAtLeast(0))?.value?.scrollHint },
+            ) {
                 LazyColumn(state = tracksLazyListState, modifier = Modifier.fillMaxSize()) {
-                    if (info.artwork != null) {
+                    if (hasArtwork) {
                         item {
                             ArtworkImage(
                                 artwork = info.artwork!!,
@@ -756,7 +786,7 @@ fun LibraryScreenCollectionView(
                             )
                         }
                     }
-                    if (info.cards?.items?.isNotEmpty() == true) {
+                    if (hasCards) {
                         item {
                             val sortedCards =
                                 remember(info, preferences) {
@@ -807,7 +837,7 @@ fun LibraryScreenCollectionView(
                         val totalDuration =
                             items
                                 .sumOfDuration { item ->
-                                    item.value.playTracks.sumOfDuration { it.duration }
+                                    item.value.info.playTracks.sumOfDuration { it.duration }
                                 }
                                 .format()
                         LibraryListHeader(
@@ -815,25 +845,26 @@ fun LibraryScreenCollectionView(
                                 info.additionalStatistics +
                                     listOf(
                                         Strings[R.string.count_track].icuFormat(
-                                            items.sumOf { it.value.playTracks.size }
+                                            items.sumOf { it.value.info.playTracks.size }
                                         ),
                                         totalDuration,
                                     )
                             )
                         )
                     }
-                    itemsIndexed(items, { _, (item, _) -> item.composeKey }) {
+                    itemsIndexed(items, { _, (item, _) -> item.info.composeKey }) {
                         index,
                         (item, selected) ->
+                        val (info, _) = item
                         LibraryListItemHorizontal(
-                            title = item.title,
-                            subtitle = item.subtitle,
+                            title = info.title,
+                            subtitle = info.subtitle,
                             lead = {
-                                when (item.lead) {
+                                when (info.lead) {
                                     is LibraryScreenCollectionViewItemLead.Text -> {
                                         Text(
                                             text =
-                                                (item.lead
+                                                (info.lead
                                                         as LibraryScreenCollectionViewItemLead.Text)
                                                     .text,
                                             textAlign = TextAlign.Center,
@@ -843,7 +874,7 @@ fun LibraryScreenCollectionView(
                                     is LibraryScreenCollectionViewItemLead.Artwork -> {
                                         ArtworkImage(
                                             artwork =
-                                                (item.lead
+                                                (info.lead
                                                         as
                                                         LibraryScreenCollectionViewItemLead.Artwork)
                                                     .artwork,
@@ -855,7 +886,7 @@ fun LibraryScreenCollectionView(
                                     }
                                 }
                             },
-                            actions = { OverflowMenu(item.getMenuItems(viewModel)) },
+                            actions = { OverflowMenu(info.getMenuItems(viewModel)) },
                             modifier =
                                 Modifier.multiSelectClickable(
                                         items,
@@ -863,7 +894,7 @@ fun LibraryScreenCollectionView(
                                         multiSelectState,
                                         haptics,
                                     ) {
-                                        item.onClick(items.map { it.value }, index, viewModel)
+                                        info.onClick(items.map { it.value.info }, index, viewModel)
                                     }
                                     .animateItem(fadeInSpec = null, fadeOutSpec = null),
                             selected = selected,
