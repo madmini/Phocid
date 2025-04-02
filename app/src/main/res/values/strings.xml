@@ -189,6 +189,8 @@
     <string name="preferences_indexing_whitelist">Allowlist</string>
     <string name="preferences_indexing_whitelist_subtitle">{0, plural, one {# rule} other {# rules}}</string>
     <string name="preferences_interface">Interface</string>
+    <string name="preferences_library_track_click_action">Track click action</string>
+    <string name="preferences_library_track_click_action_open_menu">Open menu</string>
     <string name="preferences_license">License</string>
     <string name="preferences_lyrics_display">Lyrics display</string>
     <string name="preferences_lyrics_display_default">Default</string>

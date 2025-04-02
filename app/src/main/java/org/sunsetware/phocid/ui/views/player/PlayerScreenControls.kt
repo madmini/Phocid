@@ -37,6 +37,7 @@ import org.sunsetware.phocid.ui.theme.Typography
 import org.sunsetware.phocid.ui.theme.contentColor
 import org.sunsetware.phocid.ui.theme.contentColorVariant
 import org.sunsetware.phocid.ui.theme.darken
+import org.sunsetware.phocid.ui.views.MenuItem
 
 @Immutable
 sealed class PlayerScreenControls {

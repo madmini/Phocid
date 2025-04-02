@@ -56,11 +56,11 @@ import org.sunsetware.phocid.ui.components.Artwork
 import org.sunsetware.phocid.ui.components.ArtworkImage
 import org.sunsetware.phocid.ui.components.DialogBase
 import org.sunsetware.phocid.ui.components.LibraryListItemHorizontal
-import org.sunsetware.phocid.ui.components.MenuItem
 import org.sunsetware.phocid.ui.components.OverflowMenu
 import org.sunsetware.phocid.ui.components.Scrollbar
 import org.sunsetware.phocid.ui.components.SortingOptionPicker
-import org.sunsetware.phocid.ui.components.playlistCollectionMenuItemsWithoutEdit
+import org.sunsetware.phocid.ui.views.MenuItem
+import org.sunsetware.phocid.ui.views.playlistCollectionMenuItemsWithoutEdit
 import org.sunsetware.phocid.utils.icuFormat
 import org.sunsetware.phocid.utils.swap
 import sh.calvin.reorderable.ReorderableItem

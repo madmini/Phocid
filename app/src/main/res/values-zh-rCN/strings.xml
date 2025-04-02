@@ -166,6 +166,8 @@
     <string name="preferences_indexing_whitelist">白名单</string>
     <string name="preferences_indexing_whitelist_subtitle">{0, plural, other {#}} 条规则</string>
     <string name="preferences_interface">界面</string>
+    <string name="preferences_library_track_click_action">曲目点击操作</string>
+    <string name="preferences_library_track_click_action_open_menu">显示菜单</string>
     <string name="preferences_license">软件许可协议</string>
     <string name="preferences_lyrics_display">歌词显示</string>
     <string name="preferences_lyrics_display_default">默认</string>

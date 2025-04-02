@@ -39,6 +39,8 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,7 +90,6 @@ import org.sunsetware.phocid.ui.components.DefaultPagerState
 import org.sunsetware.phocid.ui.components.EmptyListIndicator
 import org.sunsetware.phocid.ui.components.LibraryListItemCard
 import org.sunsetware.phocid.ui.components.LibraryListItemHorizontal
-import org.sunsetware.phocid.ui.components.MenuItem
 import org.sunsetware.phocid.ui.components.MultiSelectManager
 import org.sunsetware.phocid.ui.components.MultiSelectState
 import org.sunsetware.phocid.ui.components.OverflowMenu
@@ -96,12 +97,13 @@ import org.sunsetware.phocid.ui.components.Scrollbar
 import org.sunsetware.phocid.ui.components.SelectableList
 import org.sunsetware.phocid.ui.components.SingleLineText
 import org.sunsetware.phocid.ui.components.TabIndicator
-import org.sunsetware.phocid.ui.components.collectionMenuItems
 import org.sunsetware.phocid.ui.components.multiSelectClickable
-import org.sunsetware.phocid.ui.components.playlistCollectionMenuItems
-import org.sunsetware.phocid.ui.components.playlistCollectionMultiSelectMenuItems
-import org.sunsetware.phocid.ui.components.trackMenuItems
 import org.sunsetware.phocid.ui.theme.hashColor
+import org.sunsetware.phocid.ui.views.MenuItem
+import org.sunsetware.phocid.ui.views.collectionMenuItems
+import org.sunsetware.phocid.ui.views.playlistCollectionMenuItems
+import org.sunsetware.phocid.ui.views.playlistCollectionMultiSelectMenuItems
+import org.sunsetware.phocid.ui.views.trackMenuItemsLibrary
 import org.sunsetware.phocid.utils.combine
 
 @Immutable
@@ -119,7 +121,7 @@ data class LibraryScreenHomeViewItem(
             viewModel: MainViewModel,
             continuation: () -> Unit,
         ) -> List<MenuItem.Button>,
-    val onClick: (MainViewModel) -> Unit,
+    val onClick: (viewModel: MainViewModel, onOpenMenu: () -> Unit) -> Unit,
 ) : LibraryScreenItem<LibraryScreenHomeViewItem> {
     override fun getMultiSelectMenuItems(
         others: List<LibraryScreenHomeViewItem>,
@@ -213,7 +215,14 @@ class LibraryScreenHomeViewState(
                 scrollHint = hint,
                 artwork = Artwork.Track(track),
                 tracks = { listOf(track) },
-                menuItems = { trackMenuItems(track, it.playerManager, it.uiManager) },
+                menuItems = {
+                    trackMenuItemsLibrary(
+                        track,
+                        { tracks.map { it.first } to index },
+                        it.playerManager,
+                        it.uiManager,
+                    )
+                },
                 multiSelectMenuItems = { others, viewModel, continuation ->
                     collectionMenuItems(
                         { listOf(track) + others.flatMap { it.tracks() } },
@@ -222,8 +231,14 @@ class LibraryScreenHomeViewState(
                         continuation,
                     )
                 },
-            ) {
-                it.playerManager.setTracks(tracks.map { it.first }, index)
+            ) { viewModel, onOpenMenu ->
+                viewModel.preferences.value.libraryTrackClickAction.invokeOrOpenMenu(
+                    tracks.map { it.first },
+                    index,
+                    viewModel.playerManager,
+                    viewModel.uiManager,
+                    onOpenMenu,
+                )
             }
         }
     }
@@ -260,8 +275,8 @@ class LibraryScreenHomeViewState(
                         continuation,
                     )
                 },
-            ) {
-                it.uiManager.openAlbumCollectionView(key)
+            ) { viewModel, _ ->
+                viewModel.uiManager.openAlbumCollectionView(key)
             }
         }
     }
@@ -296,8 +311,8 @@ class LibraryScreenHomeViewState(
                         continuation,
                     )
                 },
-            ) {
-                it.uiManager.openArtistCollectionView(artist.name)
+            ) { viewModel, _ ->
+                viewModel.uiManager.openArtistCollectionView(artist.name)
             }
         }
     }
@@ -332,8 +347,8 @@ class LibraryScreenHomeViewState(
                         continuation,
                     )
                 },
-            ) {
-                it.uiManager.openAlbumArtistCollectionView(albumArtist.name)
+            ) { viewModel, _ ->
+                viewModel.uiManager.openAlbumArtistCollectionView(albumArtist.name)
             }
         }
     }
@@ -368,8 +383,8 @@ class LibraryScreenHomeViewState(
                         continuation,
                     )
                 },
-            ) {
-                it.uiManager.openGenreCollectionView(genre.name)
+            ) { viewModel, _ ->
+                viewModel.uiManager.openGenreCollectionView(genre.name)
             }
         }
     }
@@ -423,8 +438,8 @@ class LibraryScreenHomeViewState(
                                 continuation,
                             )
                         },
-                    ) {
-                        it.uiManager.openFolderCollectionView(folder.path)
+                    ) { viewModel, _ ->
+                        viewModel.uiManager.openFolderCollectionView(folder.path)
                     }
             }
         val trackItems =
@@ -437,7 +452,14 @@ class LibraryScreenHomeViewState(
                         scrollHint = hint,
                         artwork = Artwork.Track(track),
                         tracks = { listOf(track) },
-                        menuItems = { trackMenuItems(track, it.playerManager, it.uiManager) },
+                        menuItems = {
+                            trackMenuItemsLibrary(
+                                track,
+                                { filteredSortedChildTracks.map { it.first } to index },
+                                it.playerManager,
+                                it.uiManager,
+                            )
+                        },
                         multiSelectMenuItems = { others, viewModel, continuation ->
                             collectionMenuItems(
                                 { listOf(track) + others.flatMap { it.tracks() } },
@@ -446,10 +468,13 @@ class LibraryScreenHomeViewState(
                                 continuation,
                             )
                         },
-                    ) {
-                        it.playerManager.setTracks(
+                    ) { viewModel, onOpenMenu ->
+                        viewModel.preferences.value.libraryTrackClickAction.invokeOrOpenMenu(
                             filteredSortedChildTracks.map { it.first },
                             index,
+                            viewModel.playerManager,
+                            viewModel.uiManager,
+                            onOpenMenu,
                         )
                     }
             }
@@ -499,8 +524,8 @@ class LibraryScreenHomeViewState(
                             continuation,
                         )
                 },
-            ) {
-                it.uiManager.openPlaylistCollectionView(key)
+            ) { viewModel, _ ->
+                viewModel.uiManager.openPlaylistCollectionView(key)
             }
         }
     }
@@ -664,6 +689,7 @@ private fun LibraryList(
             ) {
                 itemsIndexed(items, { _, (info, _) -> info.key }) { index, (info, selected) ->
                     with(info) {
+                        var menuState = remember { mutableStateOf(false) }
                         LibraryListItemHorizontal(
                             title = title,
                             subtitle = subtitle,
@@ -675,7 +701,7 @@ private fun LibraryList(
                                     modifier = Modifier.fillMaxSize(),
                                 )
                             },
-                            actions = { OverflowMenu(menuItems(viewModel)) },
+                            actions = { OverflowMenu(menuItems(viewModel), state = menuState) },
                             modifier =
                                 Modifier.multiSelectClickable(
                                         items,
@@ -683,7 +709,7 @@ private fun LibraryList(
                                         multiSelectManager,
                                         haptics,
                                     ) {
-                                        info.onClick(viewModel)
+                                        info.onClick(viewModel) { menuState.value = true }
                                     }
                                     .animateItem(fadeInSpec = null, fadeOutSpec = null),
                             selected = selected,
@@ -702,6 +728,8 @@ private fun LibraryList(
             ) {
                 itemsIndexed(items, { _, (info, _) -> info.key }) { index, (info, selected) ->
                     with(info) {
+                        var menuState = remember { mutableStateOf(false) }
+                        OverflowMenu(menuItems(viewModel), state = menuState)
                         LibraryListItemCard(
                             title = title,
                             subtitle = subtitle,
@@ -717,7 +745,6 @@ private fun LibraryList(
                                     modifier = Modifier.fillMaxSize(),
                                 )
                             },
-                            menuItems = menuItems(viewModel),
                             modifier =
                                 Modifier.padding(2.dp)
                                     .multiSelectClickable(
@@ -726,7 +753,7 @@ private fun LibraryList(
                                         multiSelectManager,
                                         haptics,
                                     ) {
-                                        info.onClick(viewModel)
+                                        info.onClick(viewModel) { menuState.value = true }
                                     }
                                     .animateItem(fadeInSpec = null, fadeOutSpec = null),
                             selected = selected,

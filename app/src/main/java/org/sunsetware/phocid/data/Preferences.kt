@@ -22,6 +22,7 @@ import org.sunsetware.phocid.ui.theme.toOklch
 import org.sunsetware.phocid.ui.views.library.LibraryScreenCollectionType
 import org.sunsetware.phocid.ui.views.library.LibraryScreenTabInfo
 import org.sunsetware.phocid.ui.views.library.LibraryScreenTabType
+import org.sunsetware.phocid.ui.views.library.LibraryTrackClickAction
 import org.sunsetware.phocid.ui.views.player.PlayerScreenLayoutType
 import org.sunsetware.phocid.utils.UUIDSerializer
 
@@ -42,6 +43,7 @@ data class Preferences(
     val tabStyle: TabStylePreference = TabStylePreference.TEXT_ONLY,
     val scrollableTabs: Boolean = true,
     val folderTabRoot: String? = null,
+    val libraryTrackClickAction: LibraryTrackClickAction = LibraryTrackClickAction.PLAY_ALL,
     val collectionViewSorting: Map<LibraryScreenCollectionType, Pair<String, Boolean>> =
         LibraryScreenCollectionType.entries.associateWith {
             Pair(it.sortingOptions.keys.first(), true)

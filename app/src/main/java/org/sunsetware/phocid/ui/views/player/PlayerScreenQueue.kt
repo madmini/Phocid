@@ -39,11 +39,11 @@ import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.format
 import org.sunsetware.phocid.ui.components.LibraryListHeader
 import org.sunsetware.phocid.ui.components.LibraryListItemHorizontal
-import org.sunsetware.phocid.ui.components.MenuItem
 import org.sunsetware.phocid.ui.components.OverflowMenu
 import org.sunsetware.phocid.ui.components.Scrollbar
 import org.sunsetware.phocid.ui.theme.contentColor
 import org.sunsetware.phocid.ui.theme.darken
+import org.sunsetware.phocid.ui.views.MenuItem
 import org.sunsetware.phocid.utils.icuFormat
 import org.sunsetware.phocid.utils.sumOfDuration
 import sh.calvin.reorderable.ReorderableItem

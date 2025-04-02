@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import org.sunsetware.phocid.ui.views.MenuItem
 
 @Composable
 fun FloatingToolbar(items: List<MenuItem.Button>) {

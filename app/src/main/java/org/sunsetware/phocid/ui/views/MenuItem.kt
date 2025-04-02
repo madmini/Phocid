@@ -1,4 +1,4 @@
-package org.sunsetware.phocid.ui.components
+package org.sunsetware.phocid.ui.views
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
@@ -25,7 +25,7 @@ import org.sunsetware.phocid.data.PlayerManager
 import org.sunsetware.phocid.data.SpecialPlaylistLookup
 import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.data.albumKey
-import org.sunsetware.phocid.ui.views.TrackDetailsDialog
+import org.sunsetware.phocid.ui.views.library.LibraryTrackClickAction
 import org.sunsetware.phocid.ui.views.library.openAlbumCollectionView
 import org.sunsetware.phocid.ui.views.library.openArtistCollectionView
 import org.sunsetware.phocid.ui.views.playlist.AddToPlaylistDialog
@@ -103,6 +103,21 @@ fun trackMenuItems(
 }
 
 @Stable
+inline fun trackMenuItemsLibrary(
+    track: Track,
+    crossinline playContext: () -> Pair<List<Track>, Int>,
+    playerManager: PlayerManager,
+    uiManager: UiManager,
+): List<MenuItem> {
+    return listOf(LibraryTrackClickAction.PLAY_ALL, LibraryTrackClickAction.PLAY).map {
+        MenuItem.Button(Strings[it.stringId], it.icon!!) {
+            val (tracks, index) = playContext()
+            it.invoke(tracks, index, playerManager, uiManager)
+        }
+    } + trackMenuItems(track, playerManager, uiManager)
+}
+
+@Stable
 inline fun collectionMenuItemsWithoutPlay(
     crossinline tracks: () -> List<Track>,
     playerManager: PlayerManager,
@@ -114,6 +129,7 @@ inline fun collectionMenuItemsWithoutPlay(
             val tracks = tracks()
             playerManager.playNext(tracks)
             uiManager.toast(Strings[R.string.toast_track_queued].icuFormat(tracks.size))
+            continuation()
         },
         MenuItem.Button(Strings[R.string.track_add_to_queue], Icons.Filled.Add) {
             val tracks = tracks()
@@ -127,6 +143,7 @@ inline fun collectionMenuItemsWithoutPlay(
         },
         MenuItem.Button(Strings[R.string.track_share], Icons.Filled.Share) {
             uiManager.intentLauncher.get()?.share(tracks())
+            continuation()
         },
     )
 }

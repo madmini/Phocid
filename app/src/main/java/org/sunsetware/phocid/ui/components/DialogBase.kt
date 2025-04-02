@@ -1,9 +1,19 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package org.sunsetware.phocid.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -63,4 +73,27 @@ fun DialogBase(
         modifier = Modifier.padding(vertical = 16.dp),
         properties = properties,
     )
+}
+
+@Composable
+fun DialogBase(
+    onDismiss: () -> Unit,
+    properties: DialogProperties = DialogProperties(),
+    content: @Composable () -> Unit,
+) {
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.padding(vertical = 16.dp),
+        properties = properties,
+    ) {
+        Surface(
+            shape = AlertDialogDefaults.shape,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            contentColor = AlertDialogDefaults.textContentColor,
+            tonalElevation = AlertDialogDefaults.TonalElevation,
+            modifier = Modifier.wrapContentHeight(),
+        ) {
+            content()
+        }
+    }
 }

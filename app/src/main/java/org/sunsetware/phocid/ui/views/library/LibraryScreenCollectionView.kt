@@ -23,6 +23,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -68,16 +69,16 @@ import org.sunsetware.phocid.ui.components.EmptyListIndicator
 import org.sunsetware.phocid.ui.components.LibraryListHeader
 import org.sunsetware.phocid.ui.components.LibraryListItemCompactCard
 import org.sunsetware.phocid.ui.components.LibraryListItemHorizontal
-import org.sunsetware.phocid.ui.components.MenuItem
 import org.sunsetware.phocid.ui.components.MultiSelectState
 import org.sunsetware.phocid.ui.components.OverflowMenu
 import org.sunsetware.phocid.ui.components.Scrollbar
-import org.sunsetware.phocid.ui.components.collectionMenuItems
 import org.sunsetware.phocid.ui.components.multiSelectClickable
-import org.sunsetware.phocid.ui.components.playlistCollectionMenuItems
-import org.sunsetware.phocid.ui.components.playlistTrackMenuItems
-import org.sunsetware.phocid.ui.components.trackMenuItems
 import org.sunsetware.phocid.ui.theme.hashColor
+import org.sunsetware.phocid.ui.views.MenuItem
+import org.sunsetware.phocid.ui.views.collectionMenuItems
+import org.sunsetware.phocid.ui.views.playlistCollectionMenuItems
+import org.sunsetware.phocid.ui.views.playlistTrackMenuItems
+import org.sunsetware.phocid.ui.views.trackMenuItemsLibrary
 import org.sunsetware.phocid.utils.combine
 import org.sunsetware.phocid.utils.icuFormat
 import org.sunsetware.phocid.utils.sumOfDuration
@@ -98,9 +99,15 @@ sealed class LibraryScreenCollectionViewItemInfo :
         items: List<LibraryScreenCollectionViewItemInfo>,
         index: Int,
         viewModel: MainViewModel,
+        onOpenMenu: () -> Unit,
     )
 
-    @Stable abstract fun getMenuItems(viewModel: MainViewModel): List<MenuItem>
+    @Stable
+    abstract fun getMenuItems(
+        items: List<LibraryScreenCollectionViewItemInfo>,
+        index: Int,
+        viewModel: MainViewModel,
+    ): List<MenuItem>
 
     @Immutable
     data class LibraryTrack(
@@ -125,15 +132,31 @@ sealed class LibraryScreenCollectionViewItemInfo :
             items: List<LibraryScreenCollectionViewItemInfo>,
             index: Int,
             viewModel: MainViewModel,
+            onOpenMenu: () -> Unit,
         ) {
-            viewModel.playerManager.setTracks(
+            viewModel.preferences.value.libraryTrackClickAction.invokeOrOpenMenu(
                 items.flatMap { it.playTracks },
                 items.take(index).sumOf { it.playTracks.size },
+                viewModel.playerManager,
+                viewModel.uiManager,
+                onOpenMenu,
             )
         }
 
-        override fun getMenuItems(viewModel: MainViewModel): List<MenuItem> {
-            return trackMenuItems(track, viewModel.playerManager, viewModel.uiManager)
+        override fun getMenuItems(
+            items: List<LibraryScreenCollectionViewItemInfo>,
+            index: Int,
+            viewModel: MainViewModel,
+        ): List<MenuItem> {
+            return trackMenuItemsLibrary(
+                track,
+                {
+                    items.flatMap { it.playTracks } to
+                        items.take(index).sumOf { it.playTracks.size }
+                },
+                viewModel.playerManager,
+                viewModel.uiManager,
+            )
         }
 
         override fun getMultiSelectMenuItems(
@@ -174,11 +197,16 @@ sealed class LibraryScreenCollectionViewItemInfo :
             items: List<LibraryScreenCollectionViewItemInfo>,
             index: Int,
             viewModel: MainViewModel,
+            onOpenMenu: () -> Unit,
         ) {
             viewModel.uiManager.openFolderCollectionView(folder.path)
         }
 
-        override fun getMenuItems(viewModel: MainViewModel): List<MenuItem> {
+        override fun getMenuItems(
+            items: List<LibraryScreenCollectionViewItemInfo>,
+            index: Int,
+            viewModel: MainViewModel,
+        ): List<MenuItem> {
             return collectionMenuItems(
                 { childTracksRecursive() },
                 viewModel.playerManager,
@@ -224,16 +252,32 @@ sealed class LibraryScreenCollectionViewItemInfo :
             items: List<LibraryScreenCollectionViewItemInfo>,
             index: Int,
             viewModel: MainViewModel,
+            onOpenMenu: () -> Unit,
         ) {
-            viewModel.playerManager.setTracks(
+            viewModel.preferences.value.libraryTrackClickAction.invokeOrOpenMenu(
                 items.flatMap { it.playTracks },
                 items.take(index).sumOf { it.playTracks.size },
+                viewModel.playerManager,
+                viewModel.uiManager,
+                onOpenMenu,
             )
         }
 
-        override fun getMenuItems(viewModel: MainViewModel): List<MenuItem> {
+        override fun getMenuItems(
+            items: List<LibraryScreenCollectionViewItemInfo>,
+            index: Int,
+            viewModel: MainViewModel,
+        ): List<MenuItem> {
             return playlistTrackMenuItems(playlistKey, playlistEntry.key, viewModel.uiManager) +
-                trackMenuItems(playTracks.first(), viewModel.playerManager, viewModel.uiManager)
+                trackMenuItemsLibrary(
+                    playTracks.first(),
+                    {
+                        items.flatMap { it.playTracks } to
+                            items.take(index).sumOf { it.playTracks.size }
+                    },
+                    viewModel.playerManager,
+                    viewModel.uiManager,
+                )
         }
 
         override fun getMultiSelectMenuItems(
@@ -760,6 +804,7 @@ fun LibraryScreenCollectionView(
         remember(state) { state.info.filterNotNull() }
             .collectAsStateWithLifecycle(state.info.value ?: InvalidCollectionViewInfo)
     val items by multiSelectState.items.collectAsStateWithLifecycle()
+    val itemInfos = remember(items) { items.map { it.value.info } }
     val haptics = LocalHapticFeedback.current
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -856,6 +901,7 @@ fun LibraryScreenCollectionView(
                         index,
                         (item, selected) ->
                         val (info, _) = item
+                        val menuState = remember { mutableStateOf(false) }
                         LibraryListItemHorizontal(
                             title = info.title,
                             subtitle = info.subtitle,
@@ -886,7 +932,12 @@ fun LibraryScreenCollectionView(
                                     }
                                 }
                             },
-                            actions = { OverflowMenu(info.getMenuItems(viewModel)) },
+                            actions = {
+                                OverflowMenu(
+                                    info.getMenuItems(itemInfos, index, viewModel),
+                                    state = menuState,
+                                )
+                            },
                             modifier =
                                 Modifier.multiSelectClickable(
                                         items,
@@ -894,7 +945,9 @@ fun LibraryScreenCollectionView(
                                         multiSelectState,
                                         haptics,
                                     ) {
-                                        info.onClick(items.map { it.value.info }, index, viewModel)
+                                        info.onClick(itemInfos, index, viewModel) {
+                                            menuState.value = true
+                                        }
                                     }
                                     .animateItem(fadeInSpec = null, fadeOutSpec = null),
                             selected = selected,

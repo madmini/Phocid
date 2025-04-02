@@ -111,13 +111,11 @@ import org.sunsetware.phocid.ui.components.DragLock
 import org.sunsetware.phocid.ui.components.FloatingToolbar
 import org.sunsetware.phocid.ui.components.IndefiniteSnackbar
 import org.sunsetware.phocid.ui.components.LibraryListItemHorizontal
-import org.sunsetware.phocid.ui.components.MenuItem
 import org.sunsetware.phocid.ui.components.MultiSelectManager
 import org.sunsetware.phocid.ui.components.OverflowMenu
 import org.sunsetware.phocid.ui.components.SingleLineText
 import org.sunsetware.phocid.ui.components.SortingOptionPicker
 import org.sunsetware.phocid.ui.components.TrackCarousel
-import org.sunsetware.phocid.ui.components.collectionMenuItemsWithoutPlay
 import org.sunsetware.phocid.ui.components.negativePadding
 import org.sunsetware.phocid.ui.theme.EnterFromBottom
 import org.sunsetware.phocid.ui.theme.ExitToBottom
@@ -126,6 +124,8 @@ import org.sunsetware.phocid.ui.theme.Typography
 import org.sunsetware.phocid.ui.theme.contentColor
 import org.sunsetware.phocid.ui.theme.emphasizedEnter
 import org.sunsetware.phocid.ui.theme.emphasizedExit
+import org.sunsetware.phocid.ui.views.MenuItem
+import org.sunsetware.phocid.ui.views.collectionMenuItemsWithoutPlay
 import org.sunsetware.phocid.ui.views.playlist.NewPlaylistDialog
 import org.sunsetware.phocid.ui.views.playlist.PlaylistIoScreen
 import org.sunsetware.phocid.ui.views.preferences.PreferencesScreen

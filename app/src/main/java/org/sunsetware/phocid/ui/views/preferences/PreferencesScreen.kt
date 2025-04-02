@@ -45,6 +45,7 @@ import org.sunsetware.phocid.ui.components.UtilityListHeader
 import org.sunsetware.phocid.ui.components.UtilityListItem
 import org.sunsetware.phocid.ui.components.UtilitySwitchListItem
 import org.sunsetware.phocid.ui.components.negativePadding
+import org.sunsetware.phocid.ui.views.library.LibraryTrackClickAction
 import org.sunsetware.phocid.ui.views.player.PlayerScreenLayoutType
 import org.sunsetware.phocid.ui.views.playlist.PlaylistIoScreen
 import org.sunsetware.phocid.ui.views.playlist.PlaylistIoSettingsDialog
@@ -162,6 +163,28 @@ object PreferencesScreen : TopLevelScreen() {
                                 )
                             }
                         },
+                    )
+                    UtilityListItem(
+                        title = Strings[R.string.preferences_library_track_click_action],
+                        subtitle = Strings[preferences.libraryTrackClickAction.stringId],
+                        modifier =
+                            Modifier.clickable {
+                                uiManager.openDialog(
+                                    PreferencesSingleChoiceDialog<LibraryTrackClickAction>(
+                                        title =
+                                            Strings[
+                                                R.string.preferences_library_track_click_action],
+                                        options =
+                                            LibraryTrackClickAction.entries.map {
+                                                it to Strings[it.stringId]
+                                            },
+                                        activeOption = { it.libraryTrackClickAction },
+                                        updatePreferences = { preferences, new ->
+                                            preferences.copy(libraryTrackClickAction = new)
+                                        },
+                                    )
+                                )
+                            },
                     )
                     UtilityListItem(
                         title = Strings[R.string.preferences_player_screen_layout],

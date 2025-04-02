@@ -13,6 +13,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,10 +23,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
+import org.sunsetware.phocid.ui.views.MenuItem
 
 @Composable
-fun OverflowMenu(items: List<MenuItem>, modifier: Modifier = Modifier) {
-    var expanded by remember { mutableStateOf(false) }
+fun OverflowMenu(
+    items: List<MenuItem>,
+    modifier: Modifier = Modifier,
+    state: MutableState<Boolean> = remember { mutableStateOf(false) },
+) {
+    var expanded by state
 
     Box(modifier = modifier) {
         IconButton(onClick = { expanded = !expanded }) {

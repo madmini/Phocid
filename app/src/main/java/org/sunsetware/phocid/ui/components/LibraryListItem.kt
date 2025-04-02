@@ -8,7 +8,15 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
@@ -126,8 +134,6 @@ inline fun LibraryListItemCard(
     color: Color,
     shape: Shape,
     crossinline image: @Composable () -> Unit,
-    @Suppress("UNUSED_PARAMETER")
-    menuItems: List<MenuItem>, // TODO: Maybe find a way to fit the overflow menu in
     modifier: Modifier = Modifier,
     selected: Boolean = false,
 ) {
