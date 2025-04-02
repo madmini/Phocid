@@ -156,7 +156,7 @@
     <string name="preferences_indexing_help_artist_separators_title">艺术家分隔符</string>
     <string name="preferences_indexing_help_blacklist_body">匹配黑名单的曲目将会被隐藏。</string>
     <string name="preferences_indexing_help_blacklist_title">黑名单</string>
-    <string name="preferences_indexing_help_syntax_body">过滤规则是部分匹配绝对路径的不分大小写的正则表达式。\n\n点击曲目菜单里的“详细信息”按钮，可以查看这首曲目的绝对路径。\n\n示例：\n\n• 匹配“示例”文件夹里的所有文件：\n/示例/\n\n• 匹配所有MP3文件：\n\\.mp3$\n\n• 匹配“示例”文件夹里的所有 MP3 文件：\n/示例/.*\\.mp3$\n\n• 匹配“Example”文件夹里的所有文件，但不要匹配“example”文件夹（区分大小写）：\n(?-i)/Example/</string>
+    <string name="preferences_indexing_help_syntax_body">过滤规则是部分匹配绝对路径的不分大小写的正则表达式。\n\n点击曲目菜单里的“详细信息”按钮，可以查看这首曲目的绝对路径。\n\n示例：\n\n• 匹配“示例”文件夹里的所有文件：\n/示例/\n\n• 匹配所有 MP3 文件：\n\\.mp3$\n\n• 匹配“示例”文件夹里的所有 MP3 文件：\n/示例/.*\\.mp3$\n\n• 匹配“Example”文件夹里的所有文件，但不要匹配“example”文件夹（区分大小写）：\n(?-i)/Example/</string>
     <string name="preferences_indexing_help_syntax_title">黑白名单语法</string>
     <string name="preferences_indexing_help_whitelist_body">匹配黑名单，但同时匹配白名单的曲目将不会被隐藏。\n\n若要只显示白名单中的文件，可以在黑名单中添加一条匹配所有曲目的规则：\n^</string>
     <string name="preferences_indexing_help_whitelist_title">白名单</string>
@@ -213,7 +213,7 @@
     <string name="preferences_theme_color_source_default">默认</string>
     <string name="preferences_theme_color_source_material_you">Material You</string>
     <string name="preferences_third_party_licenses">第三方许可协议</string>
-    <string name="preferences_treat_embedded_lyrics_as_lrc">将内嵌歌词视为LRC</string>
+    <string name="preferences_treat_embedded_lyrics_as_lrc">将内嵌歌词视为 LRC</string>
     <string name="preferences_ui_scaling">界面大小</string>
     <string name="preferences_ui_scaling_number">{0, number, ::.00}×</string>
     <string name="preferences_version">版本</string>
