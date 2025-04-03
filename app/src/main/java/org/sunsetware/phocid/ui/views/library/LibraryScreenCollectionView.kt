@@ -34,8 +34,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.update
 import kotlinx.serialization.Serializable
 import org.sunsetware.phocid.MainViewModel
 import org.sunsetware.phocid.R
@@ -54,12 +57,14 @@ import org.sunsetware.phocid.data.LibraryIndex
 import org.sunsetware.phocid.data.Preferences
 import org.sunsetware.phocid.data.RealizedPlaylist
 import org.sunsetware.phocid.data.RealizedPlaylistEntry
+import org.sunsetware.phocid.data.Searchable
 import org.sunsetware.phocid.data.Sortable
 import org.sunsetware.phocid.data.SortingKey
 import org.sunsetware.phocid.data.SortingOption
 import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.data.albumKey
 import org.sunsetware.phocid.data.hintBy
+import org.sunsetware.phocid.data.searchIndices
 import org.sunsetware.phocid.data.sorted
 import org.sunsetware.phocid.data.sortedBy
 import org.sunsetware.phocid.format
@@ -81,12 +86,15 @@ import org.sunsetware.phocid.ui.views.playlistTrackMenuItems
 import org.sunsetware.phocid.ui.views.trackMenuItemsLibrary
 import org.sunsetware.phocid.utils.combine
 import org.sunsetware.phocid.utils.icuFormat
+import org.sunsetware.phocid.utils.map
 import org.sunsetware.phocid.utils.sumOfDuration
+import org.sunsetware.phocid.utils.trimAndNormalize
 
 @Immutable
 sealed class LibraryScreenCollectionViewItemInfo :
     LibraryScreenItem<LibraryScreenCollectionViewItemInfo> {
     abstract val sortable: Sortable
+    abstract val searchable: Searchable
     abstract val title: String
     abstract val subtitle: String
     abstract val lead: LibraryScreenCollectionViewItemLead
@@ -117,6 +125,9 @@ sealed class LibraryScreenCollectionViewItemInfo :
         override val lead: LibraryScreenCollectionViewItemLead,
     ) : LibraryScreenCollectionViewItemInfo() {
         override val sortable
+            get() = track
+
+        override val searchable
             get() = track
 
         override val playTracks
@@ -184,6 +195,9 @@ sealed class LibraryScreenCollectionViewItemInfo :
         override val sortable
             get() = folder
 
+        override val searchable
+            get() = folder
+
         override val playTracks
             get() = childTracksRecursive()
 
@@ -237,6 +251,9 @@ sealed class LibraryScreenCollectionViewItemInfo :
         override val lead: LibraryScreenCollectionViewItemLead,
     ) : LibraryScreenCollectionViewItemInfo() {
         override val sortable
+            get() = playlistEntry.track!!
+
+        override val searchable
             get() = playlistEntry.track!!
 
         override val playTracks
@@ -363,6 +380,62 @@ class LibraryScreenCollectionViewState(
 
     override fun close() {
         stateScope.cancel()
+    }
+
+    fun listItemBeforeTracksCount(): Int {
+        return (if (info.value?.artwork != null) 1 else 0) +
+            (if (info.value?.cards?.items?.isNotEmpty() == true) 1 else 0) +
+            1
+    }
+
+    val searchQuery = MutableStateFlow(null as String?)
+    private val _searchIndex = MutableStateFlow(null as Int?)
+    val searchIndex = _searchIndex.asStateFlow()
+    val searchResults =
+        searchQuery
+            .map(stateScope) { it?.trimAndNormalize() }
+            .combine(stateScope, multiSelectState.items, preferences) { query, items, preferences ->
+                val results =
+                    items.searchIndices(query ?: "", preferences.searchCollator) {
+                        it.value.info.searchable
+                    }
+                _searchIndex.update { results.firstOrNull() }
+                results.firstOrNull()?.let {
+                    tracksLazyListState.requestScrollToItem(listItemBeforeTracksCount() + it)
+                }
+                results
+            }
+
+    fun searchPrevious() {
+        _searchIndex.update { index ->
+            val results = searchResults.value.toList()
+            if (results.isEmpty()) null
+            else
+                results
+                    .binarySearch(index)
+                    .let { (if (it < 0) -(it + 1) else it) - 1 }
+                    .takeIf { it >= 0 }
+                    ?.let { results[it] } ?: results.lastOrNull()
+        }
+        _searchIndex.value?.let {
+            tracksLazyListState.requestScrollToItem(listItemBeforeTracksCount() + it)
+        }
+    }
+
+    fun searchNext() {
+        _searchIndex.update { index ->
+            val results = searchResults.value.toList()
+            if (results.isEmpty()) null
+            else
+                results
+                    .binarySearch(index)
+                    .let { (if (it < 0) -(it + 1) else it) + 1 }
+                    .takeIf { it < results.size }
+                    ?.let { results[it] } ?: results.firstOrNull()
+        }
+        _searchIndex.value?.let {
+            tracksLazyListState.requestScrollToItem(listItemBeforeTracksCount() + it)
+        }
     }
 }
 
@@ -805,21 +878,25 @@ fun LibraryScreenCollectionView(
             .collectAsStateWithLifecycle(state.info.value ?: InvalidCollectionViewInfo)
     val items by multiSelectState.items.collectAsStateWithLifecycle()
     val itemInfos = remember(items) { items.map { it.value.info } }
+    val searchIndex by state.searchIndex.collectAsStateWithLifecycle()
+    val searchResults by state.searchResults.collectAsStateWithLifecycle()
     val haptics = LocalHapticFeedback.current
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         if (info.artwork == null && info.cards?.items?.isEmpty() != false && info.items.isEmpty()) {
             EmptyListIndicator()
         } else {
-            val hasArtwork = info.artwork != null
-            val hasCards = info.cards?.items?.isNotEmpty() == true
-            val beforeCount = (if (hasArtwork) 1 else 0) + (if (hasCards) 1 else 0) + 1
             Scrollbar(
                 tracksLazyListState,
-                { items.getOrNull((it - beforeCount).coerceAtLeast(0))?.value?.scrollHint },
+                {
+                    items
+                        .getOrNull((it - state.listItemBeforeTracksCount()).coerceAtLeast(0))
+                        ?.value
+                        ?.scrollHint
+                },
             ) {
                 LazyColumn(state = tracksLazyListState, modifier = Modifier.fillMaxSize()) {
-                    if (hasArtwork) {
+                    if (info.artwork != null) {
                         item {
                             ArtworkImage(
                                 artwork = info.artwork!!,
@@ -831,7 +908,7 @@ fun LibraryScreenCollectionView(
                             )
                         }
                     }
-                    if (hasCards) {
+                    if (info.cards?.items?.isNotEmpty() == true) {
                         item {
                             val sortedCards =
                                 remember(info, preferences) {
@@ -951,6 +1028,8 @@ fun LibraryScreenCollectionView(
                                     }
                                     .animateItem(fadeInSpec = null, fadeOutSpec = null),
                             selected = selected,
+                            highlighted = searchResults.contains(index),
+                            bordered = index == searchIndex,
                         )
                     }
                 }

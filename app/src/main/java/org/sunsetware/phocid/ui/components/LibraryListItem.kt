@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,9 +55,11 @@ inline fun LibraryListItemHorizontal(
     deemphasized: Boolean = false,
     marquee: Boolean = false,
     selected: Boolean = false,
+    highlighted: Boolean = false,
+    bordered: Boolean = false,
 ) {
     val primaryAlpha by animateFloatAsState(if (deemphasized) INACTIVE_ALPHA else 1f)
-    val backgroundAlpha by animateFloatAsState(if (selected) 1f else 0f)
+    val backgroundAlpha by animateFloatAsState(if (selected || highlighted) 1f else 0f)
     val supportingContentColor = contentColorVariant()
     Row(
         modifier =
@@ -65,6 +68,7 @@ inline fun LibraryListItemHorizontal(
                 .background(
                     MaterialTheme.colorScheme.secondaryContainer.copy(alpha = backgroundAlpha)
                 )
+                .let { if (bordered) it.border(4.dp, MaterialTheme.colorScheme.secondary) else it }
                 .padding(start = 16.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

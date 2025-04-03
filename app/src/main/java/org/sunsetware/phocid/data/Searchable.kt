@@ -44,3 +44,28 @@ fun <T> Iterable<T>.search(
         }
     }
 }
+
+@Stable
+fun <T> Iterable<T>.searchIndices(
+    query: String,
+    collator: RuleBasedCollator,
+    selector: (T) -> Searchable,
+): Set<Int> {
+    return if (query.isEmpty()) {
+        emptySet()
+    } else {
+        mapIndexedNotNull { index, item ->
+                if (
+                    selector(item).searchableStrings.any {
+                        if (it.isEmpty()) false
+                        else
+                            StringSearch(query, StringCharacterIterator(it), collator).first() !=
+                                StringSearch.DONE
+                    }
+                )
+                    index
+                else null
+            }
+            .toSet()
+    }
+}

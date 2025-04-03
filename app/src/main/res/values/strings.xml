@@ -244,6 +244,10 @@
     <string name="preferences_website">Website</string>
 
     <string name="search">Search</string>
+    <string name="search_in_list">Search in list</string>
+    <string name="search_next">Next result</string>
+    <string name="search_position_indicator">{0}/{1}</string>
+    <string name="search_previous">Previous result</string>
 
     <string name="snackbar_scanning_library">Scanning library ({0}/{1})</string>
 

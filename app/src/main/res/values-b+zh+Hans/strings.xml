@@ -219,6 +219,10 @@
     <string name="preferences_version">版本</string>
     <string name="preferences_website">网站</string>
     <string name="search">搜索</string>
+    <string name="search_in_list">在列表中搜索</string>
+    <string name="search_next">下一个结果</string>
+    <string name="search_position_indicator">{0}/{1}</string>
+    <string name="search_previous">上一个结果</string>
     <string name="snackbar_scanning_library">扫描曲库中（{0}/{1}）</string>
     <string name="sorting_album">专辑</string>
     <string name="sorting_album_artist">专辑艺术家</string>

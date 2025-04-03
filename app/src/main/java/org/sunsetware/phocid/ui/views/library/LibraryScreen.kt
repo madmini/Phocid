@@ -28,14 +28,18 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ManageSearch
 import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.AddBox
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.BorderStyle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ImportExport
@@ -47,6 +51,9 @@ import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -71,11 +78,13 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onSizeChanged
@@ -92,11 +101,13 @@ import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import org.sunsetware.phocid.MainViewModel
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
+import org.sunsetware.phocid.TNUM
 import org.sunsetware.phocid.data.ArtworkColorPreference
 import org.sunsetware.phocid.data.InvalidTrack
 import org.sunsetware.phocid.data.LibraryIndex
@@ -122,6 +133,7 @@ import org.sunsetware.phocid.ui.theme.ExitToBottom
 import org.sunsetware.phocid.ui.theme.LocalThemeAccent
 import org.sunsetware.phocid.ui.theme.Typography
 import org.sunsetware.phocid.ui.theme.contentColor
+import org.sunsetware.phocid.ui.theme.contentColorVariant
 import org.sunsetware.phocid.ui.theme.emphasizedEnter
 import org.sunsetware.phocid.ui.theme.emphasizedExit
 import org.sunsetware.phocid.ui.views.MenuItem
@@ -186,24 +198,49 @@ fun LibraryScreen(
         remember(currentMultiSelectItems?.value) {
             currentMultiSelectItems?.value?.count { it.selected } ?: 0
         }
-    var searchQueryBuffer by remember {
+    var homeSearchQueryBuffer by remember {
         mutableStateOf(viewModel.uiManager.libraryScreenSearchQuery.value)
     }
+    val collectionSearchPositionIndicator by
+        remember(currentCollection) {
+                currentCollection?.let { collection ->
+                    collection.searchResults.combine(coroutineScope, collection.searchIndex) {
+                        results,
+                        index ->
+                        Strings[R.string.search_position_indicator].icuFormat(
+                            results.indexOf(index) + 1,
+                            results.size,
+                        )
+                    }
+                } ?: MutableStateFlow("")
+            }
+            .collectAsStateWithLifecycle()
+    var collectionSearchQueryBuffer by
+        remember(currentCollection) { mutableStateOf(currentCollection?.searchQuery?.value) }
     var viewSettingsVisibility by remember { mutableStateOf(false) }
     var maxGridSize by remember { mutableIntStateOf(4) }
     val overflowMenuItems =
         remember(currentCollection, currentHomeTab) {
             when {
                 currentCollection != null -> {
-                    collectionMenuItemsWithoutPlay(
-                        {
-                            currentCollection.multiSelectState.items.value.flatMap {
-                                it.value.info.multiSelectTracks
-                            }
-                        },
-                        playerManager,
-                        uiManager,
+                    listOf(
+                        MenuItem.Button(
+                            Strings[R.string.search_in_list],
+                            Icons.AutoMirrored.Filled.ManageSearch,
+                        ) {
+                            collectionSearchQueryBuffer = collectionSearchQueryBuffer ?: ""
+                            currentCollection.searchQuery.update { it ?: "" }
+                        }
                     ) +
+                        collectionMenuItemsWithoutPlay(
+                            {
+                                currentCollection.multiSelectState.items.value.flatMap {
+                                    it.value.info.multiSelectTracks
+                                }
+                            },
+                            playerManager,
+                            uiManager,
+                        ) +
                         (currentCollection.info.value?.extraCollectionMenuItems(viewModel)
                             ?: emptyList<MenuItem>()) +
                         MenuItem.Divider
@@ -265,8 +302,8 @@ fun LibraryScreen(
         }
     }
 
-    LaunchedEffect(searchQueryBuffer) {
-        uiManager.libraryScreenSearchQuery.update { searchQueryBuffer }
+    LaunchedEffect(homeSearchQueryBuffer) {
+        uiManager.libraryScreenSearchQuery.update { homeSearchQueryBuffer }
     }
 
     Scaffold(
@@ -278,8 +315,8 @@ fun LibraryScreen(
             TopBar(
                 collectionTitles = collectionInfos.map { it.title },
                 onBack = { uiManager.back() },
-                searchQuery = searchQueryBuffer,
-                onSearchQueryChange = { query -> searchQueryBuffer = query },
+                searchQuery = homeSearchQueryBuffer,
+                onSearchQueryChange = { query -> collectionSearchQueryBuffer = query },
                 onPlayAll = {
                     playerManager.setTracks(
                         currentCollection?.multiSelectState?.items?.value?.flatMap {
@@ -357,6 +394,23 @@ fun LibraryScreen(
                     exit = ExitToBottom,
                 ) {
                     FloatingToolbar(floatingToolbarItems)
+                }
+
+                AnimatedVisibility(
+                    visible = collectionSearchQueryBuffer != null,
+                    enter = EnterFromBottom,
+                    exit = ExitToBottom,
+                ) {
+                    CollectionSearchBar(
+                        value = collectionSearchQueryBuffer ?: "",
+                        positionIndicator = collectionSearchPositionIndicator,
+                        onValueChange = { value ->
+                            collectionSearchQueryBuffer = value
+                            currentCollection?.searchQuery?.update { value }
+                        },
+                        onSearchPrevious = { currentCollection?.searchPrevious() },
+                        onSearchNext = { currentCollection?.searchNext() },
+                    )
                 }
             }
         }
@@ -471,7 +525,7 @@ private fun TopBar(
                     keepRoot = false,
                 ) { animatedTitle ->
                     if (animatedTitle == null) {
-                        SearchBar(searchQuery, onSearchQueryChange)
+                        HomeSearchBar(searchQuery, onSearchQueryChange)
                     } else {
                         Box(modifier = Modifier.fillMaxHeight())
                     }
@@ -516,9 +570,9 @@ private fun TopBar(
 }
 
 @Composable
-private fun SearchBar(value: String, onValueChange: (String) -> Unit) {
+private fun HomeSearchBar(value: String, onValueChange: (String) -> Unit) {
     val focusManager = LocalFocusManager.current
-    var focus by rememberSaveable { mutableStateOf(false) }
+    var focus by remember { mutableStateOf(false) }
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
@@ -563,6 +617,85 @@ private fun SearchBar(value: String, onValueChange: (String) -> Unit) {
             }
         }
     }
+}
+
+@Composable
+private fun CollectionSearchBar(
+    value: String,
+    positionIndicator: String,
+    onValueChange: (String?) -> Unit,
+    onSearchPrevious: () -> Unit,
+    onSearchNext: () -> Unit,
+) {
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
+    var focus by remember { mutableStateOf(false) }
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions { focusManager.clearFocus() },
+        textStyle = Typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSecondary),
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.onSecondary),
+        modifier =
+            Modifier.focusRequester(focusRequester)
+                .onFocusChanged { focus = it.isFocused }
+                .height(48.dp),
+    ) { innerTextField ->
+        ElevatedCard(
+            modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors =
+                CardColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary,
+                    disabledContainerColor = Color.Unspecified,
+                    disabledContentColor = Color.Unspecified,
+                ),
+            elevation = CardDefaults.elevatedCardElevation(6.dp, 6.dp, 6.dp, 6.dp, 6.dp, 6.dp),
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 20.dp, end = 4.dp),
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    if (value.isEmpty() && !focus) {
+                        SingleLineText(
+                            text = Strings[R.string.search],
+                            style = Typography.bodyLarge,
+                            color = contentColorVariant(),
+                        )
+                    } else {
+                        innerTextField()
+                    }
+                }
+                SingleLineText(
+                    text = positionIndicator,
+                    style = Typography.labelSmall.copy(fontFeatureSettings = TNUM),
+                    color = contentColorVariant(),
+                    modifier = Modifier.padding(start = 16.dp, end = 4.dp),
+                )
+                IconButton(onClick = { onSearchPrevious() }) {
+                    Icon(Icons.Filled.ArrowUpward, Strings[R.string.search_previous])
+                }
+                IconButton(onClick = { onSearchNext() }) {
+                    Icon(Icons.Filled.ArrowDownward, Strings[R.string.search_next])
+                }
+                IconButton(
+                    onClick = {
+                        focusManager.clearFocus()
+                        onValueChange(null)
+                    }
+                ) {
+                    Icon(Icons.Filled.Clear, Strings[R.string.commons_close])
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 }
 
 @Composable
