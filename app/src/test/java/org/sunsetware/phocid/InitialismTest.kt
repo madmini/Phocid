@@ -1,7 +1,6 @@
 package org.sunsetware.phocid
 
 import com.ibm.icu.lang.UCharacter
-import com.ibm.icu.text.Transliterator
 import java.util.Locale
 import kotlin.streams.toList
 import org.assertj.core.api.Assertions.assertThat
@@ -11,12 +10,6 @@ import org.sunsetware.phocid.utils.initialLetter
 class InitialismTest {
     @Test
     fun testInitialLetter() {
-        println(
-            Transliterator.getInstance(
-                    "NFD; [:Mark:] Remove; NFC; Any-Latin; [:^Letter:] Remove; Lower"
-                )
-                .transliterate("㍍")
-        )
         assertThat("".initialLetter(Locale.ROOT)).isEqualTo("#")
         assertThat(" ABC".initialLetter(Locale.ROOT)).isEqualTo("#")
         assertThat(".ABC".initialLetter(Locale.ROOT)).isEqualTo("#")
