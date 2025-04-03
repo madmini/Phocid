@@ -147,7 +147,7 @@ class PlayerScreenQueueDefaultBase(
                     )
                 }
 
-                Scrollbar(lazyListState, { null }) {
+                Scrollbar(lazyListState, { (it - currentTrackIndex).toString() }) {
                     LazyColumn(
                         state = lazyListState,
                         modifier = Modifier.fillMaxSize().nestedScroll(nestedScrollConnection),
