@@ -316,7 +316,7 @@ fun LibraryScreen(
                 collectionTitles = collectionInfos.map { it.title },
                 onBack = { uiManager.back() },
                 searchQuery = homeSearchQueryBuffer,
-                onSearchQueryChange = { query -> collectionSearchQueryBuffer = query },
+                onSearchQueryChange = { query -> homeSearchQueryBuffer = query },
                 onPlayAll = {
                     playerManager.setTracks(
                         currentCollection?.multiSelectState?.items?.value?.flatMap {
