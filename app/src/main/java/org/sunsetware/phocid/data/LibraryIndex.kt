@@ -28,8 +28,8 @@ import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.math.min
 import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.apache.commons.io.FilenameUtils
@@ -1094,6 +1094,7 @@ fun scanTracks(
                     // https://developer.android.com/reference/android/provider/MediaStore.Audio.AudioColumns.html#TRACK
                     var trackNumber = cursor.getIntOrNull(ci[Media.TRACK]!!)?.let { it % 1000 }
                     var discNumber = cursor.getIntOrNull(ci[Media.DISC_NUMBER]!!)
+                    var duration = cursor.getInt(ci[Media.DURATION]!!).milliseconds
                     val size = cursor.getLong(ci[Media.SIZE]!!)
                     var format = UNKNOWN
                     var sampleRate = 0
@@ -1157,6 +1158,14 @@ fun scanTracks(
                             try {
                                 discNumber = file.tag.getFirst(FieldKey.DISC_NO).toIntOrNull()
                             } catch (_: KeyNotFoundException) {}
+                            // Issue #84: some systems might report incorrect durations
+                            // Jaudiotagger only has second-level precision and this outdated fork
+                            // might be unreliable, so MediaStore should be preferred
+                            if (duration <= Duration.ZERO) {
+                                try {
+                                    duration = file.audioHeader.trackLength.seconds
+                                } catch (_: KeyNotFoundException) {}
+                            }
                             try {
                                 unsyncedLyrics =
                                     file.tag.getFirst(FieldKey.LYRICS).takeIf { it.isNotEmpty() }
@@ -1211,7 +1220,7 @@ fun scanTracks(
                         year,
                         trackNumber,
                         discNumber,
-                        cursor.getInt(ci[Media.DURATION]!!).toDuration(DurationUnit.MILLISECONDS),
+                        duration,
                         size,
                         format,
                         sampleRate,
