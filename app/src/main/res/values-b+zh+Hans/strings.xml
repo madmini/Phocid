@@ -144,6 +144,8 @@
     <string name="preferences_indexing">索引</string>
     <string name="preferences_indexing_advanced_metadata_extraction">高级元数据提取</string>
     <string name="preferences_indexing_advanced_metadata_extraction_subtitle">提取多个标签和内嵌歌词，但是非常慢。手动重新扫描后生效。</string>
+    <string name="preferences_indexing_always_rescan_mediastore">总是重新扫描 MediaStore</string>
+    <string name="preferences_indexing_always_rescan_mediastore_subtitle">如果新文件经常未被扫描，请开启</string>
     <string name="preferences_indexing_artist_separator_exceptions">艺术家分隔符例外</string>
     <string name="preferences_indexing_artist_separator_exceptions_subtitle">{0, plural, other {#}} 个例外</string>
     <string name="preferences_indexing_artist_separators">艺术家分隔符</string>
@@ -197,6 +199,7 @@
     <string name="preferences_playlist_io_settings_remove_invalid">删除未找到的曲目</string>
     <string name="preferences_pure_background_color">纯黑或纯白背景</string>
     <string name="preferences_reshuffle_on_repeat">循环时重新打乱顺序（实验性）</string>
+    <string name="preferences_scan_progress_timeout">显示扫描进度前等待</string>
     <string name="preferences_scrollable_tabs">允许标签栏滚动</string>
     <string name="preferences_shape">图像形状</string>
     <string name="preferences_shape_circle">圆形</string>

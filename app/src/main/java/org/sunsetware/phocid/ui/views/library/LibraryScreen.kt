@@ -290,7 +290,7 @@ fun LibraryScreen(
     LaunchedEffect(isScanningLibrary) {
         when (isScanningLibrary) {
             false -> {
-                delay(1.seconds)
+                delay(preferences.scanProgressTimeoutSeconds.seconds)
                 if (isActive) scanSnackbarVisibility = true
             }
             true -> {

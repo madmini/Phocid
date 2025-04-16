@@ -30,7 +30,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ibm.icu.number.Notation
+import com.ibm.icu.number.NumberFormatter
+import com.ibm.icu.number.Precision
+import com.ibm.icu.util.MeasureUnit
 import java.nio.charset.Charset
+import java.util.Locale
+import kotlin.math.roundToInt
 import org.sunsetware.phocid.BuildConfig
 import org.sunsetware.phocid.MainViewModel
 import org.sunsetware.phocid.R
@@ -244,7 +250,28 @@ object PreferencesScreen : TopLevelScreen() {
                             ),
                         modifier =
                             Modifier.clickable {
-                                uiManager.openDialog(PreferencesDensityMultiplierDialog())
+                                uiManager.openDialog(
+                                    PreferencesSteppedSliderDialog(
+                                        title = Strings[R.string.preferences_ui_scaling],
+                                        initialValue = {
+                                            it.preferences.value.densityMultiplier
+                                                .times(100)
+                                                .roundToInt()
+                                        },
+                                        defaultValue = 100,
+                                        min = 50,
+                                        max = 200,
+                                        numberFormatter = {
+                                            Strings[R.string.preferences_ui_scaling_number]
+                                                .icuFormat(it / 100f)
+                                        },
+                                        onSetValue = { viewModel, value ->
+                                            viewModel.updatePreferences { preferences ->
+                                                preferences.copy(densityMultiplier = value / 100f)
+                                            }
+                                        },
+                                    )
+                                )
                             },
                     )
                     UtilityListHeader(Strings[R.string.preferences_playback])
@@ -403,6 +430,55 @@ object PreferencesScreen : TopLevelScreen() {
                                 it.copy(disableArtworkColorExtraction = checked)
                             }
                         },
+                    )
+                    UtilitySwitchListItem(
+                        title = Strings[R.string.preferences_indexing_always_rescan_mediastore],
+                        subtitle =
+                            Strings[
+                                R.string.preferences_indexing_always_rescan_mediastore_subtitle],
+                        checked = preferences.alwaysRescanMediaStore,
+                        onCheckedChange = { checked ->
+                            viewModel.updatePreferences {
+                                it.copy(alwaysRescanMediaStore = checked)
+                            }
+                        },
+                    )
+                    UtilityListItem(
+                        title = Strings[R.string.preferences_scan_progress_timeout],
+                        subtitle =
+                            NumberFormatter.withLocale(Locale.getDefault())
+                                .notation(Notation.simple())
+                                .unit(MeasureUnit.SECOND)
+                                .precision(Precision.integer())
+                                .format(preferences.scanProgressTimeoutSeconds)
+                                .toString(),
+                        modifier =
+                            Modifier.clickable {
+                                uiManager.openDialog(
+                                    PreferencesSteppedSliderDialog(
+                                        title = Strings[R.string.preferences_scan_progress_timeout],
+                                        initialValue = {
+                                            it.preferences.value.scanProgressTimeoutSeconds
+                                        },
+                                        defaultValue = 1,
+                                        min = 0,
+                                        max = 60,
+                                        numberFormatter = {
+                                            NumberFormatter.withLocale(Locale.getDefault())
+                                                .notation(Notation.simple())
+                                                .unit(MeasureUnit.SECOND)
+                                                .precision(Precision.integer())
+                                                .format(it)
+                                                .toString()
+                                        },
+                                        onSetValue = { viewModel, value ->
+                                            viewModel.updatePreferences { preferences ->
+                                                preferences.copy(scanProgressTimeoutSeconds = value)
+                                            }
+                                        },
+                                    )
+                                )
+                            },
                     )
                     UtilityListItem(
                         title = Strings[R.string.preferences_indexing_artist_separators],

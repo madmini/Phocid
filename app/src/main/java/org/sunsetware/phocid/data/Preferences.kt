@@ -70,6 +70,8 @@ data class Preferences(
     // Indexing
     val advancedMetadataExtraction: Boolean = false,
     val disableArtworkColorExtraction: Boolean = false,
+    val alwaysRescanMediaStore: Boolean = false,
+    val scanProgressTimeoutSeconds: Int = 1,
     val artistMetadataSeparators: List<String> = listOf("&", ";", ",", "+", "/", " feat.", " ft."),
     val artistMetadataSeparatorExceptions: List<String> = emptyList(),
     val genreMetadataSeparators: List<String> = listOf("&", ";", ",", "+", "/"),

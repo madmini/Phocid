@@ -1,7 +1,9 @@
 package org.sunsetware.phocid
 
 import android.app.Application
+import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,9 +23,19 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
-import org.sunsetware.phocid.data.*
+import org.sunsetware.phocid.data.EmptyTrackIndex
+import org.sunsetware.phocid.data.LibraryIndex
+import org.sunsetware.phocid.data.Lyrics
+import org.sunsetware.phocid.data.PlayerManager
+import org.sunsetware.phocid.data.PlaylistManager
+import org.sunsetware.phocid.data.Preferences
+import org.sunsetware.phocid.data.SaveManager
+import org.sunsetware.phocid.data.UnfilteredTrackIndex
+import org.sunsetware.phocid.data.loadCbor
+import org.sunsetware.phocid.data.scanTracks
 import org.sunsetware.phocid.ui.views.library.LibraryScreenTabInfo
-import org.sunsetware.phocid.utils.*
+import org.sunsetware.phocid.utils.combine
+import org.sunsetware.phocid.utils.map
 
 class MainViewModel(private val application: Application) : AndroidViewModel(application) {
     private val trackIndexFile =
@@ -172,6 +184,33 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                     try {
                         _libraryScanProgress.update { null }
                         _isScanningLibrary.update { force }
+
+                        if (force || _preferences.value.alwaysRescanMediaStore) {
+                            val mediaScannerSignal = AtomicBoolean(false)
+                            // Try to obtain all external storage paths through hack.
+                            // Result from getExternalStorageDirectory() is still kept in case the
+                            // hack no longer works.
+                            val storages =
+                                application.applicationContext
+                                    .getExternalFilesDirs(null)
+                                    .mapNotNull {
+                                        it?.parentFile?.parentFile?.parentFile?.parentFile?.path
+                                    }
+                                    .plus(Environment.getExternalStorageDirectory().path)
+                                    .distinct()
+                                    .toTypedArray()
+                            MediaScannerConnection.scanFile(
+                                application.applicationContext,
+                                storages,
+                                arrayOf("audio/*"),
+                            ) { _, _ ->
+                                mediaScannerSignal.set(true)
+                            }
+                            while (!mediaScannerSignal.get()) {
+                                delay(1)
+                            }
+                        }
+
                         val newTrackIndex =
                             scanTracks(
                                 application.applicationContext,
