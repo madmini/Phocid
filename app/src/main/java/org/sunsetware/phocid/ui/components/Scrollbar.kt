@@ -119,8 +119,8 @@ fun DrawScope.drawHint(
             )
         }
     val text = textMeasurer.measure(hint, style, maxLines = 1)
-    val height = style.lineHeight.toPx()
-    val width = (text.size.width + padding * 2).coerceAtLeast(height)
+    val height = text.size.height.toFloat()
+    val width = (text.size.width + padding * 2).takeIf { it >= height * 1.1f } ?: height
     val offsetY =
         (start * size.height - height / 2 - marginY).coerceIn(
             0f,
