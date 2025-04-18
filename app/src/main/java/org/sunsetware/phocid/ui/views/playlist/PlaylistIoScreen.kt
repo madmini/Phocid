@@ -67,7 +67,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.MimeTypes
 import com.ibm.icu.text.Collator
 import java.util.UUID
-import kotlin.collections.forEach
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -140,11 +139,14 @@ private constructor(tabType: PlaylistIoScreenTabType, initialExportSelection: Se
                 while (isActive) {
                     m3uFiles =
                         playlistIoDirectoryUri
-                            ?.let { listSafFiles(context, it) }
+                            ?.let {
+                                listSafFiles(context, it, true) {
+                                    it.name.endsWith(".m3u", true) ||
+                                        it.name.endsWith(".m3u8", true)
+                                }
+                            }
                             ?.values
-                            ?.filter {
-                                it.name.endsWith(".m3u", true) || it.name.endsWith(".m3u8", true)
-                            } ?: emptyList()
+                            ?.toList() ?: emptyList()
                     delay(1.seconds)
                 }
             }
@@ -426,7 +428,7 @@ private constructor(tabType: PlaylistIoScreenTabType, initialExportSelection: Se
                     LazyColumn(state = importLazyListState, modifier = Modifier.fillMaxSize()) {
                         items(m3uFiles, { it.uri }) { file ->
                             UtilityCheckBoxListItem(
-                                text = file.name,
+                                text = file.relativePath,
                                 checked = importSelection.contains(file.uri),
                                 onCheckedChange = {
                                     if (it) {
@@ -565,7 +567,9 @@ private constructor(tabType: PlaylistIoScreenTabType, initialExportSelection: Se
                 while (isActive) {
                     files =
                         preferences.playlistIoSyncLocation?.let {
-                            listSafFiles(context, Uri.parse(it))
+                            listSafFiles(context, Uri.parse(it), false) {
+                                it.name.endsWith(".m3u", true) || it.name.endsWith(".m3u8", true)
+                            }
                         } ?: emptyMap()
                     delay(1.seconds)
                 }
