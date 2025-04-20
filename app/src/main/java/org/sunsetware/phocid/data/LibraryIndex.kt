@@ -47,6 +47,7 @@ import org.sunsetware.phocid.utils.ColorSerializer
 import org.sunsetware.phocid.utils.distinctCaseInsensitive
 import org.sunsetware.phocid.utils.icuFormat
 import org.sunsetware.phocid.utils.mode
+import org.sunsetware.phocid.utils.modeOrNull
 import org.sunsetware.phocid.utils.trimAndNormalize
 
 @Immutable
@@ -347,7 +348,13 @@ data class Album(
     val tracks: List<Track> = emptyList(),
 ) : Searchable, Sortable {
     val displayAlbumArtist
-        get() = albumArtist ?: UNKNOWN
+        get() =
+            albumArtist
+                ?: tracks
+                    .flatMap { it.artists }
+                    .modeOrNull()
+                    ?.let { Strings[R.string.track_inferred_album_artist].icuFormat(it) }
+                ?: UNKNOWN
 
     @Transient override val searchableStrings = listOfNotNull(name, albumArtist)
 

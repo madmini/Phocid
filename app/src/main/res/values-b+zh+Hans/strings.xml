@@ -293,6 +293,7 @@
     <string name="track_details_unsynced_lyrics">非同步歌词</string>
     <string name="track_details_year">年份</string>
     <string name="track_disc_without_number">{0}-?</string>
+    <string name="track_inferred_album_artist">({0})</string>
     <string name="track_number_not_available">-</string>
     <string name="track_number_with_disc">{0}-{1}</string>
     <string name="track_number_without_disc">{0}</string>
