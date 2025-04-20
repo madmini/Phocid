@@ -829,7 +829,7 @@ data class ArtistSliceCollectionViewInfo(val artistSlice: ArtistSlice) : Collect
         get() = artistSlice.artist.name
 
     override val artwork
-        get() = artistSlice.artist.tracks.firstOrNull()?.let { Artwork.Track(it) }
+        get() = null
 
     override val cards
         get() = null
