@@ -255,6 +255,7 @@ class PlaylistEditScreen(private val playlistKey: UUID) : TopLevelScreen() {
                                             )
                                         }
                                     },
+                                    dragIndicator = true,
                                     modifier =
                                         Modifier.background(MaterialTheme.colorScheme.background),
                                 )

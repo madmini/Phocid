@@ -206,6 +206,7 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
             onSnapToZero = { coroutineScope.launch { scrollPlayQueueToNextTrack() } },
         )
     }
+    val playQueueDragTarget by playQueueDragState.targetValue.collectAsStateWithLifecycle()
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
@@ -493,6 +494,8 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                 nestedScrollConnection = nestedScrollConnection,
                                 containerColor = animatedContainerColor.value,
                                 contentColor = animatedContentColor,
+                                dragIndicatorVisibility =
+                                    playQueueDragState.position == 1f || playQueueDragTarget == 1f,
                                 onTogglePlayQueue = {
                                     playQueueDragState.animateTo(
                                         if (playQueueDragState.position <= 0) 1f else 0f

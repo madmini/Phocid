@@ -61,6 +61,7 @@ sealed class PlayerScreenQueue {
         nestedScrollConnection: NestedScrollConnection,
         containerColor: Color,
         contentColor: Color,
+        dragIndicatorVisibility: Boolean,
         onTogglePlayQueue: () -> Unit,
         onMoveTrack: (Int, Int) -> Unit,
         onSeekTo: (Int) -> Unit,
@@ -93,6 +94,7 @@ class PlayerScreenQueueDefaultBase(
         nestedScrollConnection: NestedScrollConnection,
         containerColor: Color,
         contentColor: Color,
+        dragIndicatorVisibility: Boolean,
         onTogglePlayQueue: () -> Unit,
         onMoveTrack: (Int, Int) -> Unit,
         onSeekTo: (Int) -> Unit,
@@ -206,6 +208,7 @@ class PlayerScreenQueueDefaultBase(
                                             .background(
                                                 MaterialTheme.colorScheme.surfaceContainerLow
                                             ),
+                                    dragIndicator = dragIndicatorVisibility,
                                 )
                             }
                         }

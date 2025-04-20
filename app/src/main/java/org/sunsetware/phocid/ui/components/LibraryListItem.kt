@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.Icon
@@ -34,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.sunsetware.phocid.R
@@ -44,6 +46,7 @@ import org.sunsetware.phocid.ui.theme.INACTIVE_ALPHA
 import org.sunsetware.phocid.ui.theme.Typography
 import org.sunsetware.phocid.ui.theme.contentColor
 import org.sunsetware.phocid.ui.theme.contentColorVariant
+import org.sunsetware.phocid.ui.theme.emphasizedStandard
 
 @Composable
 inline fun LibraryListItemHorizontal(
@@ -57,6 +60,7 @@ inline fun LibraryListItemHorizontal(
     selected: Boolean = false,
     highlighted: Boolean = false,
     bordered: Boolean = false,
+    dragIndicator: Boolean = false,
 ) {
     val primaryAlpha by animateFloatAsState(if (deemphasized) INACTIVE_ALPHA else 1f)
     val backgroundAlpha by animateFloatAsState(if (selected || highlighted) 1f else 0f)
@@ -73,11 +77,22 @@ inline fun LibraryListItemHorizontal(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         CompositionLocalProvider(LocalContentColor provides supportingContentColor) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.padding(end = 16.dp).size(40.dp).alpha(primaryAlpha),
-            ) {
-                AnimatedContent(targetState = selected) { animatedSelected ->
+            Box(modifier = Modifier.padding(end = 16.dp).size(40.dp)) {
+                androidx.compose.animation.AnimatedVisibility(
+                    dragIndicator,
+                    enter = fadeIn(emphasizedStandard()),
+                    exit = fadeOut(emphasizedStandard()),
+                    modifier =
+                        Modifier.align(Alignment.CenterStart).graphicsLayer {
+                            translationX = -28.dp.toPx()
+                        },
+                ) {
+                    Icon(Icons.Filled.DragHandle, null)
+                }
+                AnimatedContent(
+                    targetState = selected,
+                    modifier = Modifier.align(Alignment.Center).alpha(primaryAlpha),
+                ) { animatedSelected ->
                     if (animatedSelected) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
