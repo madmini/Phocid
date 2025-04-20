@@ -13,7 +13,7 @@ fun Modifier.negativePadding(
 ): Modifier {
     return layout { measurable, constraints ->
         val overriddenWidth = constraints.maxWidth + (start + end).roundToPx()
-        val overriddenHeight = constraints.maxHeight + 2 * (top + bottom).roundToPx()
+        val overriddenHeight = constraints.maxHeight + (top + bottom).roundToPx()
         val placeable =
             measurable.measure(
                 constraints.copy(maxWidth = overriddenWidth, maxHeight = overriddenHeight)
