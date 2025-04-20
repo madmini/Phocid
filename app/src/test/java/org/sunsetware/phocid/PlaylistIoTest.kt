@@ -1,7 +1,6 @@
 package org.sunsetware.phocid
 
 import java.util.UUID
-import kotlin.collections.joinToString
 import org.assertj.core.api.Assertions.*
 import org.junit.Test
 import org.junit.runner.RunWith

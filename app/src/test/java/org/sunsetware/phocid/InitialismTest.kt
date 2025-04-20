@@ -3,7 +3,7 @@ package org.sunsetware.phocid
 import com.ibm.icu.lang.UCharacter
 import java.util.Locale
 import kotlin.streams.toList
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.*
 import org.junit.Test
 import org.sunsetware.phocid.utils.initialLetter
 

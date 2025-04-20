@@ -23,16 +23,32 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import org.sunsetware.phocid.*
-import org.sunsetware.phocid.utils.*
+import org.sunsetware.phocid.AUDIO_OFFLOADING_KEY
+import org.sunsetware.phocid.PAUSE_ON_FOCUS_LOSS
+import org.sunsetware.phocid.PLAYER_STATE_FILE_NAME
+import org.sunsetware.phocid.PLAY_ON_OUTPUT_DEVICE_CONNECTION_KEY
+import org.sunsetware.phocid.PlaybackService
+import org.sunsetware.phocid.RESHUFFLE_ON_REPEAT_KEY
+import org.sunsetware.phocid.SET_PLAYBACK_PREFERENCE_COMMAND
+import org.sunsetware.phocid.SET_TIMER_COMMAND
+import org.sunsetware.phocid.TIMER_FINISH_LAST_TRACK_KEY
+import org.sunsetware.phocid.TIMER_TARGET_KEY
+import org.sunsetware.phocid.UNSHUFFLED_INDEX_KEY
+import org.sunsetware.phocid.getUnshuffledIndex
+import org.sunsetware.phocid.setUnshuffledIndex
+import org.sunsetware.phocid.utils.Random
+import org.sunsetware.phocid.utils.wrap
 
 @Serializable
 @Immutable
