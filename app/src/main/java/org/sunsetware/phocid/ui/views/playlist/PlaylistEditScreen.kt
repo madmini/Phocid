@@ -3,8 +3,11 @@
 package org.sunsetware.phocid.ui.views.playlist
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -32,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextOverflow
@@ -171,94 +175,110 @@ class PlaylistEditScreen(private val playlistKey: UUID) : TopLevelScreen() {
                                 animateItemModifier =
                                     Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
                             ) { isDragging ->
-                                LibraryListItemHorizontal(
-                                    title = entry.track?.displayTitle ?: UNKNOWN,
-                                    subtitle =
-                                        entry.track?.displayArtistWithAlbum
-                                            ?: FilenameUtils.getName(entry.playlistEntry.path),
-                                    lead = {
-                                        ArtworkImage(
-                                            artwork = Artwork.Track(entry.track ?: InvalidTrack),
-                                            artworkColorPreference =
-                                                preferences.artworkColorPreference,
-                                            shape = preferences.shapePreference.artworkShape,
-                                            modifier =
-                                                Modifier.fillMaxSize()
-                                                    .draggableHandle(
-                                                        onDragStarted = {
-                                                            ViewCompat.performHapticFeedback(
-                                                                view,
-                                                                HapticFeedbackConstantsCompat
-                                                                    .DRAG_START,
-                                                            )
-                                                        },
-                                                        onDragStopped = {
-                                                            ViewCompat.performHapticFeedback(
-                                                                view,
-                                                                HapticFeedbackConstantsCompat
-                                                                    .GESTURE_END,
-                                                            )
-                                                        },
-                                                    ),
-                                        )
-                                    },
-                                    actions = {
-                                        IconButton(
-                                            onClick = {
-                                                playlistManager.updatePlaylist(playlistKey) {
-                                                    if (index > 0) {
-                                                        it.copy(
-                                                            entries =
-                                                                it.entries.swap(index, index - 1)
-                                                        )
-                                                    } else it
-                                                }
-                                            }
-                                        ) {
-                                            Icon(
-                                                Icons.Filled.ArrowUpward,
-                                                contentDescription = Strings[R.string.list_move_up],
+                                Box {
+                                    LibraryListItemHorizontal(
+                                        title = entry.track?.displayTitle ?: UNKNOWN,
+                                        subtitle =
+                                            entry.track?.displayArtistWithAlbum
+                                                ?: FilenameUtils.getName(entry.playlistEntry.path),
+                                        lead = {
+                                            ArtworkImage(
+                                                artwork =
+                                                    Artwork.Track(entry.track ?: InvalidTrack),
+                                                artworkColorPreference =
+                                                    preferences.artworkColorPreference,
+                                                shape = preferences.shapePreference.artworkShape,
+                                                modifier = Modifier.fillMaxSize(),
                                             )
-                                        }
-                                        IconButton(
-                                            onClick = {
-                                                playlistManager.updatePlaylist(playlistKey) {
-                                                    if (index < it.entries.size - 1) {
-                                                        it.copy(
-                                                            entries =
-                                                                it.entries.swap(index, index + 1)
-                                                        )
-                                                    } else it
+                                        },
+                                        actions = {
+                                            IconButton(
+                                                onClick = {
+                                                    playlistManager.updatePlaylist(playlistKey) {
+                                                        if (index > 0) {
+                                                            it.copy(
+                                                                entries =
+                                                                    it.entries.swap(
+                                                                        index,
+                                                                        index - 1,
+                                                                    )
+                                                            )
+                                                        } else it
+                                                    }
                                                 }
-                                            }
-                                        ) {
-                                            Icon(
-                                                Icons.Filled.ArrowDownward,
-                                                contentDescription =
-                                                    Strings[R.string.list_move_down],
-                                            )
-                                        }
-                                        IconButton(
-                                            onClick = {
-                                                uiManager.openDialog(
-                                                    RemoveFromPlaylistDialog(
-                                                        playlistKey,
-                                                        setOf(entry.key),
-                                                    )
+                                            ) {
+                                                Icon(
+                                                    Icons.Filled.ArrowUpward,
+                                                    contentDescription =
+                                                        Strings[R.string.list_move_up],
                                                 )
                                             }
-                                        ) {
-                                            Icon(
-                                                Icons.Filled.Remove,
-                                                contentDescription =
-                                                    Strings[R.string.commons_remove],
-                                            )
-                                        }
-                                    },
-                                    dragIndicator = true,
-                                    modifier =
-                                        Modifier.background(MaterialTheme.colorScheme.background),
-                                )
+                                            IconButton(
+                                                onClick = {
+                                                    playlistManager.updatePlaylist(playlistKey) {
+                                                        if (index < it.entries.size - 1) {
+                                                            it.copy(
+                                                                entries =
+                                                                    it.entries.swap(
+                                                                        index,
+                                                                        index + 1,
+                                                                    )
+                                                            )
+                                                        } else it
+                                                    }
+                                                }
+                                            ) {
+                                                Icon(
+                                                    Icons.Filled.ArrowDownward,
+                                                    contentDescription =
+                                                        Strings[R.string.list_move_down],
+                                                )
+                                            }
+                                            IconButton(
+                                                onClick = {
+                                                    uiManager.openDialog(
+                                                        RemoveFromPlaylistDialog(
+                                                            playlistKey,
+                                                            setOf(entry.key),
+                                                        )
+                                                    )
+                                                }
+                                            ) {
+                                                Icon(
+                                                    Icons.Filled.Remove,
+                                                    contentDescription =
+                                                        Strings[R.string.commons_remove],
+                                                )
+                                            }
+                                        },
+                                        dragIndicator = true,
+                                        modifier =
+                                            Modifier.background(
+                                                MaterialTheme.colorScheme.background
+                                            ),
+                                    )
+                                    Box(
+                                        modifier =
+                                            Modifier.align(Alignment.CenterStart)
+                                                .width(56.dp)
+                                                .height(72.dp)
+                                                .draggableHandle(
+                                                    onDragStarted = {
+                                                        ViewCompat.performHapticFeedback(
+                                                            view,
+                                                            HapticFeedbackConstantsCompat.DRAG_START,
+                                                        )
+                                                    },
+                                                    onDragStopped = {
+                                                        ViewCompat.performHapticFeedback(
+                                                            view,
+                                                            HapticFeedbackConstantsCompat
+                                                                .GESTURE_END,
+                                                        )
+                                                    },
+                                                )
+                                    )
+                                }
                             }
                         }
                     }
