@@ -36,7 +36,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
@@ -62,6 +64,7 @@ inline fun LibraryListItemHorizontal(
     bordered: Boolean = false,
     dragIndicator: Boolean = false,
 ) {
+    val layoutDirection = LocalLayoutDirection.current
     val primaryAlpha by animateFloatAsState(if (deemphasized) INACTIVE_ALPHA else 1f)
     val backgroundAlpha by animateFloatAsState(if (selected || highlighted) 1f else 0f)
     val supportingContentColor = contentColorVariant()
@@ -84,7 +87,9 @@ inline fun LibraryListItemHorizontal(
                     exit = fadeOut(emphasizedStandard()),
                     modifier =
                         Modifier.align(Alignment.CenterStart).graphicsLayer {
-                            translationX = -28.dp.toPx()
+                            translationX =
+                                -28.dp.toPx() *
+                                    (if (layoutDirection == LayoutDirection.Ltr) 1 else -1)
                         },
                 ) {
                     Icon(Icons.Filled.DragHandle, null)
