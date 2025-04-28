@@ -698,6 +698,7 @@ private fun LibraryList(
                                     artwork = artwork,
                                     artworkColorPreference = artworkColorPreference,
                                     shape = artworkShape,
+                                    highRes = false,
                                     modifier = Modifier.fillMaxSize(),
                                 )
                             },
@@ -742,6 +743,7 @@ private fun LibraryList(
                                     artwork = artwork,
                                     artworkColorPreference = artworkColorPreference,
                                     shape = RoundedCornerShape(0.dp),
+                                    highRes = true,
                                     modifier = Modifier.fillMaxSize(),
                                 )
                             },

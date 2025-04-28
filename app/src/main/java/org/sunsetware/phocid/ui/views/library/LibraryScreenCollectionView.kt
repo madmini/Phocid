@@ -902,6 +902,7 @@ fun LibraryScreenCollectionView(
                                 artwork = info.artwork!!,
                                 artworkColorPreference = preferences.artworkColorPreference,
                                 shape = RoundedCornerShape(0.dp),
+                                highRes = true,
                                 modifier =
                                     Modifier.fillMaxWidth()
                                         .aspectRatio(1f, matchHeightConstraintsFirst = true),
@@ -936,6 +937,7 @@ fun LibraryScreenCollectionView(
                                                 artworkColorPreference =
                                                     preferences.artworkColorPreference,
                                                 shape = RoundedCornerShape(0.dp),
+                                                highRes = true,
                                                 modifier =
                                                     Modifier.fillMaxWidth()
                                                         .aspectRatio(
@@ -1004,6 +1006,7 @@ fun LibraryScreenCollectionView(
                                             artworkColorPreference =
                                                 preferences.artworkColorPreference,
                                             shape = preferences.shapePreference.artworkShape,
+                                            highRes = false,
                                             modifier = Modifier.fillMaxSize(),
                                         )
                                     }

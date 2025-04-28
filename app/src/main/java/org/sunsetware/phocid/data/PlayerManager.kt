@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.sunsetware.phocid.AUDIO_OFFLOADING_KEY
+import org.sunsetware.phocid.FILE_PATH_KEY
 import org.sunsetware.phocid.PAUSE_ON_FOCUS_LOSS
 import org.sunsetware.phocid.PLAYER_STATE_FILE_NAME
 import org.sunsetware.phocid.PLAY_ON_OUTPUT_DEVICE_CONNECTION_KEY
@@ -432,6 +433,8 @@ private fun Track.getMediaItem(unshuffledIndex: Int?): MediaItem {
                     .setArtist(displayArtist)
                     .setAlbumTitle(album)
                     .setAlbumArtist(albumArtist)
+                    .setArtworkUri(uri)
+                    .setExtras(bundleOf(FILE_PATH_KEY to path))
                     .build()
             )
             .build()

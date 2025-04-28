@@ -155,6 +155,8 @@
     <string name="preferences_folder_picker_dialog_title">Select folder</string>
     <string name="preferences_folder_picker_dialog_up">Up</string>
     <string name="preferences_folder_tab_root">Folder tab root</string>
+    <string name="preferences_grant_images_permission">Grant permission to read images</string>
+    <string name="preferences_grant_images_permission_subtitle">Only needed if external artwork images aren’t showing properly</string>
     <string name="preferences_indexing">Indexing</string>
     <string name="preferences_indexing_advanced_metadata_extraction">Advanced metadata extraction</string>
     <string name="preferences_indexing_advanced_metadata_extraction_subtitle">Reads multiple tags and embedded lyrics, but is very slow. Applies after a manual rescan.</string>

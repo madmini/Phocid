@@ -5,12 +5,9 @@ package org.sunsetware.phocid.data
 import android.content.ContentUris
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.provider.MediaStore
 import android.provider.MediaStore.Audio.Media
 import android.util.Log
-import android.util.Size
-import android.view.WindowManager
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
@@ -23,16 +20,15 @@ import androidx.palette.graphics.Target
 import com.ibm.icu.text.Collator
 import com.ibm.icu.util.CaseInsensitiveString
 import java.io.File
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
-import kotlin.math.min
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.apache.commons.io.FilenameUtils
+import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.audio.exceptions.CannotReadException
 import org.jaudiotagger.tag.FieldKey
@@ -261,35 +257,6 @@ data class Track(
                         ),
                     ),
             )
-    }
-}
-
-private val cachedScreenSize = AtomicInteger(0)
-
-fun loadArtwork(context: Context, id: Long, sizeLimit: Int? = null): Bitmap? {
-    try {
-        val thumbnailSize =
-            sizeLimit
-                ?: cachedScreenSize.get().takeIf { it > 0 }
-                ?: run {
-                    val screenSize =
-                        (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager)
-                            .maximumWindowMetrics
-                            .bounds
-                    val limit = min(screenSize.width(), screenSize.height()).coerceAtLeast(256)
-                    cachedScreenSize.set(limit)
-                    limit
-                }
-        val bitmap =
-            context.contentResolver.loadThumbnail(
-                ContentUris.withAppendedId(Media.EXTERNAL_CONTENT_URI, id),
-                Size(thumbnailSize, thumbnailSize),
-                null,
-            )
-        return bitmap
-    } catch (ex: Exception) {
-        Log.e("Phocid", "Can't load artwork for $id", ex)
-        return null
     }
 }
 
@@ -1034,6 +1001,29 @@ private val contentResolverColumns =
         Media.BITRATE,
     )
 
+fun readJaudiotaggerFile(path: String): AudioFile {
+    val extension = FilenameUtils.getExtension(path).lowercase()
+    return try {
+        AudioFileIO.read(File(path))
+    } catch (ex: CannotReadException) {
+        when (extension) {
+            "oga" ->
+                try {
+                    AudioFileIO.readAs(File(path), "ogg")
+                } catch (_: CannotReadException) {
+                    try {
+                        AudioFileIO.readAs(File(path), "opus")
+                    } catch (_: Exception) {
+                        throw ex
+                    }
+                }
+
+            "ogg" -> AudioFileIO.readAs(File(path), "opus")
+            else -> throw ex
+        }
+    }
+}
+
 fun scanTracks(
     context: Context,
     advancedMetadataExtraction: Boolean,
@@ -1112,27 +1102,7 @@ fun scanTracks(
 
                     if (advancedMetadataExtraction) {
                         try {
-                            val extension = FilenameUtils.getExtension(path).lowercase()
-                            val file =
-                                try {
-                                    AudioFileIO.read(File(path))
-                                } catch (ex: CannotReadException) {
-                                    when (extension) {
-                                        "oga" ->
-                                            try {
-                                                AudioFileIO.readAs(File(path), "ogg")
-                                            } catch (_: CannotReadException) {
-                                                try {
-                                                    AudioFileIO.readAs(File(path), "opus")
-                                                } catch (_: Exception) {
-                                                    throw ex
-                                                }
-                                            }
-
-                                        "ogg" -> AudioFileIO.readAs(File(path), "opus")
-                                        else -> throw ex
-                                    }
-                                }
+                            val file = readJaudiotaggerFile(path)
                             try {
                                 title = file.tag.getFirst(FieldKey.TITLE)
                             } catch (_: KeyNotFoundException) {}
@@ -1200,7 +1170,7 @@ fun scanTracks(
                     val palette =
                         if (disableArtworkColorExtraction) null
                         else
-                            loadArtwork(context, id, 64)
+                            loadArtwork(context, id, path, false, 64)
                                 ?.let { Palette.from(it) }
                                 ?.clearTargets()
                                 ?.apply {

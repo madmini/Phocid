@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.sunsetware.phocid.service.CustomizedBitmapLoader
 import org.sunsetware.phocid.utils.Random
 
 @OptIn(UnstableApi::class)
@@ -246,6 +247,7 @@ class PlaybackService : MediaSessionService() {
                         }
                     }
                 )
+                .setBitmapLoader(CustomizedBitmapLoader(this))
                 .build()
         getSystemService(AudioManager::class.java)
             .registerAudioDeviceCallback(audioDeviceCallback, null)

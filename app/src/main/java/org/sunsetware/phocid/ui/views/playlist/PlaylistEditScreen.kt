@@ -188,6 +188,7 @@ class PlaylistEditScreen(private val playlistKey: UUID) : TopLevelScreen() {
                                                 artworkColorPreference =
                                                     preferences.artworkColorPreference,
                                                 shape = preferences.shapePreference.artworkShape,
+                                                highRes = false,
                                                 modifier = Modifier.fillMaxSize(),
                                             )
                                         },

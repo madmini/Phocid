@@ -77,6 +77,7 @@ object PlayerScreenArtworkDefault : PlayerScreenArtwork() {
                 artworkColorPreference = artworkColorPreference,
                 shape = RoundedCornerShape(0.dp),
                 modifier = Modifier.fillMaxSize(),
+                highRes = true,
                 async = false,
             )
         }

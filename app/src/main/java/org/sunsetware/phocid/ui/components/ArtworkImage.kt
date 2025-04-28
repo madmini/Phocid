@@ -57,6 +57,7 @@ fun ArtworkImage(
     artwork: Artwork,
     artworkColorPreference: ArtworkColorPreference,
     shape: Shape,
+    highRes: Boolean,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
     async: Boolean = true,
@@ -67,7 +68,8 @@ fun ArtworkImage(
         remember(artwork) {
             mutableStateOf(
                 if (!async && artwork is Artwork.Track) {
-                    loadArtwork(context, artwork.track.id)?.asImageBitmap()
+                    loadArtwork(context, artwork.track.id, artwork.track.path, highRes)
+                        ?.asImageBitmap()
                 } else {
                     null as ImageBitmap?
                 }
@@ -92,7 +94,9 @@ fun ArtworkImage(
     LaunchedEffect(artwork) {
         if (artwork is Artwork.Track && async) {
             withContext(Dispatchers.IO) {
-                image = loadArtwork(context, artwork.track.id)?.asImageBitmap()
+                image =
+                    loadArtwork(context, artwork.track.id, artwork.track.path, highRes)
+                        ?.asImageBitmap()
                 if (image == null) isIcon = true
             }
         }

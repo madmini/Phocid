@@ -1,9 +1,12 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 
 package org.sunsetware.phocid.ui.views.preferences
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -30,6 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.ibm.icu.number.Notation
 import com.ibm.icu.number.NumberFormatter
 import com.ibm.icu.number.Precision
@@ -555,6 +561,45 @@ object PreferencesScreen : TopLevelScreen() {
                             },
                     )
                     UtilityListHeader(Strings[R.string.preferences_data])
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        val imagesPermissionState =
+                            rememberPermissionState(Manifest.permission.READ_MEDIA_IMAGES)
+                        val partialPermissionState =
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                                rememberPermissionState(
+                                    Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+                                )
+                            } else {
+                                null
+                            }
+
+                        if (!imagesPermissionState.status.isGranted) {
+                            UtilityListItem(
+                                title = Strings[R.string.preferences_grant_images_permission],
+                                subtitle =
+                                    Strings[R.string.preferences_grant_images_permission_subtitle],
+                                modifier =
+                                    Modifier.clickable {
+                                        if (partialPermissionState?.status?.isGranted == true) {
+                                            context.startActivity(
+                                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                                    .apply {
+                                                        setData(
+                                                            Uri.fromParts(
+                                                                "package",
+                                                                context.packageName,
+                                                                null,
+                                                            )
+                                                        )
+                                                    }
+                                            )
+                                        } else {
+                                            imagesPermissionState.launchPermissionRequest()
+                                        }
+                                    },
+                            )
+                        }
+                    }
                     UtilityListItem(
                         title = Strings[R.string.preferences_text_encoding],
                         subtitle =
