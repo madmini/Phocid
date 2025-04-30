@@ -28,6 +28,7 @@
 
 # This library uses reflection.
 -keep class org.jaudiotagger.** { *; }
+-keep class org.jcodec.** { *; }
 -dontwarn java.awt.Graphics2D
 -dontwarn java.awt.Image
 -dontwarn java.awt.geom.AffineTransform
