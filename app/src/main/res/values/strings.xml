@@ -223,6 +223,7 @@
     <string name="preferences_shape_square">Square</string>
     <string name="preferences_sorting_language">Sorting language</string>
     <string name="preferences_sorting_language_system">System language</string>
+    <string name="preferences_system_equalizer">Open system equalizer</string>
     <string name="preferences_tab_style">Tab style</string>
     <string name="preferences_tab_style_icon_only">Only icon</string>
     <string name="preferences_tab_style_text_and_icon">Text and icon</string>
@@ -283,6 +284,7 @@
     <string name="tab_playlists">Playlists</string>
     <string name="tab_tracks">Tracks</string>
 
+    <string name="toast_cant_open_system_equalizer">Can’t open system equalizer</string>
     <string name="toast_crash_saved_to">Crash log saved to {0}</string>
     <string name="toast_playlist_exported">Exported {0, plural, one {# playlist} other {# playlists}}</string>
     <string name="toast_playlist_exported_with_failure">Exported {0, plural, one {# playlist} other {# playlists}}, {1, plural, other {#}} failed</string>

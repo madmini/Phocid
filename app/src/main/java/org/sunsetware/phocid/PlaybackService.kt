@@ -248,6 +248,7 @@ class PlaybackService : MediaSessionService() {
                     }
                 )
                 .setBitmapLoader(CustomizedBitmapLoader(this))
+                .setSessionExtras(bundleOf(AUDIO_SESSION_ID_KEY to player.inner.audioSessionId))
                 .build()
         getSystemService(AudioManager::class.java)
             .registerAudioDeviceCallback(audioDeviceCallback, null)

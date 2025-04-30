@@ -4,6 +4,8 @@ package org.sunsetware.phocid.data
 
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.media.audiofx.AudioEffect
 import android.os.Bundle
 import android.os.SystemClock
 import androidx.annotation.OptIn
@@ -35,6 +37,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.sunsetware.phocid.AUDIO_OFFLOADING_KEY
+import org.sunsetware.phocid.AUDIO_SESSION_ID_KEY
 import org.sunsetware.phocid.FILE_PATH_KEY
 import org.sunsetware.phocid.PAUSE_ON_FOCUS_LOSS
 import org.sunsetware.phocid.PLAYER_STATE_FILE_NAME
@@ -419,6 +422,21 @@ class PlayerManager : AutoCloseable {
 
     fun setSpeedAndPitch(speed: Float, pitch: Float) {
         mediaController.playbackParameters = PlaybackParameters(speed, pitch)
+    }
+
+    fun openSystemEqualizer(context: Context): Boolean {
+        val sessionId = mediaController.sessionExtras.getInt(AUDIO_SESSION_ID_KEY)
+        return try {
+            context.startActivity(
+                Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
+                    putExtra(AudioEffect.EXTRA_AUDIO_SESSION, sessionId)
+                    putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+                }
+            )
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 }
 

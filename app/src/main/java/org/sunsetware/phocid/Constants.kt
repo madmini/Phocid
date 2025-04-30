@@ -24,6 +24,7 @@ const val PAUSE_ON_FOCUS_LOSS = "pauseOnFocusLoss"
 const val AUDIO_OFFLOADING_KEY = "audioOffloading"
 const val RESHUFFLE_ON_REPEAT_KEY = "reshuffleOnRepeat"
 const val FILE_PATH_KEY = "filePath"
+const val AUDIO_SESSION_ID_KEY = "audioSessionId"
 
 const val UNKNOWN = "<unknown>"
 

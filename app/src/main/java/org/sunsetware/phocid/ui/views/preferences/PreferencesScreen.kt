@@ -281,6 +281,17 @@ object PreferencesScreen : TopLevelScreen() {
                             },
                     )
                     UtilityListHeader(Strings[R.string.preferences_playback])
+                    UtilityListItem(
+                        title = Strings[R.string.preferences_system_equalizer],
+                        modifier =
+                            Modifier.clickable {
+                                if (!viewModel.playerManager.openSystemEqualizer(context)) {
+                                    uiManager.toast(
+                                        Strings[R.string.toast_cant_open_system_equalizer]
+                                    )
+                                }
+                            },
+                    )
                     UtilitySwitchListItem(
                         title = Strings[R.string.preferences_play_on_output_device_connection],
                         checked = preferences.playOnOutputDeviceConnection,

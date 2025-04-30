@@ -209,6 +209,7 @@
     <string name="preferences_shape_square">方形</string>
     <string name="preferences_sorting_language">排序语言</string>
     <string name="preferences_sorting_language_system">系统语言</string>
+    <string name="preferences_system_equalizer">打开系统均衡器</string>
     <string name="preferences_tab_style">标签栏样式</string>
     <string name="preferences_tab_style_icon_only">仅图标</string>
     <string name="preferences_tab_style_text_and_icon">文本与图标</string>
@@ -266,6 +267,7 @@
     <string name="tab_playlists">播放列表</string>
     <string name="tab_tracks">曲目</string>
 
+    <string name="toast_cant_open_system_equalizer">无法打开系统均衡器</string>
     <string name="toast_crash_saved_to">崩溃日志已保存到{0}</string>
     <string name="toast_playlist_exported">导出了 {0, plural, other {#}} 个播放列表</string>
     <string name="toast_playlist_exported_with_failure">导出了 {0, plural, other {#}} 个播放列表，未成功导出 {1, plural, other {#}} 个</string>
