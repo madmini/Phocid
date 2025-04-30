@@ -158,6 +158,7 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                             ?.let { parseLrc(it) }
                             ?.takeIf { it.lines.isNotEmpty() }
                             ?.let { PlayerScreenLyrics.Synced(it) }
+                            ?: currentTrack.unsyncedLyrics?.let { PlayerScreenLyrics.Unsynced(it) }
                     } else {
                         currentTrack.unsyncedLyrics?.let { PlayerScreenLyrics.Unsynced(it) }
                     }
