@@ -1163,6 +1163,8 @@ fun readJaudiotaggerFile(path: String): AudioFile {
     }
 }
 
+private val lyricsFieldNames = listOf("lyrics", "unsyncedlyrics", "©lyr")
+
 fun scanTracks(
     context: Context,
     advancedMetadataExtraction: Boolean,
@@ -1282,10 +1284,25 @@ fun scanTracks(
                                     duration = file.audioHeader.trackLength.seconds
                                 } catch (_: KeyNotFoundException) {}
                             }
-                            try {
-                                unsyncedLyrics =
+                            unsyncedLyrics =
+                                try {
                                     file.tag.getFirst(FieldKey.LYRICS).takeIf { it.isNotEmpty() }
-                            } catch (_: KeyNotFoundException) {}
+                                } catch (_: KeyNotFoundException) {
+                                    null
+                                }
+                                    ?: lyricsFieldNames
+                                        .firstNotNullOfOrNull { name ->
+                                            try {
+                                                file.tag.fields
+                                                    .asSequence()
+                                                    .firstOrNull { it.id.equals(name, true) }
+                                                    ?.let { it as? TagTextField }
+                                                    ?.content
+                                                    ?.takeIf { it.isNotEmpty() }
+                                            } catch (_: KeyNotFoundException) {
+                                                null
+                                            }
+                                        }
                             try {
                                 comment =
                                     file.tag.getFirst(FieldKey.COMMENT).takeIf { it.isNotEmpty() }
