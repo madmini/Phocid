@@ -99,7 +99,7 @@ inline fun <T> Iterable<T>.sortedBy(
             val isFolderResult =
                 a.sortIsFolder?.compareTo(b.sortIsFolder!!)?.let { -it }?.takeIf { it != 0 }
             if (isFolderResult != null) return@Comparator isFolderResult
-            sortingKeys.forEach { item ->
+            sortingKeys.forEachIndexed { index, item ->
                 val result =
                     when (item) {
                         SortingKey.TITLE -> collator.compare(a.sortTitle, b.sortTitle)
@@ -107,9 +107,11 @@ inline fun <T> Iterable<T>.sortedBy(
                         SortingKey.ALBUM -> collator.compare(a.sortAlbum, b.sortAlbum)
                         SortingKey.ALBUM_ARTIST ->
                             collator.compare(a.sortAlbumArtist, b.sortAlbumArtist)
+
                         SortingKey.TRACK ->
                             a.sortDiscNumber!!.compareTo(b.sortDiscNumber!!).takeIf { it != 0 }
                                 ?: a.sortTrackNumber!!.compareTo(b.sortTrackNumber!!)
+
                         SortingKey.YEAR -> a.sortYear!!.compareTo(b.sortYear!!)
                         SortingKey.GENRE -> collator.compare(a.sortGenre, b.sortGenre)
                         SortingKey.PLAYLIST ->
@@ -120,19 +122,23 @@ inline fun <T> Iterable<T>.sortedBy(
                                     a.sortPlaylist!!.second,
                                     b.sortPlaylist!!.second,
                                 )
+
                         SortingKey.FILE_NAME -> collator.compare(a.sortFilename!!, b.sortFilename!!)
+
                         SortingKey.DATE_ADDED -> a.sortDateAdded!!.compareTo(b.sortDateAdded!!)
                         SortingKey.DATE_MODIFIED ->
                             a.sortDateModified!!.compareTo(b.sortDateModified!!)
+
                         SortingKey.TRACK_COUNT -> a.sortTrackCount!!.compareTo(b.sortTrackCount!!)
+
                         SortingKey.ALBUM_COUNT -> a.sortAlbumCount!!.compareTo(b.sortAlbumCount!!)
-                    }
+                    } * (if (index == 0 && !ascending) -1 else 1)
                 if (result != 0) return@Comparator result
             }
             return@Comparator 0
         }
 
-    return sortedWith(comparator).run { if (ascending) this else reversed() }
+    return sortedWith(comparator)
 }
 
 @Stable
