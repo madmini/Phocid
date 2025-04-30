@@ -1,5 +1,7 @@
 package org.sunsetware.phocid.ui.components
 
+import android.graphics.Bitmap
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -29,9 +31,13 @@ import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.sunsetware.phocid.data.ArtworkColorPreference
+import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.data.getArtworkColor
 import org.sunsetware.phocid.data.loadArtwork
 import org.sunsetware.phocid.ui.theme.LocalDarkTheme
+import org.sunsetware.phocid.ui.theme.emphasizedStandard
+import org.sunsetware.phocid.utils.AsyncCache
+import org.sunsetware.phocid.utils.Boxed
 
 @Immutable
 sealed class Artwork {
@@ -52,24 +58,26 @@ sealed class Artwork {
     }
 }
 
+typealias ArtworkCache = AsyncCache<Track, Boxed<Bitmap?>>
+
 @Composable
 fun ArtworkImage(
     artwork: Artwork,
     artworkColorPreference: ArtworkColorPreference,
     shape: Shape,
+    /** Ignored if [highResCache] is not null. */
     highRes: Boolean,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
-    async: Boolean = true,
+    highResCache: ArtworkCache? = null,
 ) {
     val context = LocalContext.current
     val darkTheme = LocalDarkTheme.current
     var image by
         remember(artwork) {
             mutableStateOf(
-                if (!async && artwork is Artwork.Track) {
-                    loadArtwork(context, artwork.track.id, artwork.track.path, highRes)
-                        ?.asImageBitmap()
+                if (highResCache != null && artwork is Artwork.Track) {
+                    highResCache.get(artwork.track)?.value?.asImageBitmap()
                 } else {
                     null as ImageBitmap?
                 }
@@ -80,53 +88,58 @@ fun ArtworkImage(
             is Artwork.Track -> Icons.Outlined.MusicNote
             is Artwork.Icon -> artwork.icon
         }
-    var isIcon by
-        remember(artwork) {
-            mutableStateOf(
-                if (async) {
-                    artwork is Artwork.Icon
-                } else {
-                    image == null
-                }
-            )
-        }
+    val imageVisibility = remember(artwork) { Animatable(if (image == null) 0f else 1f) }
 
     LaunchedEffect(artwork) {
-        if (artwork is Artwork.Track && async) {
+        if (artwork is Artwork.Track && image == null) {
             withContext(Dispatchers.IO) {
                 image =
-                    loadArtwork(context, artwork.track.id, artwork.track.path, highRes)
-                        ?.asImageBitmap()
-                if (image == null) isIcon = true
+                    if (highResCache != null) {
+                        highResCache
+                            .getOrPut(artwork.track) {
+                                Boxed(
+                                    loadArtwork(context, artwork.track.id, artwork.track.path, true)
+                                )
+                            }
+                            .value
+                            ?.asImageBitmap()
+                    } else {
+                        loadArtwork(context, artwork.track.id, artwork.track.path, highRes)
+                            ?.asImageBitmap()
+                    }
+                if (image != null) {
+                    imageVisibility.animateTo(1f, emphasizedStandard())
+                }
             }
         }
     }
 
-    if (!isIcon) {
+    Box(modifier = modifier.clip(shape)) {
+        if (imageVisibility.value < 1) {
+            val color =
+                remember(artwork, artworkColorPreference) {
+                    artwork.getColor(artworkColorPreference)
+                }
+            Box(
+                modifier =
+                    Modifier.fillMaxSize()
+                        .background(
+                            if (darkTheme) lerp(color, Color.Black, 0.4f)
+                            else lerp(color, Color.White, 0.9f)
+                        ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, null, tint = color, modifier = Modifier.fillMaxSize(0.5f))
+            }
+        }
         if (image != null) {
             Image(
                 painter = BitmapPainter(image!!),
                 contentDescription = null,
-                modifier = modifier.clip(shape),
+                alpha = imageVisibility.value,
+                modifier = Modifier.fillMaxSize(),
                 contentScale = contentScale,
             )
-        } else {
-            Box(modifier = modifier)
-        }
-    } else {
-        val color =
-            remember(artwork, artworkColorPreference) { artwork.getColor(artworkColorPreference) }
-        Box(
-            modifier =
-                modifier
-                    .clip(shape)
-                    .background(
-                        if (darkTheme) lerp(color, Color.Black, 0.4f)
-                        else lerp(color, Color.White, 0.9f)
-                    ),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(icon, null, tint = color, modifier = Modifier.fillMaxSize(0.5f))
         }
     }
 }

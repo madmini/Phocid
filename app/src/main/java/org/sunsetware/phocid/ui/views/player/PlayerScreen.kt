@@ -403,6 +403,7 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                         Box {
                             components.artwork.Compose(
                                 playerTransientStateVersion = playerTransientStateVersion,
+                                carouselArtworkCache = viewModel.carouselArtworkCache,
                                 artworkColorPreference = preferences.artworkColorPreference,
                                 playerState = playerState,
                                 playerScreenDragState = playerScreenDragState,

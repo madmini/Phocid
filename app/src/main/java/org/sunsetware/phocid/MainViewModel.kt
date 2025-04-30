@@ -33,6 +33,7 @@ import org.sunsetware.phocid.data.SaveManager
 import org.sunsetware.phocid.data.UnfilteredTrackIndex
 import org.sunsetware.phocid.data.loadCbor
 import org.sunsetware.phocid.data.scanTracks
+import org.sunsetware.phocid.ui.components.ArtworkCache
 import org.sunsetware.phocid.ui.views.library.LibraryScreenTabInfo
 import org.sunsetware.phocid.utils.combine
 import org.sunsetware.phocid.utils.map
@@ -46,6 +47,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     val playerManager: PlayerManager = PlayerManager()
 
     val lyricsCache = AtomicReference(null as Pair<Long, Lyrics>?)
+    val carouselArtworkCache = ArtworkCache(viewModelScope, 4)
 
     private val _initialized = MutableStateFlow(false)
     val initialized = _initialized.asStateFlow()

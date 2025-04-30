@@ -14,6 +14,7 @@ import org.sunsetware.phocid.data.ArtworkColorPreference
 import org.sunsetware.phocid.data.PlayerState
 import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.ui.components.Artwork
+import org.sunsetware.phocid.ui.components.ArtworkCache
 import org.sunsetware.phocid.ui.components.ArtworkImage
 import org.sunsetware.phocid.ui.components.BinaryDragState
 import org.sunsetware.phocid.ui.components.DragLock
@@ -24,6 +25,7 @@ sealed class PlayerScreenArtwork {
     @Composable
     abstract fun Compose(
         playerTransientStateVersion: Long,
+        carouselArtworkCache: ArtworkCache,
         artworkColorPreference: ArtworkColorPreference,
         playerState: PlayerState,
         playerScreenDragState: BinaryDragState,
@@ -39,6 +41,7 @@ object PlayerScreenArtworkDefault : PlayerScreenArtwork() {
     @Composable
     override fun Compose(
         playerTransientStateVersion: Long,
+        carouselArtworkCache: ArtworkCache,
         artworkColorPreference: ArtworkColorPreference,
         playerState: PlayerState,
         playerScreenDragState: BinaryDragState,
@@ -78,7 +81,7 @@ object PlayerScreenArtworkDefault : PlayerScreenArtwork() {
                 shape = RoundedCornerShape(0.dp),
                 modifier = Modifier.fillMaxSize(),
                 highRes = true,
-                async = false,
+                highResCache = carouselArtworkCache,
             )
         }
     }

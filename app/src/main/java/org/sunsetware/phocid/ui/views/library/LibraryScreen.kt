@@ -116,6 +116,7 @@ import org.sunsetware.phocid.data.SortingOption
 import org.sunsetware.phocid.data.sorted
 import org.sunsetware.phocid.ui.components.AnimatedForwardBackwardTransition
 import org.sunsetware.phocid.ui.components.Artwork
+import org.sunsetware.phocid.ui.components.ArtworkCache
 import org.sunsetware.phocid.ui.components.ArtworkImage
 import org.sunsetware.phocid.ui.components.BinaryDragState
 import org.sunsetware.phocid.ui.components.DragLock
@@ -342,6 +343,7 @@ fun LibraryScreen(
             BottomBar(
                 playerManager,
                 libraryIndex,
+                viewModel.carouselArtworkCache,
                 preferences.artworkColorPreference,
                 preferences.shapePreference.artworkShape,
                 uiManager.playerScreenDragState,
@@ -702,6 +704,7 @@ private fun CollectionSearchBar(
 private fun BottomBar(
     playerManager: PlayerManager,
     libraryIndex: LibraryIndex,
+    carouselArtworkCache: ArtworkCache,
     artworkColorPreference: ArtworkColorPreference,
     artworkShape: Shape,
     playerScreenDragState: BinaryDragState,
@@ -835,8 +838,8 @@ private fun BottomBar(
                                         artwork = Artwork.Track(track),
                                         artworkColorPreference = artworkColorPreference,
                                         shape = artworkShape,
-                                        highRes = false,
-                                        async = false,
+                                        highRes = true,
+                                        highResCache = carouselArtworkCache,
                                         modifier = Modifier.fillMaxSize(),
                                     )
                                 },
