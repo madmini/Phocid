@@ -161,6 +161,9 @@ data class Track(
     override val sortDateModified
         get() = version
 
+    override val sortTrackCount
+        get() = 1
+
     companion object {
         val SortingOptions =
             mapOf(
@@ -805,11 +808,19 @@ data class Folder(
     override val sortDateModified
         get() = dateModified
 
+    override val sortTrackCount
+        get() = childTracksCountRecursive
+
     companion object {
         val SortingOptions =
             mapOf(
                 "File name" to
-                    SortingOption(R.string.sorting_file_name, listOf(SortingKey.FILE_NAME))
+                    SortingOption(R.string.sorting_file_name, listOf(SortingKey.FILE_NAME)),
+                "Track count" to
+                    SortingOption(
+                        R.string.sorting_track_count,
+                        listOf(SortingKey.TRACK_COUNT, SortingKey.FILE_NAME),
+                    ),
             ) + Track.SortingOptions
     }
 }
@@ -1290,19 +1301,18 @@ fun scanTracks(
                                 } catch (_: KeyNotFoundException) {
                                     null
                                 }
-                                    ?: lyricsFieldNames
-                                        .firstNotNullOfOrNull { name ->
-                                            try {
-                                                file.tag.fields
-                                                    .asSequence()
-                                                    .firstOrNull { it.id.equals(name, true) }
-                                                    ?.let { it as? TagTextField }
-                                                    ?.content
-                                                    ?.takeIf { it.isNotEmpty() }
-                                            } catch (_: KeyNotFoundException) {
-                                                null
-                                            }
+                                    ?: lyricsFieldNames.firstNotNullOfOrNull { name ->
+                                        try {
+                                            file.tag.fields
+                                                .asSequence()
+                                                .firstOrNull { it.id.equals(name, true) }
+                                                ?.let { it as? TagTextField }
+                                                ?.content
+                                                ?.takeIf { it.isNotEmpty() }
+                                        } catch (_: KeyNotFoundException) {
+                                            null
                                         }
+                                    }
                             try {
                                 comment =
                                     file.tag.getFirst(FieldKey.COMMENT).takeIf { it.isNotEmpty() }
