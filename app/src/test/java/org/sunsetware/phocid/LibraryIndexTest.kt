@@ -114,52 +114,64 @@ class LibraryIndexTest {
 
     @Test
     fun indexing_folder_SingleTrack() {
-        val track1 = track(1, path = "/music/track1.mp3")
+        val track1 = track(1, path = "/music/track1.mp3", dateAdded = 100, version = 100)
         val index = listOf(track1).libraryIndex()
         assertThat(index.folders.keys).contains("music")
         assertThat(index.folders["music"]?.childTracks).containsExactly(track1)
+        assertThat(index.folders["music"]?.dateAdded).isEqualTo(100)
+        assertThat(index.folders["music"]?.dateModified).isEqualTo(100)
     }
 
     @Test
     fun indexing_folder_MultipleTracksInSameFolder() {
-        val track1 = track(1, path = "/music/track1.mp3")
+        val track1 = track(1, path = "/music/track1.mp3", dateAdded = 100, version = 100)
         val track2 = track(2, path = "/music/track2.mp3")
         val index = listOf(track1, track2).libraryIndex()
         assertThat(index.folders.keys).contains("music")
         assertThat(index.folders["music"]?.childTracks).containsExactly(track1, track2)
+        assertThat(index.folders["music"]?.dateAdded).isEqualTo(100)
+        assertThat(index.folders["music"]?.dateModified).isEqualTo(100)
     }
 
     @Test
     fun indexing_folder_TracksInDifferentFolders() {
-        val track1 = track(1, path = "/music/track1.mp3")
+        val track1 = track(1, path = "/music/track1.mp3", dateAdded = 100, version = 100)
         val track2 = track(2, path = "/music2/track2.mp3")
         val index = listOf(track1, track2).libraryIndex()
         assertThat(index.folders.keys).contains("music")
         assertThat(index.folders.keys).contains("music2")
         assertThat(index.folders["music"]?.childTracks).containsExactly(track1)
+        assertThat(index.folders["music"]?.dateAdded).isEqualTo(100)
+        assertThat(index.folders["music"]?.dateModified).isEqualTo(100)
         assertThat(index.folders["music2"]?.childTracks).containsExactly(track2)
+        assertThat(index.folders["music2"]?.dateAdded).isEqualTo(0)
+        assertThat(index.folders["music2"]?.dateModified).isEqualTo(0)
     }
 
     @Test
     fun indexing_folder_TracksInNestedFolders() {
         val track1 = track(1, path = "/music/track1.mp3")
-        val track2 = track(2, path = "/music/album/track2.mp3")
+        val track2 = track(2, path = "/music/album/track2.mp3", dateAdded = 100, version = 100)
         val track3 = track(3, path = "/music/album/track3.mp3")
         val index = listOf(track1, track2, track3).libraryIndex()
         assertThat(index.folders.keys).contains("music")
         assertThat(index.folders.keys).contains("music/album")
         assertThat(index.folders["music"]?.childFolders).containsExactly("music/album")
         assertThat(index.folders["music"]?.childTracks).containsExactly(track1)
+        assertThat(index.folders["music"]?.dateAdded).isEqualTo(100)
+        assertThat(index.folders["music"]?.dateModified).isEqualTo(100)
         assertThat(index.folders["music/album"]?.childTracks).containsExactly(track2, track3)
     }
 
     @Test
     fun indexing_folder_TracksInRootFolder() {
-        val track1 = track(1, path = "/track1.mp3")
+        val track1 = track(1, path = "/track1.mp3", dateAdded = 100, version = 100)
         val track2 = track(2, path = "/track2.mp3")
         val index = listOf(track1, track2).libraryIndex()
         assertThat(index.folders.keys).containsExactlyInAnyOrder("")
         assertThat(index.folders[""]?.childTracks).containsExactly(track1, track2)
+        assertThat(index.folders[""]?.dateAdded).isEqualTo(100)
+        assertThat(index.folders[""]?.dateModified).isEqualTo(100)
     }
 
     @Test

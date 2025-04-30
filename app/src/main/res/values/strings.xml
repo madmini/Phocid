@@ -259,6 +259,7 @@
 
     <string name="sorting_album">Album</string>
     <string name="sorting_album_artist">Album artist</string>
+    <string name="sorting_album_count">Album count</string>
     <string name="sorting_artist">Artist</string>
     <string name="sorting_ascending">Ascending</string>
     <string name="sorting_custom">Custom</string>
@@ -269,6 +270,7 @@
     <string name="sorting_name">Name</string>
     <string name="sorting_number">Track number</string>
     <string name="sorting_title">Title</string>
+    <string name="sorting_track_count">Track count</string>
     <string name="sorting_year">Year</string>
 
     <!-- Symbol used to separate multiple artists of a single track -->

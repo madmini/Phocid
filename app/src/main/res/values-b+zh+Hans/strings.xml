@@ -244,6 +244,7 @@
 
     <string name="sorting_album">专辑</string>
     <string name="sorting_album_artist">专辑艺术家</string>
+    <string name="sorting_album_count">专辑数量</string>
     <string name="sorting_artist">艺术家</string>
     <string name="sorting_ascending">升序</string>
     <string name="sorting_custom">自定义</string>
@@ -254,6 +255,7 @@
     <string name="sorting_name">名称</string>
     <string name="sorting_number">曲目编号</string>
     <string name="sorting_title">标题</string>
+    <string name="sorting_track_count">曲目数量</string>
     <string name="sorting_year">年份</string>
 
     <string name="symbol_conjunction">" &amp; "</string>

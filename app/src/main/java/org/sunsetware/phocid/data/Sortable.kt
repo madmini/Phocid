@@ -57,6 +57,12 @@ interface Sortable {
 
     val sortDateModified: Long?
         get() = null
+
+    val sortTrackCount: Int?
+        get() = null
+
+    val sortAlbumCount: Int?
+        get() = null
 }
 
 @Immutable
@@ -73,6 +79,8 @@ enum class SortingKey {
     FILE_NAME,
     DATE_ADDED,
     DATE_MODIFIED,
+    TRACK_COUNT,
+    ALBUM_COUNT,
 }
 
 @Immutable data class SortingOption(val stringId: Int?, val keys: List<SortingKey>)
@@ -116,6 +124,8 @@ inline fun <T> Iterable<T>.sortedBy(
                         SortingKey.DATE_ADDED -> a.sortDateAdded!!.compareTo(b.sortDateAdded!!)
                         SortingKey.DATE_MODIFIED ->
                             a.sortDateModified!!.compareTo(b.sortDateModified!!)
+                        SortingKey.TRACK_COUNT -> a.sortTrackCount!!.compareTo(b.sortTrackCount!!)
+                        SortingKey.ALBUM_COUNT -> a.sortAlbumCount!!.compareTo(b.sortAlbumCount!!)
                     }
                 if (result != 0) return@Comparator result
             }
@@ -164,6 +174,8 @@ inline fun <T> Iterable<T>.hintBy(
                     DateFormat.getInstance().format(Date(sortable.sortDateAdded!! * 1000))
                 SortingKey.DATE_MODIFIED ->
                     DateFormat.getInstance().format(Date(sortable.sortDateModified!! * 1000))
+                SortingKey.TRACK_COUNT -> sortable.sortTrackCount!!.toString()
+                SortingKey.ALBUM_COUNT -> sortable.sortAlbumCount!!.toString()
                 null -> (index + 1).toString()
             }
     }

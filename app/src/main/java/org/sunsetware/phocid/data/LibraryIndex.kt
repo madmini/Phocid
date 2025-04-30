@@ -22,6 +22,7 @@ import com.ibm.icu.util.CaseInsensitiveString
 import java.io.File
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
+import kotlin.math.max
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -334,6 +335,13 @@ data class Album(
     override val sortYear
         get() = year ?: 0
 
+    override val sortDateAdded = tracks.maxOf { it.dateAdded }
+
+    override val sortDateModified = tracks.maxOf { it.version }
+
+    override val sortTrackCount
+        get() = tracks.size
+
     companion object {
         val CollectionSortingOptions =
             mapOf(
@@ -351,6 +359,36 @@ data class Album(
                     SortingOption(
                         R.string.sorting_year,
                         listOf(SortingKey.YEAR, SortingKey.ALBUM_ARTIST, SortingKey.ALBUM),
+                    ),
+                "Date added" to
+                    SortingOption(
+                        R.string.sorting_date_added,
+                        listOf(
+                            SortingKey.DATE_ADDED,
+                            SortingKey.ALBUM,
+                            SortingKey.ALBUM_ARTIST,
+                            SortingKey.YEAR,
+                        ),
+                    ),
+                "Date modified" to
+                    SortingOption(
+                        R.string.sorting_date_modified,
+                        listOf(
+                            SortingKey.DATE_MODIFIED,
+                            SortingKey.ALBUM,
+                            SortingKey.ALBUM_ARTIST,
+                            SortingKey.YEAR,
+                        ),
+                    ),
+                "Track count" to
+                    SortingOption(
+                        R.string.sorting_track_count,
+                        listOf(
+                            SortingKey.TRACK_COUNT,
+                            SortingKey.ALBUM,
+                            SortingKey.ALBUM_ARTIST,
+                            SortingKey.YEAR,
+                        ),
                     ),
             )
 
@@ -419,9 +457,41 @@ data class Artist(
     override val sortArtist
         get() = name
 
+    override val sortDateAdded = tracks.maxOf { it.dateAdded }
+
+    override val sortDateModified = tracks.maxOf { it.version }
+
+    override val sortTrackCount
+        get() = tracks.size
+
+    override val sortAlbumCount
+        get() = albumSlices.size
+
     companion object {
         val CollectionSortingOptions =
-            mapOf("Name" to SortingOption(R.string.sorting_name, listOf(SortingKey.ARTIST)))
+            mapOf(
+                "Name" to SortingOption(R.string.sorting_name, listOf(SortingKey.ARTIST)),
+                "Date added" to
+                    SortingOption(
+                        R.string.sorting_date_added,
+                        listOf(SortingKey.DATE_ADDED, SortingKey.ARTIST),
+                    ),
+                "Date modified" to
+                    SortingOption(
+                        R.string.sorting_date_modified,
+                        listOf(SortingKey.DATE_MODIFIED, SortingKey.ARTIST),
+                    ),
+                "Track count" to
+                    SortingOption(
+                        R.string.sorting_track_count,
+                        listOf(SortingKey.TRACK_COUNT, SortingKey.ARTIST),
+                    ),
+                "Album count" to
+                    SortingOption(
+                        R.string.sorting_album_count,
+                        listOf(SortingKey.ALBUM_COUNT, SortingKey.ARTIST),
+                    ),
+            )
         val TrackSortingOptions =
             mapOf(
                 "Album" to
@@ -480,9 +550,41 @@ data class AlbumArtist(
     override val sortAlbumArtist
         get() = name
 
+    override val sortDateAdded = tracks.maxOf { it.dateAdded }
+
+    override val sortDateModified = tracks.maxOf { it.version }
+
+    override val sortTrackCount
+        get() = tracks.size
+
+    override val sortAlbumCount
+        get() = albums.size
+
     companion object {
         val CollectionSortingOptions =
-            mapOf("Name" to SortingOption(R.string.sorting_name, listOf(SortingKey.ALBUM_ARTIST)))
+            mapOf(
+                "Name" to SortingOption(R.string.sorting_name, listOf(SortingKey.ALBUM_ARTIST)),
+                "Date added" to
+                    SortingOption(
+                        R.string.sorting_date_added,
+                        listOf(SortingKey.DATE_ADDED, SortingKey.ALBUM_ARTIST),
+                    ),
+                "Date modified" to
+                    SortingOption(
+                        R.string.sorting_date_modified,
+                        listOf(SortingKey.DATE_MODIFIED, SortingKey.ALBUM_ARTIST),
+                    ),
+                "Track count" to
+                    SortingOption(
+                        R.string.sorting_track_count,
+                        listOf(SortingKey.TRACK_COUNT, SortingKey.ALBUM_ARTIST),
+                    ),
+                "Album count" to
+                    SortingOption(
+                        R.string.sorting_album_count,
+                        listOf(SortingKey.ALBUM_COUNT, SortingKey.ALBUM_ARTIST),
+                    ),
+            )
         val TrackSortingOptions =
             mapOf(
                 "Album" to
@@ -548,9 +650,33 @@ data class Genre(
     override val sortGenre
         get() = name
 
+    override val sortDateAdded = tracks.maxOf { it.dateAdded }
+
+    override val sortDateModified = tracks.maxOf { it.version }
+
+    override val sortTrackCount
+        get() = tracks.size
+
     companion object {
         val CollectionSortingOptions =
-            mapOf("Name" to SortingOption(R.string.sorting_name, listOf(SortingKey.GENRE)))
+            mapOf(
+                "Name" to SortingOption(R.string.sorting_name, listOf(SortingKey.GENRE)),
+                "Date added" to
+                    SortingOption(
+                        R.string.sorting_date_added,
+                        listOf(SortingKey.DATE_ADDED, SortingKey.GENRE),
+                    ),
+                "Date modified" to
+                    SortingOption(
+                        R.string.sorting_date_modified,
+                        listOf(SortingKey.DATE_MODIFIED, SortingKey.GENRE),
+                    ),
+                "Track count" to
+                    SortingOption(
+                        R.string.sorting_track_count,
+                        listOf(SortingKey.TRACK_COUNT, SortingKey.GENRE),
+                    ),
+            )
         val TrackSortingOptions =
             mapOf(
                 "Title" to
@@ -612,6 +738,8 @@ data class Folder(
     val childFolders: List<String>,
     val childTracks: List<Track>,
     val childTracksCountRecursive: Int,
+    val dateAdded: Long,
+    val dateModified: Long,
 ) : Searchable, Sortable {
     val displayStatistics
         get() =
@@ -672,10 +800,10 @@ data class Folder(
         get() = fileName
 
     override val sortDateAdded
-        get() = 0L
+        get() = dateAdded
 
     override val sortDateModified
-        get() = 0L
+        get() = dateModified
 
     companion object {
         val SortingOptions =
@@ -691,17 +819,23 @@ private data class MutableFolder(
     val childFolders: MutableSet<String> = mutableSetOf(),
     val childTracks: MutableList<Track> = mutableListOf(),
     var childTracksCountRecursive: Int = 0,
+    var dateAdded: Long = 0,
+    var dateModified: Long = 0,
 ) {
     fun toFolder(collator: Collator): Folder {
         return Folder(
             path,
             FilenameUtils.getName(path),
             childFolders
-                .map { it to Folder(it, FilenameUtils.getName(it), emptyList(), emptyList(), 0) }
+                .map {
+                    it to Folder(it, FilenameUtils.getName(it), emptyList(), emptyList(), 0, 0, 0)
+                }
                 .sortedBy(collator, Folder.SortingOptions.values.first().keys, true) { it.second }
                 .map { it.first },
             childTracks.sorted(collator, Folder.SortingOptions.values.first().keys, true),
             childTracksCountRecursive,
+            dateAdded,
+            dateModified,
         )
     }
 }
@@ -947,6 +1081,8 @@ private fun getFolders(tracks: Collection<Track>, collator: Collator): Map<Strin
         val parentPath = FilenameUtils.getPathNoEndSeparator(track.path)
         val parentFolder = folders.getOrPut(parentPath) { MutableFolder(parentPath) }
         parentFolder.childTracks.add(track)
+        parentFolder.dateAdded = max(parentFolder.dateAdded, track.dateAdded)
+        parentFolder.dateModified = max(parentFolder.dateModified, track.version)
     }
     for (path in folders.keys.toMutableList()) {
         var currentPath = path
@@ -965,7 +1101,10 @@ private fun getFolders(tracks: Collection<Track>, collator: Collator): Map<Strin
         var currentPath = path
         while (currentPath.isNotEmpty()) {
             val parentPath = FilenameUtils.getPathNoEndSeparator(currentPath)
-            folders[parentPath]!!.childTracksCountRecursive += folder.childTracks.size
+            val parentFolder = folders[parentPath]!!
+            parentFolder.childTracksCountRecursive += folder.childTracks.size
+            parentFolder.dateAdded = max(parentFolder.dateAdded, folder.dateAdded)
+            parentFolder.dateModified = max(parentFolder.dateModified, folder.dateModified)
             currentPath = parentPath
         }
     }
