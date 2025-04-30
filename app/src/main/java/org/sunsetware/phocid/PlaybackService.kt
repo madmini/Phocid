@@ -29,6 +29,7 @@ import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -46,6 +47,7 @@ class PlaybackService : MediaSessionService() {
     private val coroutineScope = MainScope()
     private val timerMutex = Mutex()
     @Volatile private var timerTarget = -1L
+    @Volatile private var timerJob = null as Job?
     @Volatile private var timerFinishLastTrack = true
     @Volatile private var playOnOutputDeviceConnection = false
     @Volatile private var audioOffloading = true
@@ -116,6 +118,8 @@ class PlaybackService : MediaSessionService() {
                                     mediaSession?.updateSessionExtras {
                                         putLong(TIMER_TARGET_KEY, -1)
                                     }
+                                    timerJob?.cancel()
+                                    timerJob = null
                                 }
                             }
                         }
@@ -144,25 +148,6 @@ class PlaybackService : MediaSessionService() {
                 }
             }
         )
-        coroutineScope.launch {
-            while (isActive) {
-                timerMutex.withLock {
-                    if (timerTarget >= 0 && SystemClock.elapsedRealtime() >= timerTarget) {
-                        if (!timerFinishLastTrack) {
-                            player.pause()
-                            timerTarget = -1
-                            mediaSession?.updateSessionExtras { putLong(TIMER_TARGET_KEY, -1) }
-                        } else if (!player.isPlaying) {
-                            player.pause()
-                            timerTarget = -1
-                            mediaSession?.updateSessionExtras { putLong(TIMER_TARGET_KEY, -1) }
-                        }
-                    }
-                }
-
-                delay(1.seconds)
-            }
-        }
         mediaSession =
             MediaSession.Builder(this, player)
                 .setSessionActivity(
@@ -197,6 +182,8 @@ class PlaybackService : MediaSessionService() {
                                                     finishLastTrack,
                                                 )
                                             }
+                                            timerJob?.cancel()
+                                            timerJob = newTimerJob(player)
                                         }
                                     }
                                     return Futures.immediateFuture(
@@ -272,6 +259,31 @@ class PlaybackService : MediaSessionService() {
         }
         coroutineScope.cancel()
         super.onDestroy()
+    }
+
+    private fun newTimerJob(player: Player): Job {
+        return coroutineScope.launch {
+            while (isActive) {
+                timerMutex.withLock {
+                    if (
+                        timerTarget >= 0 &&
+                            SystemClock.elapsedRealtime() >= timerTarget &&
+                            (!timerFinishLastTrack || !player.isPlaying)
+                    ) {
+                        player.pause()
+                        timerTarget = -1
+                        mediaSession?.updateSessionExtras { putLong(TIMER_TARGET_KEY, -1) }
+                        timerJob?.cancel()
+                        timerJob = null
+                    } else if (timerTarget < 0) {
+                        timerJob?.cancel()
+                        timerJob = null
+                    }
+                }
+
+                delay(1.seconds)
+            }
+        }
     }
 
     private inline fun MediaSession.updateSessionExtras(crossinline action: Bundle.() -> Unit) {
