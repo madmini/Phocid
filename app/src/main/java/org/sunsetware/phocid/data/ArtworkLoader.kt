@@ -57,8 +57,8 @@ fun loadArtwork(
 
     return if (highRes) {
         loadWithLibrary(path, forcedSizeLimit)
-            ?: loadWithContentResolver(context, uri, forcedSizeLimit)
             ?: loadExternal(context, path, forcedSizeLimit)
+            ?: loadWithContentResolver(context, uri, forcedSizeLimit)
     } else {
         loadWithContentResolver(context, uri, forcedSizeLimit)
             ?: loadExternal(context, path, forcedSizeLimit)
