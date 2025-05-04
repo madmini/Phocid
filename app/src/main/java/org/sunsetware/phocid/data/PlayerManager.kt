@@ -283,10 +283,23 @@ class PlayerManager : AutoCloseable {
     }
 
     fun togglePlay() {
-        if (mediaController.isPlaying) mediaController.pause() else mediaController.play()
+        if (mediaController.isPlaying) {
+            mediaController.pause()
+        } else {
+            play()
+        }
     }
 
     fun play() {
+        if (
+            mediaController.currentPosition >= mediaController.duration - 1 &&
+                !mediaController.hasNextMediaItem() &&
+                !mediaController.isPlaying
+        ) {
+            // Media3 might instantly pause instead of starting from the beginning if these
+            // conditions are met
+            mediaController.seekTo(0)
+        }
         mediaController.play()
     }
 
