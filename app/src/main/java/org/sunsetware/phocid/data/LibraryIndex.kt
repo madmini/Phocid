@@ -5,6 +5,7 @@ package org.sunsetware.phocid.data
 import android.content.ContentUris
 import android.content.Context
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.provider.MediaStore
 import android.provider.MediaStore.Audio.Media
 import android.util.Log
@@ -20,6 +21,7 @@ import androidx.palette.graphics.Target
 import com.ibm.icu.text.Collator
 import com.ibm.icu.util.CaseInsensitiveString
 import java.io.File
+import java.io.FileInputStream
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.math.max
@@ -29,12 +31,21 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.apache.commons.io.FilenameUtils
-import org.jaudiotagger.audio.AudioFile
 import org.jaudiotagger.audio.AudioFileIO
-import org.jaudiotagger.audio.exceptions.CannotReadException
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.KeyNotFoundException
 import org.jaudiotagger.tag.TagTextField
+import org.sunsetware.omio.VORBIS_COMMENT_ALBUM
+import org.sunsetware.omio.VORBIS_COMMENT_ARTIST
+import org.sunsetware.omio.VORBIS_COMMENT_DATE
+import org.sunsetware.omio.VORBIS_COMMENT_GENRE
+import org.sunsetware.omio.VORBIS_COMMENT_TITLE
+import org.sunsetware.omio.VORBIS_COMMENT_TRACKNUMBER
+import org.sunsetware.omio.VORBIS_COMMENT_UNOFFICIAL_ALBUMARTIST
+import org.sunsetware.omio.VORBIS_COMMENT_UNOFFICIAL_COMMENT
+import org.sunsetware.omio.VORBIS_COMMENT_UNOFFICIAL_DISCNUMBER
+import org.sunsetware.omio.VORBIS_COMMENT_UNOFFICIAL_LYRICS
+import org.sunsetware.omio.readOpusMetadata
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.READ_PERMISSION
 import org.sunsetware.phocid.Strings
@@ -1151,31 +1162,6 @@ private val contentResolverColumns =
         Media.BITRATE,
     )
 
-fun readJaudiotaggerFile(path: String): AudioFile {
-    val extension = FilenameUtils.getExtension(path).lowercase()
-    return try {
-        AudioFileIO.read(File(path))
-    } catch (ex: CannotReadException) {
-        when (extension) {
-            "oga" ->
-                try {
-                    AudioFileIO.readAs(File(path), "ogg")
-                } catch (_: CannotReadException) {
-                    try {
-                        AudioFileIO.readAs(File(path), "opus")
-                    } catch (_: Exception) {
-                        throw ex
-                    }
-                }
-
-            "ogg" -> AudioFileIO.readAs(File(path), "opus")
-            else -> throw ex
-        }
-    }
-}
-
-private val lyricsFieldNames = listOf("lyrics", "unsyncedlyrics", "©lyr")
-
 fun scanTracks(
     context: Context,
     advancedMetadataExtraction: Boolean,
@@ -1216,169 +1202,228 @@ fun scanTracks(
                 if (oldIndex?.version == trackVersion) {
                     oldIndex
                 } else {
-                    // Android MediaStore doesn't recognize multiple fields and some text encodings,
-                    // so it's necessary to use a capable third-party library.
-                    // This procedure is however ridiculously slow and has its own bugs,
-                    // so MediaStore data should be retrieved as a fallback.
-
-                    val path =
-                        cursor
-                            .getString(ci[Media.DATA]!!)
-                            .trimAndNormalize()
-                            .let { FilenameUtils.normalize(it) }
-                            .let { FilenameUtils.separatorsToUnix(it) }
-                    val fileName = FilenameUtils.getName(path)
-                    val dateAdded = cursor.getLong(ci[Media.DATE_ADDED]!!)
-                    var title = cursor.getStringOrNull(ci[Media.TITLE]!!)?.trimAndNormalize()
-                    var artists =
-                        listOfNotNull(
-                            cursor.getStringOrNull(ci[Media.ARTIST]!!)?.trimAndNormalize()
-                        )
-                    var album = cursor.getStringOrNull(ci[Media.ALBUM]!!)?.trimAndNormalize()
-                    var albumArtist =
-                        cursor.getStringOrNull(ci[Media.ALBUM_ARTIST]!!)?.trimAndNormalize()
-                    var genres =
-                        listOfNotNull(cursor.getStringOrNull(ci[Media.GENRE]!!)?.trimAndNormalize())
-                    var year = cursor.getIntOrNull(ci[Media.YEAR]!!)
-                    // https://developer.android.com/reference/android/provider/MediaStore.Audio.AudioColumns.html#TRACK
-                    var trackNumber = cursor.getIntOrNull(ci[Media.TRACK]!!)?.let { it % 1000 }
-                    var discNumber = cursor.getIntOrNull(ci[Media.DISC_NUMBER]!!)
-                    var duration = cursor.getInt(ci[Media.DURATION]!!).milliseconds
-                    val size = cursor.getLong(ci[Media.SIZE]!!)
-                    var format = UNKNOWN
-                    var sampleRate = 0
-                    val bitRate = cursor.getLongOrNull(ci[Media.BITRATE]!!) ?: 0
-                    var bitDepth = 0
-                    var unsyncedLyrics = null as String?
-                    var comment = null as String?
-
-                    if (advancedMetadataExtraction) {
-                        try {
-                            val file = readJaudiotaggerFile(path)
-                            try {
-                                title = file.tag.getFirst(FieldKey.TITLE)
-                            } catch (_: KeyNotFoundException) {}
-                            try {
-                                artists =
-                                    file.tag
-                                        .getFields(FieldKey.ARTIST)
-                                        .filter { !it.isBinary }
-                                        .map { (it as TagTextField).content }
-                            } catch (_: KeyNotFoundException) {}
-                            try {
-                                album = file.tag.getFirst(FieldKey.ALBUM)
-                            } catch (_: KeyNotFoundException) {}
-                            try {
-                                albumArtist = file.tag.getFirst(FieldKey.ALBUM_ARTIST)
-                            } catch (_: KeyNotFoundException) {}
-                            try {
-                                genres =
-                                    file.tag
-                                        .getFields(FieldKey.GENRE)
-                                        .filter { !it.isBinary }
-                                        .map { (it as TagTextField).content }
-                            } catch (_: KeyNotFoundException) {}
-                            try {
-                                year = file.tag.getFirst(FieldKey.YEAR).toIntOrNull()
-                            } catch (_: KeyNotFoundException) {}
-                            try {
-                                trackNumber = file.tag.getFirst(FieldKey.TRACK).toIntOrNull()
-                            } catch (_: KeyNotFoundException) {}
-                            try {
-                                discNumber = file.tag.getFirst(FieldKey.DISC_NO).toIntOrNull()
-                            } catch (_: KeyNotFoundException) {}
-                            // Issue #84: some systems might report incorrect durations
-                            // Jaudiotagger only has second-level precision and this outdated fork
-                            // might be unreliable, so MediaStore should be preferred
-                            if (duration <= Duration.ZERO) {
-                                try {
-                                    duration = file.audioHeader.trackLength.seconds
-                                } catch (_: KeyNotFoundException) {}
-                            }
-                            unsyncedLyrics =
-                                try {
-                                    file.tag.getFirst(FieldKey.LYRICS).takeIf { it.isNotEmpty() }
-                                } catch (_: KeyNotFoundException) {
-                                    null
-                                }
-                                    ?: lyricsFieldNames.firstNotNullOfOrNull { name ->
-                                        try {
-                                            file.tag.fields
-                                                .asSequence()
-                                                .firstOrNull { it.id.equals(name, true) }
-                                                ?.let { it as? TagTextField }
-                                                ?.content
-                                                ?.takeIf { it.isNotEmpty() }
-                                        } catch (_: KeyNotFoundException) {
-                                            null
-                                        }
-                                    }
-                            try {
-                                comment =
-                                    file.tag.getFirst(FieldKey.COMMENT).takeIf { it.isNotEmpty() }
-                            } catch (_: KeyNotFoundException) {}
-                            format = file.audioHeader.format
-                            sampleRate = file.audioHeader.sampleRateAsNumber
-                            bitDepth = file.audioHeader.bitsPerSample
-                        } catch (ex: Exception) {
-                            Log.e("Phocid", "Error reading extended metadata for $path", ex)
-                        }
-                    }
-
-                    // In some cases, missing fields will be masqueraded as empty strings
-                    title = title?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
-                    artists =
-                        splitArtists(title, artists, artistSeparators, artistSeparatorExceptions)
-                    album = album?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
-                    albumArtist = albumArtist?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
-                    genres = splitGenres(genres, genreSeparators, genreSeparatorExceptions)
-
-                    val palette =
-                        if (disableArtworkColorExtraction) null
-                        else
-                            loadArtwork(context, id, path, false, 64)
-                                ?.let { Palette.from(it) }
-                                ?.clearTargets()
-                                ?.apply {
-                                    addTarget(Target.VIBRANT)
-                                    addTarget(Target.MUTED)
-                                }
-                                ?.generate()
-                    val vibrantColor =
-                        palette?.getSwatchForTarget(Target.VIBRANT)?.rgb?.let { Color(it) }
-                    val mutedColor =
-                        palette?.getSwatchForTarget(Target.MUTED)?.rgb?.let { Color(it) }
-
-                    Track(
+                    scanTrack(
+                        context,
+                        advancedMetadataExtraction,
+                        disableArtworkColorExtraction,
+                        artistSeparators,
+                        artistSeparatorExceptions,
+                        genreSeparators,
+                        genreSeparatorExceptions,
+                        ci,
+                        cursor,
                         id,
-                        path,
-                        fileName,
-                        dateAdded,
                         trackVersion,
-                        title,
-                        artists,
-                        album,
-                        albumArtist,
-                        genres,
-                        year,
-                        trackNumber,
-                        discNumber,
-                        duration,
-                        size,
-                        format,
-                        sampleRate,
-                        bitRate,
-                        bitDepth,
-                        palette != null || disableArtworkColorExtraction,
-                        vibrantColor,
-                        mutedColor,
-                        unsyncedLyrics,
-                        comment,
                     )
                 }
         }
     }
     return UnfilteredTrackIndex(libraryVersion, tracks.associateBy { it.id })
+}
+
+private val lyricsFieldNames = listOf("lyrics", "unsyncedlyrics", "©lyr")
+
+private fun scanTrack(
+    context: Context,
+    advancedMetadataExtraction: Boolean,
+    disableArtworkColorExtraction: Boolean,
+    artistSeparators: List<String>,
+    artistSeparatorExceptions: List<String>,
+    genreSeparators: List<String>,
+    genreSeparatorExceptions: List<String>,
+    ci: Map<String, Int>,
+    cursor: Cursor,
+    id: Long,
+    trackVersion: Long,
+): Track {
+    // Issue #84: some systems might report incorrect durations
+    // Jaudiotagger only has second-level precision and
+    // might be unreliable, so MediaStore should be preferred
+
+    val path =
+        cursor
+            .getString(ci[Media.DATA]!!)
+            .trimAndNormalize()
+            .let { FilenameUtils.normalize(it) }
+            .let { FilenameUtils.separatorsToUnix(it) }
+    val fileName = FilenameUtils.getName(path)
+    val dateAdded = cursor.getLong(ci[Media.DATE_ADDED]!!)
+    var title = cursor.getStringOrNull(ci[Media.TITLE]!!)?.trimAndNormalize()
+    var artists = listOfNotNull(cursor.getStringOrNull(ci[Media.ARTIST]!!)?.trimAndNormalize())
+    var album = cursor.getStringOrNull(ci[Media.ALBUM]!!)?.trimAndNormalize()
+    var albumArtist = cursor.getStringOrNull(ci[Media.ALBUM_ARTIST]!!)?.trimAndNormalize()
+    var genres = listOfNotNull(cursor.getStringOrNull(ci[Media.GENRE]!!)?.trimAndNormalize())
+    var year = cursor.getIntOrNull(ci[Media.YEAR]!!)
+    // https://developer.android.com/reference/android/provider/MediaStore.Audio.AudioColumns.html#TRACK
+    var trackNumber = cursor.getIntOrNull(ci[Media.TRACK]!!)?.let { it % 1000 }
+    var discNumber = cursor.getIntOrNull(ci[Media.DISC_NUMBER]!!)
+    var duration = cursor.getInt(ci[Media.DURATION]!!).milliseconds
+    val size = cursor.getLong(ci[Media.SIZE]!!)
+    var format = UNKNOWN
+    var sampleRate = 0
+    val bitRate = cursor.getLongOrNull(ci[Media.BITRATE]!!) ?: 0
+    var bitDepth = 0
+    var unsyncedLyrics = null as String?
+    var comment = null as String?
+
+    fun extractWithOmio() {
+        val (_, comments, opusDuration) =
+            FileInputStream(File(path)).buffered().use { stream ->
+                readOpusMetadata(stream, readDuration = duration <= Duration.ZERO)
+            }
+        title = comments[VORBIS_COMMENT_TITLE]?.firstOrNull() ?: title
+        artists = comments[VORBIS_COMMENT_ARTIST] ?: artists
+        album = comments[VORBIS_COMMENT_ALBUM]?.firstOrNull() ?: album
+        albumArtist = comments[VORBIS_COMMENT_UNOFFICIAL_ALBUMARTIST]?.firstOrNull() ?: albumArtist
+        genres = comments[VORBIS_COMMENT_GENRE] ?: genres
+        year = comments[VORBIS_COMMENT_DATE]?.firstNotNullOfOrNull { it.toIntOrNull() } ?: year
+        trackNumber =
+            comments[VORBIS_COMMENT_TRACKNUMBER]?.firstNotNullOfOrNull { it.toIntOrNull() }
+                ?: trackNumber
+        discNumber =
+            comments[VORBIS_COMMENT_UNOFFICIAL_DISCNUMBER]?.firstNotNullOfOrNull {
+                it.toIntOrNull()
+            } ?: discNumber
+        duration = opusDuration ?: duration
+        unsyncedLyrics =
+            VORBIS_COMMENT_UNOFFICIAL_LYRICS.firstNotNullOfOrNull { comments[it]?.firstOrNull() }
+                ?: unsyncedLyrics
+        comment =
+            VORBIS_COMMENT_UNOFFICIAL_COMMENT.firstNotNullOfOrNull { comments[it]?.firstOrNull() }
+                ?: unsyncedLyrics
+        format = "Ogg Opus"
+        sampleRate = 48000
+    }
+
+    fun extractWithJaudiotagger() {
+        val file = AudioFileIO.read(File(path))
+        try {
+            title = file.tag.getFirst(FieldKey.TITLE)
+        } catch (_: KeyNotFoundException) {}
+        try {
+            artists =
+                file.tag
+                    .getFields(FieldKey.ARTIST)
+                    .filter { !it.isBinary }
+                    .map { (it as TagTextField).content }
+        } catch (_: KeyNotFoundException) {}
+        try {
+            album = file.tag.getFirst(FieldKey.ALBUM)
+        } catch (_: KeyNotFoundException) {}
+        try {
+            albumArtist = file.tag.getFirst(FieldKey.ALBUM_ARTIST)
+        } catch (_: KeyNotFoundException) {}
+        try {
+            genres =
+                file.tag
+                    .getFields(FieldKey.GENRE)
+                    .filter { !it.isBinary }
+                    .map { (it as TagTextField).content }
+        } catch (_: KeyNotFoundException) {}
+        try {
+            year = file.tag.getFirst(FieldKey.YEAR).toIntOrNull()
+        } catch (_: KeyNotFoundException) {}
+        try {
+            trackNumber = file.tag.getFirst(FieldKey.TRACK).toIntOrNull()
+        } catch (_: KeyNotFoundException) {}
+        try {
+            discNumber = file.tag.getFirst(FieldKey.DISC_NO).toIntOrNull()
+        } catch (_: KeyNotFoundException) {}
+        if (duration <= Duration.ZERO) {
+            try {
+                duration = file.audioHeader.trackLength.seconds
+            } catch (_: KeyNotFoundException) {}
+        }
+        unsyncedLyrics =
+            try {
+                file.tag.getFirst(FieldKey.LYRICS).takeIf { it.isNotEmpty() }
+            } catch (_: KeyNotFoundException) {
+                null
+            }
+                ?: lyricsFieldNames.firstNotNullOfOrNull { name ->
+                    try {
+                        file.tag.fields
+                            .asSequence()
+                            .firstOrNull { it.id.equals(name, true) }
+                            ?.let { it as? TagTextField }
+                            ?.content
+                            ?.takeIf { it.isNotEmpty() }
+                    } catch (_: KeyNotFoundException) {
+                        null
+                    }
+                }
+        try {
+            comment = file.tag.getFirst(FieldKey.COMMENT).takeIf { it.isNotEmpty() }
+        } catch (_: KeyNotFoundException) {}
+        format = file.audioHeader.format
+        sampleRate = file.audioHeader.sampleRateAsNumber
+        bitDepth = file.audioHeader.bitsPerSample
+    }
+
+    if (advancedMetadataExtraction) {
+        try {
+            val extension = FilenameUtils.getExtension(path).lowercase()
+            if (extension == "opus" || extension == "ogg") {
+                try {
+                    extractWithOmio()
+                } catch (_: Exception) {
+                    extractWithJaudiotagger()
+                }
+            } else {
+                extractWithJaudiotagger()
+            }
+        } catch (ex: Exception) {
+            Log.e("Phocid", "Error reading extended metadata for $path", ex)
+        }
+    }
+
+    // In some cases, missing fields will be masqueraded as empty strings
+    title = title?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
+    artists = splitArtists(title, artists, artistSeparators, artistSeparatorExceptions)
+    album = album?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
+    albumArtist = albumArtist?.takeIf { it.isNotEmpty() }?.trimAndNormalize()
+    genres = splitGenres(genres, genreSeparators, genreSeparatorExceptions)
+
+    val palette =
+        if (disableArtworkColorExtraction) null
+        else
+            loadArtwork(context, id, path, false, 64)
+                ?.let { Palette.from(it) }
+                ?.clearTargets()
+                ?.apply {
+                    addTarget(Target.VIBRANT)
+                    addTarget(Target.MUTED)
+                }
+                ?.generate()
+    val vibrantColor = palette?.getSwatchForTarget(Target.VIBRANT)?.rgb?.let { Color(it) }
+    val mutedColor = palette?.getSwatchForTarget(Target.MUTED)?.rgb?.let { Color(it) }
+
+    return Track(
+        id,
+        path,
+        fileName,
+        dateAdded,
+        trackVersion,
+        title,
+        artists,
+        album,
+        albumArtist,
+        genres,
+        year,
+        trackNumber,
+        discNumber,
+        duration,
+        size,
+        format,
+        sampleRate,
+        bitRate,
+        bitDepth,
+        palette != null || disableArtworkColorExtraction,
+        vibrantColor,
+        mutedColor,
+        unsyncedLyrics,
+        comment,
+    )
 }
 
 private val featuringArtistInTitleRegex =

@@ -4,7 +4,8 @@
   "urlMappings": {
     "http://www.apache.org/licenses/LICENSE-2.0.txt": "Apache-2.0.txt",
     "https://www.apache.org/licenses/LICENSE-2.0.txt": "Apache-2.0.txt",
-    "https://raw.githubusercontent.com/unicode-org/icu/maint/maint-76/LICENSE": "Unicode-3.0.txt"
+    "https://raw.githubusercontent.com/unicode-org/icu/maint/maint-76/LICENSE": "Unicode-3.0.txt",
+    "http://www.gnu.org/copyleft/lesser.html": "LGPL-3.0.txt"
   },
   "otherMappings": [
     {
@@ -21,15 +22,14 @@
     },
     {
       "first": {
-        "project": "Kaned1as/jaudiotagger",
+        "project": "OpusMetadataIo",
         "developers": [
-          "Paul Taylor",
-          "Oleg Chernovskiy"
+          "tjysunset <tjysunset@outlook.com>"
         ],
-        "url": "https://github.com/Kaned1as/jaudiotagger"
+        "url": "https://github.com/TJYSunset/OpusMetadataIo"
       },
       "second": [
-        "LGPL-3.0.txt"
+        "Apache-2.0.txt"
       ]
     }
   ]

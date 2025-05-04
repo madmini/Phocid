@@ -80,6 +80,8 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.jaudiotagger)
     implementation(libs.reorderable)
+    //noinspection UseTomlInstead
+    implementation("org.sunsetware.omio:omio")
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)

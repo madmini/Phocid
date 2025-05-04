@@ -24,4 +24,4 @@ rootProject.name = "Phocid"
 
 include(":app")
 
-includeBuild("deps/jaudiotagger")
+includeBuild("deps/OpusMetadataIo")

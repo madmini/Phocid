@@ -9,10 +9,15 @@ import android.provider.MediaStore
 import android.util.Size
 import android.view.WindowManager
 import java.io.File
+import java.io.FileInputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.min
 import org.apache.commons.io.FilenameUtils
+import org.jaudiotagger.audio.AudioFileIO
+import org.sunsetware.omio.VORBIS_COMMENT_METADATA_BLOCK_PICTURE
+import org.sunsetware.omio.decodeMetadataBlockPicture
+import org.sunsetware.omio.readOpusMetadata
 
 /** https://developer.android.com/media/platform/supported-formats#image-formats */
 private val imageFileExtensionScores =
@@ -51,7 +56,7 @@ fun loadArtwork(
             }
 
     return if (highRes) {
-        loadWithJaudiotagger(path, forcedSizeLimit)
+        loadWithLibrary(path, forcedSizeLimit)
             ?: loadWithContentResolver(context, uri, forcedSizeLimit)
             ?: loadExternal(context, path, forcedSizeLimit)
     } else {
@@ -76,23 +81,32 @@ fun loadArtwork(
     )
 }
 
-private fun loadWithJaudiotagger(path: String?, sizeLimit: Int?): Bitmap? {
-    val file =
-        try {
-            readJaudiotaggerFile(requireNotNull(path))
-        } catch (_: Exception) {
-            null
-        }
+private fun loadWithLibrary(path: String?, sizeLimit: Int?): Bitmap? {
     return try {
-        ImageDecoder.decodeBitmap(
-            file
-                ?.tag
-                ?.firstArtwork
-                ?.binaryData
-                .let(::requireNotNull)
-                .let(ByteBuffer::wrap)
-                .let(ImageDecoder::createSource)
-        ) { decoder, info, source ->
+        requireNotNull(path)
+        val extension = FilenameUtils.getExtension(path).lowercase()
+        val data =
+            if (extension == "opus" || extension == "ogg") {
+                try {
+                    val metadata =
+                        FileInputStream(File(path)).buffered().use { stream ->
+                            readOpusMetadata(stream, false)
+                        }
+                    // TODO: find the "front cover" instead of using the first artwork
+                    // currently not doing that to avoid OOM
+                    requireNotNull(metadata.userComments[VORBIS_COMMENT_METADATA_BLOCK_PICTURE])
+                        .firstNotNullOf { decodeMetadataBlockPicture(it) }
+                        .data
+                } catch (_: Exception) {
+                    AudioFileIO.read(File(path)).tag.firstArtwork.binaryData
+                }
+            } else {
+                AudioFileIO.read(File(path)).tag.firstArtwork.binaryData
+            }
+        ImageDecoder.decodeBitmap(data.let(ByteBuffer::wrap).let(ImageDecoder::createSource)) {
+            decoder,
+            info,
+            source ->
             if (sizeLimit != null) {
                 decoder.setAllocator(ImageDecoder.ALLOCATOR_SOFTWARE)
                 decoder.setTargetSize(sizeLimit * info.size.width / info.size.height, sizeLimit)
