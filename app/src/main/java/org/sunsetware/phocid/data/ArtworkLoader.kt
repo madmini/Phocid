@@ -18,6 +18,7 @@ import org.jaudiotagger.audio.AudioFileIO
 import org.sunsetware.omio.VORBIS_COMMENT_METADATA_BLOCK_PICTURE
 import org.sunsetware.omio.decodeMetadataBlockPicture
 import org.sunsetware.omio.readOpusMetadata
+import org.sunsetware.phocid.utils.trimAndNormalize
 
 /** https://developer.android.com/media/platform/supported-formats#image-formats */
 private val imageFileExtensionScores =
@@ -32,6 +33,17 @@ private val imageFileNameScores =
         .sortedDescending()
         .mapIndexed { index, name -> name to index }
         .toMap()
+
+private val imageMimeTypes =
+    setOf(
+        "image/bmp",
+        "image/gif",
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/heic",
+        "image/heif",
+    )
 
 private val cachedScreenSize = AtomicInteger(0)
 
@@ -95,7 +107,11 @@ private fun loadWithLibrary(path: String?, sizeLimit: Int?): Bitmap? {
                     // TODO: find the "front cover" instead of using the first artwork
                     // currently not doing that to avoid OOM
                     requireNotNull(metadata.userComments[VORBIS_COMMENT_METADATA_BLOCK_PICTURE])
-                        .firstNotNullOf { decodeMetadataBlockPicture(it) }
+                        .firstNotNullOf { block ->
+                            decodeMetadataBlockPicture(block)?.takeIf {
+                                imageMimeTypes.contains(it.mimeType.trimAndNormalize())
+                            }
+                        }
                         .data
                 } catch (_: Exception) {
                     AudioFileIO.read(File(path)).tag.firstArtwork.binaryData
