@@ -2,10 +2,10 @@
 
 package org.sunsetware.phocid.data
 
+import android.app.ActivityManager
 import android.content.ContentUris
 import android.content.Context
 import android.content.pm.PackageManager
-import android.database.Cursor
 import android.provider.MediaStore
 import android.provider.MediaStore.Audio.Media
 import android.util.Log
@@ -22,12 +22,18 @@ import com.ibm.icu.text.Collator
 import com.ibm.icu.util.CaseInsensitiveString
 import java.io.File
 import java.io.FileInputStream
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.apache.commons.io.FilenameUtils
@@ -1162,7 +1168,7 @@ private val contentResolverColumns =
         Media.BITRATE,
     )
 
-fun scanTracks(
+suspend fun scanTracks(
     context: Context,
     advancedMetadataExtraction: Boolean,
     disableArtworkColorExtraction: Boolean,
@@ -1188,41 +1194,128 @@ fun scanTracks(
             null,
             "${Media._ID} ASC",
         )
-    val tracks = mutableListOf<Track>()
+    val tracks = ConcurrentLinkedQueue<Track>()
+    val crudeTracks = ConcurrentLinkedQueue<Track>()
+    var maxSize = 0L
 
     query?.use { cursor ->
         val ci = contentResolverColumns.associateWith { cursor.getColumnIndexOrThrow(it) }
         while (cursor.moveToNext()) {
-            onProgressReport(cursor.position, cursor.count)
             val id = cursor.getLong(ci[Media._ID]!!)
             val trackVersion = cursor.getLong(ci[Media.DATE_MODIFIED]!!)
             val oldIndex = old?.tracks?.get(id)
 
-            tracks +=
-                if (oldIndex?.version == trackVersion) {
-                    oldIndex
-                } else {
-                    scanTrack(
-                        context,
-                        advancedMetadataExtraction,
-                        disableArtworkColorExtraction,
-                        artistSeparators,
-                        artistSeparatorExceptions,
-                        genreSeparators,
-                        genreSeparatorExceptions,
-                        ci,
-                        cursor,
-                        id,
-                        trackVersion,
+            if (oldIndex?.version == trackVersion) {
+                tracks += oldIndex
+            } else {
+                val path =
+                    cursor
+                        .getString(ci[Media.DATA]!!)
+                        .trimAndNormalize()
+                        .let { FilenameUtils.normalize(it) }
+                        .let { FilenameUtils.separatorsToUnix(it) }
+                val size = cursor.getLong(ci[Media.SIZE]!!)
+                maxSize = max(maxSize, size)
+                crudeTracks +=
+                    Track(
+                        id = id,
+                        version = trackVersion,
+                        path = path,
+                        fileName = FilenameUtils.getName(path),
+                        dateAdded = cursor.getLong(ci[Media.DATE_ADDED]!!),
+                        title = cursor.getStringOrNull(ci[Media.TITLE]!!)?.trimAndNormalize(),
+                        artists =
+                            listOfNotNull(
+                                cursor.getStringOrNull(ci[Media.ARTIST]!!)?.trimAndNormalize()
+                            ),
+                        album = cursor.getStringOrNull(ci[Media.ALBUM]!!)?.trimAndNormalize(),
+                        albumArtist =
+                            cursor.getStringOrNull(ci[Media.ALBUM_ARTIST]!!)?.trimAndNormalize(),
+                        genres =
+                            listOfNotNull(
+                                cursor.getStringOrNull(ci[Media.GENRE]!!)?.trimAndNormalize()
+                            ),
+                        year = cursor.getIntOrNull(ci[Media.YEAR]!!),
+                        // https://developer.android.com/reference/android/provider/MediaStore.Audio.AudioColumns.html#TRACK
+                        trackNumber = cursor.getIntOrNull(ci[Media.TRACK]!!)?.let { it % 1000 },
+                        discNumber = cursor.getIntOrNull(ci[Media.DISC_NUMBER]!!),
+                        duration = cursor.getInt(ci[Media.DURATION]!!).milliseconds,
+                        size = size,
+                        format = UNKNOWN,
+                        sampleRate = 0,
+                        bitRate = cursor.getLongOrNull(ci[Media.BITRATE]!!) ?: 0,
+                        bitDepth = 0,
+                        unsyncedLyrics = null as String?,
+                        comment = null as String?,
+                        hasArtwork = false,
+                        vibrantColor = null,
+                        mutedColor = null,
                     )
-                }
+            }
         }
     }
+
+    val activityManager = context.getSystemService<ActivityManager>(ActivityManager::class.java)
+    val freeMemory =
+        ActivityManager.MemoryInfo()
+            .also { memoryInfo -> activityManager.getMemoryInfo(memoryInfo) }
+            .let { it.availMem - it.threshold }
+    val processorCount = Runtime.getRuntime().availableProcessors().coerceAtLeast(1)
+    val overheadFactor = 3.0
+    // Cast to double to prevent division by zero
+    val parallelism =
+        floor(freeMemory.toDouble() / maxSize / overheadFactor).toInt().coerceIn(1, processorCount)
+    Log.d(
+        "Phocid",
+        "Scanning tracks with parallelism of $parallelism (max file size $maxSize, free memory $freeMemory, processor count $processorCount)",
+    )
+    val progressCurrent = AtomicInteger(0)
+    val progressTotal = crudeTracks.size
+    coroutineScope {
+        val jobs =
+            (0..<parallelism).map {
+                launch {
+                    while (true) {
+                        val crudeTrack = crudeTracks.poll()
+                        if (crudeTrack == null) break
+
+                        progressCurrent.incrementAndGet()
+                        try {
+                            tracks +=
+                                scanTrack(
+                                    context,
+                                    advancedMetadataExtraction,
+                                    disableArtworkColorExtraction,
+                                    artistSeparators,
+                                    artistSeparatorExceptions,
+                                    genreSeparators,
+                                    genreSeparatorExceptions,
+                                    crudeTrack,
+                                )
+                        } catch (ex: Exception) {
+                            Log.e("Phocid", "Error scanning track ${crudeTrack.path}", ex)
+                        }
+                    }
+                }
+            }
+        launch {
+            while (jobs.all { it.isActive }) {
+                onProgressReport(progressCurrent.get(), progressTotal)
+                delay(1.seconds)
+            }
+        }
+    }
+
     return UnfilteredTrackIndex(libraryVersion, tracks.associateBy { it.id })
 }
 
 private val lyricsFieldNames = listOf("lyrics", "unsyncedlyrics", "©lyr")
 
+/**
+ * Issue #84: some systems might report incorrect durations, but Jaudiotagger only has second-level
+ * precision and might be unreliable while OpusMetadataIo will take 100x time to read the duration,
+ * so we need to manually extract duration if and only if MediaStore isn't working.
+ */
 private fun scanTrack(
     context: Context,
     advancedMetadataExtraction: Boolean,
@@ -1231,40 +1324,26 @@ private fun scanTrack(
     artistSeparatorExceptions: List<String>,
     genreSeparators: List<String>,
     genreSeparatorExceptions: List<String>,
-    ci: Map<String, Int>,
-    cursor: Cursor,
-    id: Long,
-    trackVersion: Long,
+    crudeTrack: Track,
 ): Track {
-    // Issue #84: some systems might report incorrect durations
-    // Jaudiotagger only has second-level precision and
-    // might be unreliable, so MediaStore should be preferred
+    val id = crudeTrack.id
+    val path = crudeTrack.path
 
-    val path =
-        cursor
-            .getString(ci[Media.DATA]!!)
-            .trimAndNormalize()
-            .let { FilenameUtils.normalize(it) }
-            .let { FilenameUtils.separatorsToUnix(it) }
-    val fileName = FilenameUtils.getName(path)
-    val dateAdded = cursor.getLong(ci[Media.DATE_ADDED]!!)
-    var title = cursor.getStringOrNull(ci[Media.TITLE]!!)?.trimAndNormalize()
-    var artists = listOfNotNull(cursor.getStringOrNull(ci[Media.ARTIST]!!)?.trimAndNormalize())
-    var album = cursor.getStringOrNull(ci[Media.ALBUM]!!)?.trimAndNormalize()
-    var albumArtist = cursor.getStringOrNull(ci[Media.ALBUM_ARTIST]!!)?.trimAndNormalize()
-    var genres = listOfNotNull(cursor.getStringOrNull(ci[Media.GENRE]!!)?.trimAndNormalize())
-    var year = cursor.getIntOrNull(ci[Media.YEAR]!!)
-    // https://developer.android.com/reference/android/provider/MediaStore.Audio.AudioColumns.html#TRACK
-    var trackNumber = cursor.getIntOrNull(ci[Media.TRACK]!!)?.let { it % 1000 }
-    var discNumber = cursor.getIntOrNull(ci[Media.DISC_NUMBER]!!)
-    var duration = cursor.getInt(ci[Media.DURATION]!!).milliseconds
-    val size = cursor.getLong(ci[Media.SIZE]!!)
-    var format = UNKNOWN
-    var sampleRate = 0
-    val bitRate = cursor.getLongOrNull(ci[Media.BITRATE]!!) ?: 0
-    var bitDepth = 0
-    var unsyncedLyrics = null as String?
-    var comment = null as String?
+    var title = crudeTrack.title
+    var artists = crudeTrack.artists
+    var album = crudeTrack.album
+    var albumArtist = crudeTrack.albumArtist
+    var genres = crudeTrack.genres
+    var year = crudeTrack.year
+    var trackNumber = crudeTrack.trackNumber
+    var discNumber = crudeTrack.discNumber
+    var duration = crudeTrack.duration
+    var format = crudeTrack.format
+    var sampleRate = crudeTrack.sampleRate
+    var bitRate = crudeTrack.bitRate
+    var bitDepth = crudeTrack.bitDepth
+    var unsyncedLyrics = crudeTrack.unsyncedLyrics
+    var comment = crudeTrack.comment
 
     fun extractWithOmio() {
         val (_, comments, opusDuration) =
@@ -1398,31 +1477,25 @@ private fun scanTrack(
     val vibrantColor = palette?.getSwatchForTarget(Target.VIBRANT)?.rgb?.let { Color(it) }
     val mutedColor = palette?.getSwatchForTarget(Target.MUTED)?.rgb?.let { Color(it) }
 
-    return Track(
-        id,
-        path,
-        fileName,
-        dateAdded,
-        trackVersion,
-        title,
-        artists,
-        album,
-        albumArtist,
-        genres,
-        year,
-        trackNumber,
-        discNumber,
-        duration,
-        size,
-        format,
-        sampleRate,
-        bitRate,
-        bitDepth,
-        palette != null || disableArtworkColorExtraction,
-        vibrantColor,
-        mutedColor,
-        unsyncedLyrics,
-        comment,
+    return crudeTrack.copy(
+        title = title,
+        artists = artists,
+        album = album,
+        albumArtist = albumArtist,
+        genres = genres,
+        year = year,
+        trackNumber = trackNumber,
+        discNumber = discNumber,
+        duration = duration,
+        format = format,
+        sampleRate = sampleRate,
+        bitRate = bitRate,
+        bitDepth = bitDepth,
+        unsyncedLyrics = unsyncedLyrics,
+        comment = comment,
+        hasArtwork = palette != null,
+        vibrantColor = vibrantColor,
+        mutedColor = mutedColor,
     )
 }
 
