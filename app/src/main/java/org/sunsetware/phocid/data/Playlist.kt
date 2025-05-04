@@ -413,9 +413,19 @@ data class RealizedPlaylist(
     override val sortPlaylist
         get() = Pair(specialType, customName)
 
+    override val sortTrackCount
+        get() = entries.size
+
     companion object {
         val CollectionSortingOptions =
-            mapOf("Name" to SortingOption(R.string.sorting_name, listOf(SortingKey.PLAYLIST)))
+            mapOf(
+                "Name" to SortingOption(R.string.sorting_name, listOf(SortingKey.PLAYLIST)),
+                "Track count" to
+                    SortingOption(
+                        R.string.sorting_track_count,
+                        listOf(SortingKey.TRACK_COUNT, SortingKey.PLAYLIST),
+                    ),
+            )
         val TrackSortingOptions =
             mapOf("Custom" to SortingOption(R.string.sorting_custom, emptyList())) +
                 Track.SortingOptions
