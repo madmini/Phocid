@@ -26,6 +26,9 @@ const val RESHUFFLE_ON_REPEAT_KEY = "reshuffleOnRepeat"
 const val FILE_PATH_KEY = "filePath"
 const val AUDIO_SESSION_ID_KEY = "audioSessionId"
 
+const val SHORTCUT_CONTINUE = "org.sunsetware.phocid.CONTINUE"
+const val SHORTCUT_SHUFFLE = "org.sunsetware.phocid.SHUFFLE"
+
 const val UNKNOWN = "<unknown>"
 
 val DRAG_THRESHOLD = 32.dp

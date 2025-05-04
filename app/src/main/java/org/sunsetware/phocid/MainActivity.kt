@@ -43,21 +43,28 @@ import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.takeWhile
 import org.apache.commons.io.FilenameUtils
 import org.sunsetware.phocid.data.Track
 import org.sunsetware.phocid.data.getArtworkColor
 import org.sunsetware.phocid.data.preferencesSystemLocale
+import org.sunsetware.phocid.data.sorted
 import org.sunsetware.phocid.ui.components.AnimatedForwardBackwardTransition
 import org.sunsetware.phocid.ui.components.DragLock
 import org.sunsetware.phocid.ui.theme.PhocidTheme
 import org.sunsetware.phocid.ui.views.PermissionRequestDialog
 import org.sunsetware.phocid.ui.views.library.LibraryScreen
+import org.sunsetware.phocid.ui.views.library.LibraryScreenTabType
 import org.sunsetware.phocid.ui.views.player.PlayerScreen
 import org.sunsetware.phocid.utils.combine
 
 class MainActivity : ComponentActivity(), IntentLauncher {
+    private val launchIntent = AtomicReference<Intent>(null)
+
     @OptIn(ExperimentalPermissionsApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        launchIntent.set(intent)
         val dismissSplashScreen = AtomicBoolean(false)
 
         installSplashScreen().setKeepOnScreenCondition { !dismissSplashScreen.get() }
@@ -126,6 +133,25 @@ class MainActivity : ComponentActivity(), IntentLauncher {
                 if (lifecycleState == Lifecycle.State.RESUMED) {
                     viewModel.initialize { dismissSplashScreen.set(true) }
                     viewModel.scanLibrary(false)
+                    when (launchIntent.getAndSet(null)?.action) {
+                        SHORTCUT_CONTINUE -> viewModel.playerManager.play()
+                        SHORTCUT_SHUFFLE -> {
+                            val playerManager = viewModel.playerManager
+                            val libraryIndex = viewModel.libraryIndex.value
+                            val preferences = viewModel.preferences.value
+                            val tracksTab = preferences.tabSettings[LibraryScreenTabType.TRACKS]!!
+                            playerManager.enableShuffle()
+                            playerManager.state.takeWhile { !it.shuffle }.collect()
+                            playerManager.setTracks(
+                                libraryIndex.tracks.values.sorted(
+                                    preferences.sortCollator,
+                                    tracksTab.sortingKeys,
+                                    tracksTab.sortAscending,
+                                ),
+                                null,
+                            )
+                        }
+                    }
                 }
             }
             LaunchedEffect(permissionGranted) {

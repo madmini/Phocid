@@ -286,6 +286,10 @@ class PlayerManager : AutoCloseable {
         if (mediaController.isPlaying) mediaController.pause() else mediaController.play()
     }
 
+    fun play() {
+        mediaController.play()
+    }
+
     fun setTracks(tracks: List<Track>, index: Int?) {
         val seekIndex: Int
         if (!_state.value.shuffle) {
@@ -376,6 +380,10 @@ class PlayerManager : AutoCloseable {
 
     fun toggleShuffle() {
         mediaController.shuffleModeEnabled = !mediaController.shuffleModeEnabled
+    }
+
+    fun enableShuffle() {
+        mediaController.shuffleModeEnabled = true
     }
 
     fun toggleRepeat() {

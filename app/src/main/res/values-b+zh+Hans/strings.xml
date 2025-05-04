@@ -240,6 +240,11 @@
     <string name="search_position_indicator">{0}/{1}</string>
     <string name="search_previous">上一个结果</string>
 
+    <string name="shortcut_continue_long_label">继续播放</string>
+    <string name="shortcut_continue_short_label">继续播放</string>
+    <string name="shortcut_shuffle_long_label">随机全部</string>
+    <string name="shortcut_shuffle_short_label">随机全部</string>
+
     <string name="snackbar_scanning_library">扫描曲库中（{0}/{1}）</string>
 
     <string name="sorting_album">专辑</string>

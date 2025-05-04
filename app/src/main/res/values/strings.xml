@@ -255,6 +255,11 @@
     <string name="search_position_indicator">{0}/{1}</string>
     <string name="search_previous">Previous result</string>
 
+    <string name="shortcut_continue_long_label">Continue where you left off</string>
+    <string name="shortcut_continue_short_label">Continue</string>
+    <string name="shortcut_shuffle_long_label">Shuffle play all tracks</string>
+    <string name="shortcut_shuffle_short_label">Shuffle all</string>
+
     <string name="snackbar_scanning_library">Scanning library ({0}/{1})</string>
 
     <string name="sorting_album">Album</string>
