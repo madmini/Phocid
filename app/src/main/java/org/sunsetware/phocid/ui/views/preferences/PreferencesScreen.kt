@@ -218,6 +218,15 @@ object PreferencesScreen : TopLevelScreen() {
                                 )
                             },
                     )
+                    UtilitySwitchListItem(
+                        title = Strings[R.string.preferences_swipe_to_remove_from_queue],
+                        checked = preferences.swipeToRemoveFromQueue,
+                        onCheckedChange = { checked ->
+                            viewModel.updatePreferences {
+                                it.copy(swipeToRemoveFromQueue = checked)
+                            }
+                        },
+                    )
                     UtilityListItem(
                         title = Strings[R.string.preferences_sorting_language],
                         subtitle =

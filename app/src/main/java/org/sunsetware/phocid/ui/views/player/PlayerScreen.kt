@@ -498,12 +498,14 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                 contentColor = animatedContentColor,
                                 dragIndicatorVisibility =
                                     playQueueDragState.position == 1f || playQueueDragTarget == 1f,
+                                swipeToRemoveFromQueue = preferences.swipeToRemoveFromQueue,
                                 onTogglePlayQueue = {
                                     playQueueDragState.animateTo(
                                         if (playQueueDragState.position <= 0) 1f else 0f
                                     )
                                 },
                                 onMoveTrack = { from, to -> playerManager.moveTrack(from, to) },
+                                onRemoveTrack = { playerManager.removeTrack(it) },
                                 onSeekTo = { playerManager.seekTo(it) },
                             )
                         }

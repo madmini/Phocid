@@ -46,6 +46,7 @@ import org.sunsetware.phocid.ui.components.LibraryListHeader
 import org.sunsetware.phocid.ui.components.LibraryListItemHorizontal
 import org.sunsetware.phocid.ui.components.OverflowMenu
 import org.sunsetware.phocid.ui.components.Scrollbar
+import org.sunsetware.phocid.ui.components.SwipeToDismiss
 import org.sunsetware.phocid.ui.theme.contentColor
 import org.sunsetware.phocid.ui.theme.darken
 import org.sunsetware.phocid.ui.views.MenuItem
@@ -67,8 +68,10 @@ sealed class PlayerScreenQueue {
         containerColor: Color,
         contentColor: Color,
         dragIndicatorVisibility: Boolean,
+        swipeToRemoveFromQueue: Boolean,
         onTogglePlayQueue: () -> Unit,
         onMoveTrack: (Int, Int) -> Unit,
+        onRemoveTrack: (Int) -> Unit,
         onSeekTo: (Int) -> Unit,
     )
 }
@@ -100,8 +103,10 @@ class PlayerScreenQueueDefaultBase(
         containerColor: Color,
         contentColor: Color,
         dragIndicatorVisibility: Boolean,
+        swipeToRemoveFromQueue: Boolean,
         onTogglePlayQueue: () -> Unit,
         onMoveTrack: (Int, Int) -> Unit,
+        onRemoveTrack: (Int) -> Unit,
         onSeekTo: (Int) -> Unit,
     ) {
         val view = LocalView.current
@@ -168,7 +173,7 @@ class PlayerScreenQueueDefaultBase(
                                 animateItemModifier =
                                     Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
                             ) {
-                                Box {
+                                SwipeToDismiss(index, swipeToRemoveFromQueue, onRemoveTrack) {
                                     LibraryListItemHorizontal(
                                         title = track.displayTitle,
                                         subtitle = track.displayArtistWithAlbum,

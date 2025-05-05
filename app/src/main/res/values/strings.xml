@@ -223,6 +223,7 @@
     <string name="preferences_shape_square">Square</string>
     <string name="preferences_sorting_language">Sorting language</string>
     <string name="preferences_sorting_language_system">System language</string>
+    <string name="preferences_swipe_to_remove_from_queue">Swipe to remove from queue</string>
     <string name="preferences_system_equalizer">Open system equalizer</string>
     <string name="preferences_tab_style">Tab style</string>
     <string name="preferences_tab_style_icon_only">Only icon</string>

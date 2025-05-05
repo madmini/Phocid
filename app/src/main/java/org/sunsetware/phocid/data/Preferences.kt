@@ -49,6 +49,7 @@ data class Preferences(
             Pair(it.sortingOptions.keys.first(), true)
         },
     val playerScreenLayout: PlayerScreenLayoutType = PlayerScreenLayoutType.DEFAULT,
+    val swipeToRemoveFromQueue: Boolean = false,
     val sortingLocaleLanguageTag: String? = null,
     val lyricsDisplay: LyricsDisplayPreference = LyricsDisplayPreference.DEFAULT,
     val densityMultiplier: Float = 1f,
