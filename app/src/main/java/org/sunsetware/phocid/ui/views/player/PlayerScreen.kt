@@ -381,6 +381,7 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                 onBack = { uiManager.back() },
                                 onEnableLyricsViewAutoScroll = { lyricsViewAutoScroll = true },
                                 onToggleLyricsView = {
+                                    playQueueDragState.snapTo(0f)
                                     uiManager.playerScreenUseLyricsView.update { !it }
                                 },
                             )
@@ -462,9 +463,11 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                                 onSeekToNext = { playerManager.seekToNext() },
                                 onToggleShuffle = { playerManager.toggleShuffle() },
                                 onTogglePlayQueue = {
-                                    playQueueDragState.animateTo(
-                                        if (playQueueDragState.position <= 0) 1f else 0f
-                                    )
+                                    if (!useLyricsView) {
+                                        playQueueDragState.animateTo(
+                                            if (playQueueDragState.position <= 0) 1f else 0f
+                                        )
+                                    }
                                 },
                                 onToggleCurrentTrackIsFavorite = {
                                     viewModel.playlistManager.updatePlaylist(
