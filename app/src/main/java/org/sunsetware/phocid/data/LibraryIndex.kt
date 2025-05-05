@@ -28,6 +28,7 @@ import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.math.floor
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -1264,7 +1265,11 @@ suspend fun scanTracks(
     val overheadFactor = 3.0
     // Cast to double to prevent division by zero
     val parallelism =
-        floor(freeMemory.toDouble() / maxSize / overheadFactor).toInt().coerceIn(1, processorCount)
+        if (maxSize == 0L) 1
+        else
+            floor(freeMemory.toDouble() / maxSize / overheadFactor)
+                .toInt()
+                .coerceIn(1, min(processorCount, 4))
     Log.d(
         "Phocid",
         "Scanning tracks with parallelism of $parallelism (max file size $maxSize, free memory $freeMemory, processor count $processorCount)",
