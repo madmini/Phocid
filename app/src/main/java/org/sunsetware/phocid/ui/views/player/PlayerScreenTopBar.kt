@@ -3,6 +3,7 @@
 package org.sunsetware.phocid.ui.views.player
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import org.sunsetware.phocid.R
 import org.sunsetware.phocid.Strings
 import org.sunsetware.phocid.ui.components.SingleLineText
+import org.sunsetware.phocid.ui.theme.INACTIVE_ALPHA
+import org.sunsetware.phocid.ui.theme.emphasizedStandard
 
 @Immutable
 sealed class PlayerScreenTopBar {
@@ -39,6 +43,7 @@ sealed class PlayerScreenTopBar {
     abstract fun Compose(
         containerColor: Color,
         contentColor: Color,
+        lyricsViewVisibility: Boolean,
         lyricsAutoScrollButtonVisibility: Boolean,
         lyricsButtonEnabled: Boolean,
         onBack: () -> Unit,
@@ -53,19 +58,26 @@ object PlayerScreenTopBarDefaultOverlay : PlayerScreenTopBar() {
     override fun Compose(
         containerColor: Color,
         contentColor: Color,
+        lyricsViewVisibility: Boolean,
         lyricsAutoScrollButtonVisibility: Boolean,
         lyricsButtonEnabled: Boolean,
         onBack: () -> Unit,
         onEnableLyricsViewAutoScroll: () -> Unit,
         onToggleLyricsView: () -> Unit,
     ) {
+        val buttonBackgroundAlpha by
+            animateFloatAsState(
+                if (lyricsViewVisibility) 1f else INACTIVE_ALPHA,
+                emphasizedStandard(),
+            )
         Box(modifier = Modifier.fillMaxWidth().height((48 + 8 * 2).dp)) {
             FilledTonalIconButton(
                 onClick = onBack,
                 modifier = Modifier.padding(start = 8.dp, top = 8.dp),
                 colors =
                     IconButtonDefaults.filledTonalIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor =
+                            MaterialTheme.colorScheme.surface.copy(alpha = buttonBackgroundAlpha)
                     ),
             ) {
                 Icon(
@@ -76,8 +88,8 @@ object PlayerScreenTopBarDefaultOverlay : PlayerScreenTopBar() {
             Row(modifier = Modifier.align(Alignment.TopEnd).padding(end = 8.dp, top = 8.dp)) {
                 AnimatedVisibility(
                     lyricsAutoScrollButtonVisibility,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
+                    enter = fadeIn(emphasizedStandard()),
+                    exit = fadeOut(emphasizedStandard()),
                 ) {
                     FilledTonalIconButton(
                         onClick = onEnableLyricsViewAutoScroll,
@@ -93,7 +105,11 @@ object PlayerScreenTopBarDefaultOverlay : PlayerScreenTopBar() {
                         )
                     }
                 }
-                AnimatedVisibility(lyricsButtonEnabled, enter = fadeIn(), exit = fadeOut()) {
+                AnimatedVisibility(
+                    lyricsButtonEnabled,
+                    enter = fadeIn(emphasizedStandard()),
+                    exit = fadeOut(emphasizedStandard()),
+                ) {
                     FilledTonalIconButton(
                         onClick = onToggleLyricsView,
                         colors =
@@ -119,6 +135,7 @@ object PlayerScreenTopBarDefaultStandalone : PlayerScreenTopBar() {
     override fun Compose(
         containerColor: Color,
         contentColor: Color,
+        lyricsViewVisibility: Boolean,
         lyricsAutoScrollButtonVisibility: Boolean,
         lyricsButtonEnabled: Boolean,
         onBack: () -> Unit,

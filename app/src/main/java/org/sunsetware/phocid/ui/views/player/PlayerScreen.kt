@@ -373,6 +373,7 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                             components.topBarStandalone.Compose(
                                 containerColor = animatedContainerColor.value,
                                 contentColor = animatedContentColor,
+                                lyricsViewVisibility = useLyricsView,
                                 lyricsAutoScrollButtonVisibility =
                                     useLyricsView &&
                                         !lyricsViewAutoScroll &&
@@ -390,6 +391,7 @@ fun PlayerScreen(dragLock: DragLock, viewModel: MainViewModel = viewModel()) {
                             components.topBarOverlay.Compose(
                                 containerColor = animatedContainerColor.value,
                                 contentColor = animatedContentColor,
+                                lyricsViewVisibility = useLyricsView,
                                 lyricsAutoScrollButtonVisibility =
                                     useLyricsView &&
                                         !lyricsViewAutoScroll &&
