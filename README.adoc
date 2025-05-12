@@ -17,7 +17,7 @@ A modern offline music player with familiar designs for Android 11+.
 
 This project aims to be a replacement with personal tweaks for the now-defunct https://github.com/kabouzeid/Phonograph[Phonograph] music player, but has no connections with it.
 
-Phocid is not officially available on Google Play or other app stores except https://f-droid.org/en/packages/org.sunsetware.phocid/[F-Droid]. I don't provide support for unauthorized repackaged versions, and you should report repackagers who violate GPL.
+Phocid is not officially available on Google Play or other app stores except https://f-droid.org/en/packages/org.sunsetware.phocid/[F-Droid]. I don't provide support for repackaged versions, and you should report repackagers who violate GPL.
 
 == Features
 
@@ -93,12 +93,16 @@ Remember to clone the submodule with `git clone --recurse-submodules`.
 == Contributing
 
 Please ask first if you want to work on big code changes.
-Instead of directly contributing code to Phocid, it would be great if you can help with big upstream issues first, like https://bitbucket.org/ijabz/jaudiotagger/issues/65/add-support-for-ogg-opus-format or https://github.com/androidx/media/issues/81. (Please let me know if you have successfully closed those!)
+Instead of directly contributing code to Phocid, it would be great if you can help with big upstream issues first, like https://github.com/androidx/media/issues/81. (Please let me know if you have successfully closed those!)
 
 If you would like to help with translations, see https://github.com/TJYSunset/Phocid/issues/1[issue #1].
 Please don't submit machine translations or AI hallucinations.
 
 I don't accept donations.
+
+== Credits
+
+* https://github.com/kisaragi-hiu[kisaragi-hiu] - zh-Hant translator
 
 == License
 
