@@ -1306,7 +1306,7 @@ suspend fun scanTracks(
         launch {
             while (jobs.all { it.isActive }) {
                 onProgressReport(progressCurrent.get(), progressTotal)
-                delay(1.seconds)
+                delay(100.milliseconds)
             }
         }
     }
