@@ -20,8 +20,6 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
@@ -356,7 +355,7 @@ class PlayerScreenControlsDefaultBase(
                             }
                             IconButton(onClick = onSeekToPreviousSmart) {
                                 Icon(
-                                    Icons.Filled.SkipPrevious,
+                                    painterResource(R.drawable.player_previous),
                                     contentDescription = Strings[R.string.player_previous],
                                 )
                             }
@@ -381,7 +380,7 @@ class PlayerScreenControlsDefaultBase(
                             }
                             IconButton(onClick = onSeekToNext) {
                                 Icon(
-                                    Icons.Filled.SkipNext,
+                                    painterResource(R.drawable.player_next),
                                     contentDescription = Strings[R.string.player_next],
                                 )
                             }
