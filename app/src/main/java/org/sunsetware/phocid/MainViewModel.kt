@@ -7,7 +7,6 @@ import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.milliseconds
@@ -20,9 +19,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.cbor.Cbor
-import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.encodeToByteArray
 import org.sunsetware.phocid.data.EmptyTrackIndex
 import org.sunsetware.phocid.data.LibraryIndex
 import org.sunsetware.phocid.data.Lyrics
@@ -32,6 +28,7 @@ import org.sunsetware.phocid.data.Preferences
 import org.sunsetware.phocid.data.SaveManager
 import org.sunsetware.phocid.data.UnfilteredTrackIndex
 import org.sunsetware.phocid.data.loadCbor
+import org.sunsetware.phocid.data.saveCbor
 import org.sunsetware.phocid.data.scanTracks
 import org.sunsetware.phocid.ui.components.ArtworkCache
 import org.sunsetware.phocid.ui.views.library.LibraryScreenTabInfo
@@ -39,8 +36,6 @@ import org.sunsetware.phocid.utils.combine
 import org.sunsetware.phocid.utils.map
 
 class MainViewModel(private val application: Application) : AndroidViewModel(application) {
-    private val trackIndexFile =
-        File(application.applicationContext.filesDir, TRACK_INDEX_FILE_NAME)
     private val initializationMutex = Mutex()
     private val scanMutex = Mutex()
 
@@ -139,21 +134,17 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                                     )
 
                                 val unfilteredTrackIndex =
-                                    try {
-                                        Cbor.decodeFromByteArray<UnfilteredTrackIndex>(
-                                            trackIndexFile.readBytes()
-                                        )
-                                    } catch (ex: Exception) {
-                                        Log.e("Phocid", "Can't read old library index", ex)
-                                        EmptyTrackIndex
-                                    }
+                                    loadCbor<UnfilteredTrackIndex>(
+                                        application.applicationContext,
+                                        TRACK_INDEX_FILE_NAME,
+                                        false,
+                                    ) ?: EmptyTrackIndex
                                 _unfilteredTrackIndex.update { unfilteredTrackIndex }
 
                                 playlistManager.initialize()
 
                                 playerManager.initialize(
                                     application.applicationContext,
-                                    unfilteredTrackIndex,
                                     viewModelScope,
                                     _preferences,
                                 )
@@ -228,11 +219,12 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                             }
                         if (newTrackIndex != null) {
                             _unfilteredTrackIndex.update { newTrackIndex }
-                            try {
-                                trackIndexFile.writeBytes(Cbor.encodeToByteArray(newTrackIndex))
-                            } catch (ex: Exception) {
-                                Log.e("Phocid", "Can't write track index", ex)
-                            }
+                            saveCbor(
+                                application.applicationContext,
+                                TRACK_INDEX_FILE_NAME,
+                                false,
+                                newTrackIndex,
+                            )
                             Log.d("Phocid", "Library scan completed")
                         } else {
                             Log.d("Phocid", "Library scan aborted: permission denied")
