@@ -951,157 +951,139 @@ data class LibraryIndex(
     val genres: CaseInsensitiveMap<Genre>,
     val folders: Map<String, Folder>,
     val defaultRootFolder: String,
-) {
-    companion object {
-        fun new(
-            unfilteredTrackIndex: UnfilteredTrackIndex,
-            collator: Collator,
-            blacklist: List<Regex>,
-            whitelist: List<Regex>,
-        ): LibraryIndex {
-            val tracks =
-                unfilteredTrackIndex.tracks.filter { (_, track) ->
-                    blacklist.none { it.containsMatchIn(track.path) } ||
-                        whitelist.any { it.containsMatchIn(track.path) }
-                }
-            val albums = getAlbums(tracks.values, collator)
-            val artists = getArtists(tracks.values, albums, collator)
-            val albumArtists = getAlbumArtists(albums, collator)
-            val genres = getGenres(tracks.values, artists, collator)
-            val folders = getFolders(tracks.values, collator)
-            val rootFolder = getRootFolder(folders)
-            return LibraryIndex(
-                unfilteredTrackIndex.version,
-                tracks,
-                albums,
-                artists,
-                albumArtists,
-                genres,
-                folders,
-                rootFolder,
-            )
-        }
+)
 
-        private fun getAlbums(tracks: Collection<Track>, collator: Collator): Map<AlbumKey, Album> {
-            return tracks
-                .groupBy { if (it.album != null) AlbumKey(it.album, it.albumArtist) else null }
-                .filter { it.key != null }
-                .map { (_, tracks) ->
-                    val sortedTracks =
-                        tracks.sorted(collator, Album.TrackSortingOptions.values.first().keys, true)
-                    val name = sortedTracks.mode { it.album!! }
-                    val albumArtist = sortedTracks.mode { it.albumArtist }
-                    AlbumKey(name, albumArtist) to
-                        Album(name, albumArtist, sortedTracks.mode { it.year }, sortedTracks)
-                }
-                .toMap()
+fun LibraryIndex(
+    unfilteredTrackIndex: UnfilteredTrackIndex,
+    collator: Collator,
+    blacklist: List<Regex>,
+    whitelist: List<Regex>,
+): LibraryIndex {
+    val tracks =
+        unfilteredTrackIndex.tracks.filter { (_, track) ->
+            blacklist.none { it.containsMatchIn(track.path) } ||
+                whitelist.any { it.containsMatchIn(track.path) }
         }
+    val albums = getAlbums(tracks.values, collator)
+    val artists = getArtists(tracks.values, albums, collator)
+    val albumArtists = getAlbumArtists(albums, collator)
+    val genres = getGenres(tracks.values, artists, collator)
+    val folders = getFolders(tracks.values, collator)
+    val rootFolder = getRootFolder(folders)
+    return LibraryIndex(
+        unfilteredTrackIndex.version,
+        tracks,
+        albums,
+        artists,
+        albumArtists,
+        genres,
+        folders,
+        rootFolder,
+    )
+}
 
-        private fun getArtists(
-            tracks: Collection<Track>,
-            albums: Map<AlbumKey, Album>,
-            collator: Collator,
-        ): CaseInsensitiveMap<Artist> {
-            return tracks
-                .flatMap { it.artists }
-                .distinctCaseInsensitive()
-                .associateWith { name ->
-                    val artistTracks =
-                        tracks
-                            .filter { track -> track.artists.any { it.equals(name, true) } }
-                            .sorted(collator, Artist.TrackSortingOptions.values.first().keys, true)
-                    val albumSlices =
-                        artistTracks
-                            .groupBy {
-                                if (it.album != null) AlbumKey(it.album, it.albumArtist) else null
-                            }
-                            .filter { it.key != null }
-                            .map {
-                                AlbumSlice(
-                                    albums[it.key]!!,
-                                    it.value.sorted(
-                                        collator,
-                                        Album.TrackSortingOptions.values.first().keys,
-                                        true,
-                                    ),
-                                )
-                            }
-                            .sortedBy(
+private fun getAlbums(tracks: Collection<Track>, collator: Collator): Map<AlbumKey, Album> {
+    return tracks
+        .groupBy { if (it.album != null) AlbumKey(it.album, it.albumArtist) else null }
+        .filter { it.key != null }
+        .map { (_, tracks) ->
+            val sortedTracks =
+                tracks.sorted(collator, Album.TrackSortingOptions.values.first().keys, true)
+            val name = sortedTracks.mode { it.album!! }
+            val albumArtist = sortedTracks.mode { it.albumArtist }
+            AlbumKey(name, albumArtist) to
+                Album(name, albumArtist, sortedTracks.mode { it.year }, sortedTracks)
+        }
+        .toMap()
+}
+
+private fun getArtists(
+    tracks: Collection<Track>,
+    albums: Map<AlbumKey, Album>,
+    collator: Collator,
+): CaseInsensitiveMap<Artist> {
+    return tracks
+        .flatMap { it.artists }
+        .distinctCaseInsensitive()
+        .associateWith { name ->
+            val artistTracks =
+                tracks
+                    .filter { track -> track.artists.any { it.equals(name, true) } }
+                    .sorted(collator, Artist.TrackSortingOptions.values.first().keys, true)
+            val albumSlices =
+                artistTracks
+                    .groupBy { if (it.album != null) AlbumKey(it.album, it.albumArtist) else null }
+                    .filter { it.key != null }
+                    .map {
+                        AlbumSlice(
+                            albums[it.key]!!,
+                            it.value.sorted(
                                 collator,
-                                Album.CollectionSortingOptions.values.first().keys,
+                                Album.TrackSortingOptions.values.first().keys,
                                 true,
-                            ) {
-                                it.album
-                            }
-                    Artist(name, artistTracks, albumSlices)
-                }
-                .let { CaseInsensitiveMap.noMerge(it) }
+                            ),
+                        )
+                    }
+                    .sortedBy(collator, Album.CollectionSortingOptions.values.first().keys, true) {
+                        it.album
+                    }
+            Artist(name, artistTracks, albumSlices)
         }
+        .let { CaseInsensitiveMap.noMerge(it) }
+}
 
-        private fun getAlbumArtists(
-            albums: Map<AlbumKey, Album>,
-            collator: Collator,
-        ): CaseInsensitiveMap<AlbumArtist> {
-            return albums.values
-                .mapNotNull { it.albumArtist }
-                .distinctCaseInsensitive()
-                .associateWith { name ->
-                    val albumArtistAlbums =
-                        albums.values
-                            .filter { it.albumArtist.equals(name, true) }
-                            .sorted(
-                                collator,
-                                Album.CollectionSortingOptions.values.first().keys,
-                                true,
-                            )
-                    val albumArtistTracks = albumArtistAlbums.flatMap { it.tracks }
-                    AlbumArtist(name, albumArtistTracks, albumArtistAlbums)
-                }
-                .let { CaseInsensitiveMap.noMerge(it) }
+private fun getAlbumArtists(
+    albums: Map<AlbumKey, Album>,
+    collator: Collator,
+): CaseInsensitiveMap<AlbumArtist> {
+    return albums.values
+        .mapNotNull { it.albumArtist }
+        .distinctCaseInsensitive()
+        .associateWith { name ->
+            val albumArtistAlbums =
+                albums.values
+                    .filter { it.albumArtist.equals(name, true) }
+                    .sorted(collator, Album.CollectionSortingOptions.values.first().keys, true)
+            val albumArtistTracks = albumArtistAlbums.flatMap { it.tracks }
+            AlbumArtist(name, albumArtistTracks, albumArtistAlbums)
         }
+        .let { CaseInsensitiveMap.noMerge(it) }
+}
 
-        private fun getGenres(
-            tracks: Collection<Track>,
-            artists: CaseInsensitiveMap<Artist>,
-            collator: Collator,
-        ): CaseInsensitiveMap<Genre> {
-            return tracks
-                .flatMap { it.genres }
-                .distinctCaseInsensitive()
-                .associateWith { name ->
-                    val genreTracks =
-                        tracks
-                            .filter { track -> track.genres.any { it.equals(name, true) } }
-                            .sorted(collator, Genre.TrackSortingOptions.values.first().keys, true)
-                    val artistSlices =
-                        artists.values
-                            .map { artist ->
-                                ArtistSlice(
-                                    artist,
-                                    artist.tracks
-                                        .filter { track ->
-                                            track.genres.any { it.equals(name, true) }
-                                        }
-                                        .sorted(
-                                            collator,
-                                            Artist.TrackSortingOptions.values.first().keys,
-                                            true,
-                                        ),
-                                )
-                            }
-                            .filter { it.tracks.isNotEmpty() }
-                            .sortedBy(
-                                collator,
-                                Artist.CollectionSortingOptions.values.first().keys,
-                                true,
-                            ) {
-                                it.artist
-                            }
-                    Genre(name, genreTracks, artistSlices)
-                }
-                .let { CaseInsensitiveMap.noMerge(it) }
+private fun getGenres(
+    tracks: Collection<Track>,
+    artists: CaseInsensitiveMap<Artist>,
+    collator: Collator,
+): CaseInsensitiveMap<Genre> {
+    return tracks
+        .flatMap { it.genres }
+        .distinctCaseInsensitive()
+        .associateWith { name ->
+            val genreTracks =
+                tracks
+                    .filter { track -> track.genres.any { it.equals(name, true) } }
+                    .sorted(collator, Genre.TrackSortingOptions.values.first().keys, true)
+            val artistSlices =
+                artists.values
+                    .map { artist ->
+                        ArtistSlice(
+                            artist,
+                            artist.tracks
+                                .filter { track -> track.genres.any { it.equals(name, true) } }
+                                .sorted(
+                                    collator,
+                                    Artist.TrackSortingOptions.values.first().keys,
+                                    true,
+                                ),
+                        )
+                    }
+                    .filter { it.tracks.isNotEmpty() }
+                    .sortedBy(collator, Artist.CollectionSortingOptions.values.first().keys, true) {
+                        it.artist
+                    }
+            Genre(name, genreTracks, artistSlices)
         }
-    }
+        .let { CaseInsensitiveMap.noMerge(it) }
 }
 
 private fun getFolders(tracks: Collection<Track>, collator: Collator): Map<String, Folder> {

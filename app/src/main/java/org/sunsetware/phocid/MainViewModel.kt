@@ -85,7 +85,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
                     }
                 },
             ) { trackIndex, tuple ->
-                LibraryIndex.new(trackIndex, tuple.collator, tuple.blacklist, tuple.whitelist)
+                LibraryIndex(trackIndex, tuple.collator, tuple.blacklist, tuple.whitelist)
             }
             .combine(viewModelScope, libraryIndexInputReady, true) { libraryIndex, ready ->
                 libraryIndexOutputReady.set(ready)

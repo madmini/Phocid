@@ -22,7 +22,7 @@ class LibraryIndexTest {
     @Test
     fun indexing_noCrash_InvalidMetadata() {
         val index =
-            LibraryIndex.new(
+            LibraryIndex(
                 UnfilteredTrackIndex(null, mapOf(InvalidTrack.id to InvalidTrack)),
                 collator,
                 emptyList(),
@@ -34,12 +34,7 @@ class LibraryIndexTest {
     @Test
     fun indexing_noCrash_EmptyLibrary() {
         val index =
-            LibraryIndex.new(
-                UnfilteredTrackIndex(null, emptyMap()),
-                collator,
-                emptyList(),
-                emptyList(),
-            )
+            LibraryIndex(UnfilteredTrackIndex(null, emptyMap()), collator, emptyList(), emptyList())
         assertThat(index.tracks).isEqualTo(emptyMap<Long, Track>())
     }
 
@@ -261,7 +256,7 @@ class LibraryIndexTest {
     }
 
     fun List<Track>.libraryIndex(): LibraryIndex {
-        return LibraryIndex.new(
+        return LibraryIndex(
             UnfilteredTrackIndex(null, associateBy { it.id }),
             collator,
             emptyList(),
