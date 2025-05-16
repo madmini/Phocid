@@ -49,8 +49,6 @@ import org.sunsetware.phocid.SET_TIMER_COMMAND
 import org.sunsetware.phocid.TIMER_FINISH_LAST_TRACK_KEY
 import org.sunsetware.phocid.TIMER_TARGET_KEY
 import org.sunsetware.phocid.UNSHUFFLED_INDEX_KEY
-import org.sunsetware.phocid.getUnshuffledIndex
-import org.sunsetware.phocid.setUnshuffledIndex
 import org.sunsetware.phocid.utils.Random
 import org.sunsetware.phocid.utils.wrap
 
@@ -71,7 +69,7 @@ data class PlayerState(
 @Immutable data class PlayerTransientState(val version: Long = -1, val isPlaying: Boolean = false)
 
 /** This method should work even if values of [UNSHUFFLED_INDEX_KEY] are discontinuous. */
-private fun MediaController.capturePlayerState(): PlayerState {
+fun Player.capturePlayerState(): PlayerState {
     val mediaItems = (0..<mediaItemCount).map { getMediaItemAt(it) }
     fun getUnshuffledPlayQueueMapping(): List<Int> {
         return mediaItems
@@ -94,10 +92,7 @@ private fun MediaController.capturePlayerState(): PlayerState {
     )
 }
 
-private fun MediaController.restorePlayerState(
-    state: PlayerState,
-    unfilteredTrackIndex: UnfilteredTrackIndex,
-) {
+fun Player.restorePlayerState(state: PlayerState, unfilteredTrackIndex: UnfilteredTrackIndex) {
     // Shuffle must be set before items or items will be shuffled again
     shuffleModeEnabled = state.shuffle
     setMediaItems(
@@ -125,7 +120,6 @@ class PlayerManager : AutoCloseable {
     val transientState = _transientState.asStateFlow()
 
     private lateinit var mediaController: MediaController
-    private lateinit var saveManager: SaveManager<PlayerState>
     private val transientStateVersion = AtomicLong(0)
 
     val currentPosition: Long
@@ -136,12 +130,10 @@ class PlayerManager : AutoCloseable {
     override fun close() {
         playbackPreferenceJob?.cancel()
         mediaController.release()
-        saveManager.close()
     }
 
     suspend fun initialize(
         context: Context,
-        unfilteredTrackIndex: UnfilteredTrackIndex,
         coroutineScope: CoroutineScope,
         preferences: StateFlow<Preferences>,
     ) {
@@ -154,33 +146,7 @@ class PlayerManager : AutoCloseable {
                 mediaController = controllerFuture.get()
                 mediaController.prepare()
 
-                if (
-                    mediaController.currentTimeline.isEmpty || unfilteredTrackIndex.tracks.isEmpty()
-                ) {
-                    var state =
-                        loadCbor<PlayerState>(context, PLAYER_STATE_FILE_NAME, isCache = false)
-                            ?: PlayerState()
-
-                    // Invalidate play queue if any track no longer exists
-                    if (
-                        state.actualPlayQueue.any { !unfilteredTrackIndex.tracks.containsKey(it) }
-                    ) {
-                        state =
-                            state.copy(
-                                unshuffledPlayQueueMapping =
-                                    if (state.shuffle) emptyList() else null,
-                                actualPlayQueue = emptyList(),
-                            )
-                    }
-                    _state.update { state }
-
-                    mediaController.restorePlayerState(_state.value, unfilteredTrackIndex)
-                } else {
-                    _state.update { mediaController.capturePlayerState() }
-                }
-                _transientState.update {
-                    mediaController.captureTransientState(transientStateVersion.getAndIncrement())
-                }
+                updateState()
 
                 val listener =
                     object : Player.Listener {
@@ -189,8 +155,6 @@ class PlayerManager : AutoCloseable {
                         }
                     }
                 mediaController.addListener(listener)
-                saveManager =
-                    SaveManager(context, coroutineScope, _state, PLAYER_STATE_FILE_NAME, false)
 
                 completed.set(true)
             },
@@ -480,6 +444,24 @@ private fun Track.getMediaItem(unshuffledIndex: Int?): MediaItem {
 
     return if (unshuffledIndex == null) unshuffledMediaItem
     else unshuffledMediaItem.setUnshuffledIndex(unshuffledIndex)
+}
+
+fun MediaItem.getUnshuffledIndex(): Int? {
+    return mediaMetadata.extras?.getInt(UNSHUFFLED_INDEX_KEY, -1)?.takeIf { it >= 0 }
+}
+
+fun MediaItem.setUnshuffledIndex(unshuffledIndex: Int?): MediaItem {
+    return buildUpon()
+        .setMediaMetadata(
+            mediaMetadata
+                .buildUpon()
+                .setExtras(
+                    if (unshuffledIndex == null) bundleOf()
+                    else bundleOf(Pair(UNSHUFFLED_INDEX_KEY, unshuffledIndex))
+                )
+                .build()
+        )
+        .build()
 }
 
 @Immutable
