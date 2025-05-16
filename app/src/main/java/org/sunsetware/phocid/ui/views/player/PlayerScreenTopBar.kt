@@ -3,7 +3,6 @@
 package org.sunsetware.phocid.ui.views.player
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
@@ -20,12 +19,10 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,19 +62,14 @@ object PlayerScreenTopBarDefaultOverlay : PlayerScreenTopBar() {
         onEnableLyricsViewAutoScroll: () -> Unit,
         onToggleLyricsView: () -> Unit,
     ) {
-        val buttonBackgroundAlpha by
-            animateFloatAsState(
-                if (lyricsViewVisibility) 1f else INACTIVE_ALPHA,
-                emphasizedStandard(),
-            )
         Box(modifier = Modifier.fillMaxWidth().height((48 + 8 * 2).dp)) {
             FilledTonalIconButton(
                 onClick = onBack,
                 modifier = Modifier.padding(start = 8.dp, top = 8.dp),
                 colors =
                     IconButtonDefaults.filledTonalIconButtonColors(
-                        containerColor =
-                            MaterialTheme.colorScheme.surface.copy(alpha = buttonBackgroundAlpha)
+                        containerColor = Color.Black.copy(alpha = INACTIVE_ALPHA),
+                        contentColor = Color.White,
                     ),
             ) {
                 Icon(
