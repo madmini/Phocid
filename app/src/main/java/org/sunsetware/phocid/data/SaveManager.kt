@@ -12,10 +12,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.withIndex
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -32,21 +33,23 @@ class SaveManager<T : Any>(
     fileName: String,
     isCache: Boolean,
 ) : AutoCloseable {
-    private val versionedFlow =
-        flow.withIndex().stateIn(coroutineScope, SharingStarted.Eagerly, IndexedValue(0, null))
     private val job =
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
                 var lastSavedVersion = 0
-                while (isActive) {
-                    delay(1.seconds)
-                    val latestValue = versionedFlow.value
-                    if (lastSavedVersion >= latestValue.index) continue
-
-                    if (saveCbor(kType, context, fileName, isCache, latestValue.value!!)) {
-                        lastSavedVersion = latestValue.index
+                flow
+                    .withIndex()
+                    .conflate()
+                    .onEach { (version, value) ->
+                        if (lastSavedVersion < version) {
+                            if (saveCbor(kType, context, fileName, isCache, value)) {
+                                lastSavedVersion = version
+                            }
+                        }
+                        delay(1.seconds)
                     }
-                }
+                    .cancellable()
+                    .collect()
             }
         }
 
